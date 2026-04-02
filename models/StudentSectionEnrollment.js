@@ -1,0 +1,54 @@
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db.js";
+import { withTenant } from "../utils/model-helper.js";
+
+const StudentSectionEnrollment = sequelize.define(
+  "StudentSectionEnrollment",
+  withTenant({
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    studentId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: "students", key: "id" },
+      onDelete: "CASCADE",
+    },
+    sectionId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: "sections", key: "id" },
+    },
+    academicYearId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: "academic_years", key: "id" },
+    },
+    rollNumber: {
+      type: DataTypes.STRING(30),
+      allowNull: true,
+    },
+    isCurrent: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+    enrollmentStatus: {
+      type: DataTypes.ENUM("regular", "repeater", "promoted", "detained"),
+      defaultValue: "regular",
+    }
+  }),
+  {
+    timestamps: true,
+    underscored: true,
+    tableName: "student_section_enrollments",
+    indexes: [
+      // Principal's Rule: A student can only have ONE enrollment per academic year per tenant
+      { unique: true, fields: ["tenant_id", "student_id", "academic_year_id"] },
+      { fields: ["tenant_id", "section_id"] },
+    ],
+  }
+);
+
+export default StudentSectionEnrollment;

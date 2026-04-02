@@ -1,0 +1,44 @@
+import sequelize from "../../config/db";
+import { withTenant } from "../withTenant";
+
+export const Section = sequelize.define(
+  "Section",
+  withTenant({
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    classId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: "classes", key: "id" },
+    },
+    academicYearId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: "academic_years", key: "id" },
+    },
+    name: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    capacity: {
+      type: DataTypes.INTEGER,
+      defaultValue: 40,
+    },
+    classTeacherId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: "users", key: "id" },
+    },
+  }),
+  {
+    timestamps: true,
+    underscored: true,
+    tableName: "sections",
+    indexes: [
+      { unique: true, fields: ["tenant_id", "class_id", "name", "academic_year_id"] },
+    ],
+  }
+);

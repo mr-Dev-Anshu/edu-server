@@ -7,7 +7,7 @@ export const withTenant = (schema) => {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: "school",
+        model: "tenants",
         key: "id",
       },
     },

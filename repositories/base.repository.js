@@ -18,8 +18,8 @@ export class BaseRepository {
     });
   }
 
-  async create(data) {
-    return await this.model.create(data);
+  async create(data, options = {}) {
+    return await this.model.create(data, options);
   }
 
   async update(id, tenantId, data) {

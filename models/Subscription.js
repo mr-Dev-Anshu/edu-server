@@ -7,10 +7,10 @@ const Subscription = sequelize.define('Subscription', {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
     },
-    schoolId: {
+    tenantId: {
         type: DataTypes.UUID,
         allowNull: false,
-        references: { model: 'schools', key: 'id' }
+        references: { model: 'tenants', key: 'id' }
     },
     planId: {
         type: DataTypes.UUID,
@@ -42,10 +42,12 @@ const Subscription = sequelize.define('Subscription', {
     }
 }, {
     timestamps: true,
+    paranoid: true,
     underscored: true,
     tableName: 'subscriptions',
     indexes: [
-        { fields: ['school_id'] },
+        { fields: ['tenant_id'] },
+        { fields: ['plan_id'] },
         { fields: ['status'] },
         { fields: ['end_date'] }
     ]

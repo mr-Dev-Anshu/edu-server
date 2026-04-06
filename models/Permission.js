@@ -1,3 +1,6 @@
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db.js";
+
 export const Permission = sequelize.define(
   "Permission",
   {
@@ -6,12 +9,12 @@ export const Permission = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    // action:resource format — e.g. 'read:students', 'write:fees', 'delete:exams'
+    // action:resource format - e.g. 'read:students', 'write:fees', 'delete:exams'
     name: {
       type: DataTypes.STRING(150),
       allowNull: false,
       unique: true,
-    },
+    },  
     action: {
       // 'create' | 'read' | 'update' | 'delete' | 'manage'
       type: DataTypes.STRING(50),
@@ -43,3 +46,5 @@ export const Permission = sequelize.define(
     ],
   }
 );
+
+export default Permission;

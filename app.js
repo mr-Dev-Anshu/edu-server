@@ -22,6 +22,14 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', timestamp: new Date().toISOString() });
 });
 
+import planRoutes from './router/plan.routes.js';
+import { superAdminSubscriptionRouter } from './router/subscription.routes.js';
+import { schoolOwnerSubscriptionRouter } from './router/subscription.routes.js';
+
+app.use('/api/v1/super-admin/plans', planRoutes);
+app.use('/api/v1/super-admin/subscriptions', superAdminSubscriptionRouter);
+app.use('/api/v1/school-owner/subscriptions', schoolOwnerSubscriptionRouter);
+
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

@@ -1,0 +1,91 @@
+{
+  "info": {
+    "_postman_id": "6d1c3a54-446d-4521-971b-1b3f842eccfb",
+    "name": "Plan",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48380864",
+    "_collection_link": "https://go.postman.co/collection/48380864-6d1c3a54-446d-4521-971b-1b3f842eccfb?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "create",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"himanshu\",\n  \"slug\": \"himanshu\",\n  \"description\": \"Small schools ke liye\",\n  \"monthlyPrice\": 2000,\n  \"yearlyPrice\": 20000,\n  \"currency\": \"INR\",\n  \"features\": {\n    \"maxStudents\": 500,\n    \"hasTransport\": false,\n    \"hasLMS\": false,\n    \"hasExams\": true,\n    \"storageLimitGb\": 10\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}super-admin/plans",
+          "host": [
+            "{{baseUrl}}super-admin"
+          ],
+          "path": [
+            "plans"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "get",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "patch",
+      "request": {
+        "method": "PATCH",
+        "header": []
+      },
+      "response": []
+    },
+    {
+      "name": "active",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,751 @@
+{
+  "info": {
+    "_postman_id": "426a911c-87bd-4d81-8a51-b2a9981bc182",
+    "name": "Subscription Feature — Postman Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48380864",
+    "_collection_link": "https://go.postman.co/collection/48380864-426a911c-87bd-4d81-8a51-b2a9981bc182?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Assign Plan — Valid (Super Admin) → 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 201 or 200', () => pm.expect(pm.response.code).to.be.oneOf([201, 200]));",
+              "pm.test('success is true', () => pm.expect(pm.response.json().success).to.be.true);",
+              "const id = pm.response.json().data?.id;",
+              "if (id) pm.collectionVariables.set('SUBSCRIPTION_ID', id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantId\": \"{{VALID_TENANT_ID}}\",\n  \"planId\": \"{{VALID_PLAN_ID}}\",\n  \"billingCycle\": \"monthly\",\n  \"amountPaid\": \"999.00\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Assign Plan — Missing billingCycle → 422",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 422', () => pm.expect(pm.response.code).to.equal(422));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantId\": \"{{VALID_TENANT_ID}}\",\n  \"planId\": \"{{VALID_PLAN_ID}}\",\n  \"amountPaid\": \"999.00\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Assign Plan — Invalid tenantId UUID → 422",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 422', () => pm.expect(pm.response.code).to.equal(422));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantId\": \"not-a-uuid\",\n  \"planId\": \"{{VALID_PLAN_ID}}\",\n  \"billingCycle\": \"monthly\",\n  \"amountPaid\": \"999.00\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Assign Plan — Non-existent tenant → 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 404', () => pm.expect(pm.response.code).to.equal(404));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantId\": \"00000000-0000-0000-0000-000000000000\",\n  \"planId\": \"{{VALID_PLAN_ID}}\",\n  \"billingCycle\": \"monthly\",\n  \"amountPaid\": \"999.00\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Get All Subscriptions → 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.equal(200));",
+              "pm.test('Has results count', () => pm.expect(pm.response.json()).to.have.property('results'));",
+              "pm.test('Has data array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Get All — Filter by status=active → 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.equal(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions?status=active",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "active"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Get One — Valid ID → 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.equal(200));",
+              "pm.test('Has data', () => pm.expect(pm.response.json()).to.have.property('data'));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions/{{SUBSCRIPTION_ID}}",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions",
+            "{{SUBSCRIPTION_ID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. Get One — Invalid ID → 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 404', () => pm.expect(pm.response.code).to.equal(404));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions/00000000-0000-0000-0000-000000000000",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions",
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. Update — Valid (no tenantId/planId) → 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.equal(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"billingCycle\": \"yearly\",\n  \"amountPaid\": \"9999.00\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions/{{SUBSCRIPTION_ID}}",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions",
+            "{{SUBSCRIPTION_ID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10. Update — With tenantId (not allowed) → 422",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 422', () => pm.expect(pm.response.code).to.equal(422));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantId\": \"{{VALID_TENANT_ID}}\",\n  \"billingCycle\": \"yearly\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions/{{SUBSCRIPTION_ID}}",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions",
+            "{{SUBSCRIPTION_ID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11. Update — With planId (not allowed) → 422",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 422', () => pm.expect(pm.response.code).to.equal(422));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"planId\": \"{{VALID_PLAN_ID}}\",\n  \"billingCycle\": \"yearly\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions/{{SUBSCRIPTION_ID}}",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions",
+            "{{SUBSCRIPTION_ID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12. Toggle Status → active → 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.equal(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"active\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions/{{SUBSCRIPTION_ID}}/status",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions",
+            "{{SUBSCRIPTION_ID}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "13. Toggle Status → canceled → 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.equal(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"canceled\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions/{{SUBSCRIPTION_ID}}/status",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions",
+            "{{SUBSCRIPTION_ID}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "14. No Token → 401",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 401', () => pm.expect(pm.response.code).to.equal(401));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "15. Wrong Role Token → 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 403', () => pm.expect(pm.response.code).to.equal(403));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{WRONG_ROLE_TOKEN}}"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/super-admin/subscriptions",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "subscriptions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "16. School Owner — Upgrade Plan → 201/200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 201 or 200', () => pm.expect(pm.response.code).to.be.oneOf([201, 200]));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SCHOOL_OWNER_TOKEN}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"planId\": \"{{VALID_PLAN_ID}}\",\n  \"billingCycle\": \"yearly\",\n  \"amountPaid\": \"9999.00\"\n}"
+        },
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/school-owner/subscriptions/upgrade",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "school-owner",
+            "subscriptions",
+            "upgrade"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "17. School Owner — Get Active Subscription → 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', () => pm.expect(pm.response.code).to.equal(200));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{SCHOOL_OWNER_TOKEN}}"
+          }
+        ],
+        "url": {
+          "raw": "{{BASE_URL}}/api/v1/school-owner/subscriptions/active",
+          "host": [
+            "{{BASE_URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "school-owner",
+            "subscriptions",
+            "active"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "SUPER_ADMIN_TOKEN",
+      "value": "YOUR_SUPER_ADMIN_JWT_HERE"
+    },
+    {
+      "key": "SCHOOL_OWNER_TOKEN",
+      "value": "YOUR_SCHOOL_OWNER_JWT_HERE"
+    },
+    {
+      "key": "WRONG_ROLE_TOKEN",
+      "value": "YOUR_WRONG_ROLE_JWT_HERE"
+    },
+    {
+      "key": "VALID_TENANT_ID",
+      "value": "REPLACE_WITH_REAL_TENANT_UUID"
+    },
+    {
+      "key": "VALID_PLAN_ID",
+      "value": "REPLACE_WITH_REAL_PLAN_UUID"
+    },
+    {
+      "key": "SUBSCRIPTION_ID",
+      "value": ""
+    }
+  ]
+}

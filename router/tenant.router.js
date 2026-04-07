@@ -19,9 +19,8 @@ router
   .get(listTenantsValidator, ctrl.getAll)
   .post(createTenantValidator, ctrl.create);
 
-router.post("/register", createTenantValidator, ctrl.create);
 
-router.route("/:id").get(ctrl.getOne).patch(updateTenantProfileValidator, ctrl.updateProfile);
+router.route("/:id").get(ctrl.getOne);
 
 router.patch("/:id/profile", updateTenantProfileValidator, ctrl.updateProfile);
 router.patch("/:id/status", updateTenantStatusValidator, ctrl.updateStatus);

@@ -15,6 +15,8 @@ const ALLOWED_IMAGE_MIME_TYPES = {
   "image/x-icon": "ico",
   "image/vnd.microsoft.icon": "ico",
 };
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_ASSET_BYTES = 5 * 1024 * 1024;
 
 const slugify = (value) =>
   String(value || "")
@@ -30,10 +32,24 @@ const buildPortalUrl = (subdomain) => {
   return `${protocol}://${subdomain}.${baseDomain}`;
 };
 
-const mergeObjects = (currentValue, nextValue) => ({
-  ...(currentValue || {}),
-  ...(nextValue || {}),
-});
+const isPlainObject = (value) =>
+  Boolean(value) && typeof value === "object" && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype;
+
+const mergeObjects = (currentValue, nextValue) => {
+  if (!isPlainObject(currentValue) || !isPlainObject(nextValue)) {
+    return nextValue ?? currentValue ?? {};
+  }
+
+  const merged = { ...currentValue };
+
+  for (const [key, value] of Object.entries(nextValue)) {
+    merged[key] = isPlainObject(value) && isPlainObject(currentValue[key])
+      ? mergeObjects(currentValue[key], value)
+      : value;
+  }
+
+  return merged;
+};
 
 export class TenantService {
   async registerTenant(data) {
@@ -115,13 +131,20 @@ export class TenantService {
       throw error;
     }
 
+    let provisioningSucceeded = true;
+
     try {
       await this.runProvisioning(tenant.id);
     } catch (error) {
-      return await this.getTenantDetails(tenant.id);
+      provisioningSucceeded = false;
     }
 
-    return await this.getTenantDetails(tenant.id);
+    const tenantDetails = await this.getTenantDetails(tenant.id);
+
+    return {
+      ...tenantDetails,
+      _provisioningSucceeded: provisioningSucceeded,
+    };
   }
 
   async listTenants(query) {
@@ -129,11 +152,14 @@ export class TenantService {
   }
 
   async getTenantDetails(id) {
-    const tenant = await tenantRepo.findById(id);
-    const subscription = await tenantRepo.findLatestSubscription(id);
+    const [tenant, subscription, provisioningSteps, metricSnapshot] = await Promise.all([
+      tenantRepo.findById(id),
+      tenantRepo.findLatestSubscription(id),
+      tenantRepo.findProvisioningSteps(id),
+      tenantRepo.listWithMetrics({ id, page: 1, limit: 1 }),
+    ]);
+
     const plan = subscription ? await tenantRepo.findPlanById(subscription.planId) : null;
-    const provisioningSteps = await tenantRepo.findProvisioningSteps(id);
-    const metricSnapshot = await tenantRepo.listWithMetrics({ id, page: 1, limit: 1 });
     const metrics = metricSnapshot.data[0] || null;
 
     return this.formatTenantResponse({
@@ -274,13 +300,21 @@ export class TenantService {
 
   async generateUniqueSubdomain(sourceValue) {
     const baseSubdomain = slugify(sourceValue) || "tenant";
-    let candidate = baseSubdomain;
-    let attempt = 1;
+    const existingSubdomains = new Set(await tenantRepo.findSubdomainsStartingWith(baseSubdomain));
 
-    while (await tenantRepo.findBySubdomain(candidate)) {
-      candidate = `${baseSubdomain}-${attempt}`.slice(0, 63);
-      attempt += 1;
+    if (!existingSubdomains.has(baseSubdomain)) {
+      return baseSubdomain;
     }
+
+    let attempt = 1;
+    let candidate = baseSubdomain;
+
+    do {
+      const suffix = "-" + attempt;
+      const maxBaseLength = 63 - suffix.length;
+      candidate = baseSubdomain.slice(0, maxBaseLength) + suffix;
+      attempt += 1;
+    } while (existingSubdomains.has(candidate));
 
     return candidate;
   }
@@ -429,6 +463,10 @@ export class TenantService {
   }
 
   async persistBrandingAsset(tenantId, assetPrefix, assetPayload) {
+    if (!UUID_REGEX.test(tenantId)) {
+      throw new AppError("Invalid tenant identifier", 400);
+    }
+
     const mimeType = this.resolveMimeType(assetPayload);
     const extension = ALLOWED_IMAGE_MIME_TYPES[mimeType];
 
@@ -441,6 +479,11 @@ export class TenantService {
       : assetPayload.base64;
 
     const assetBuffer = Buffer.from(normalizedBase64, "base64");
+
+    if (assetBuffer.length > MAX_ASSET_BYTES) {
+      throw new AppError(assetPrefix + " file size exceeds the 5MB limit", 400);
+    }
+
     const brandingDirectory = path.join(process.cwd(), "storage", "tenants", tenantId, "branding");
 
     await fs.mkdir(brandingDirectory, { recursive: true });

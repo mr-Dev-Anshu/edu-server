@@ -1,0 +1,404 @@
+{
+  "info": {
+    "_postman_id": "8e2f7a7b-2f6f-4e01-8f83-tenant-routes",
+    "name": "Edu Server Tenant Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing tenant management routes."
+  },
+  "item": [
+    {
+      "name": "List Tenants",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}?page=1&limit=10&status=active",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "status",
+              "value": "active"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Tenant",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('tenantId', json.data.id);",
+              "  }",
+              "  if (json.data && json.data.portalUrl) {",
+              "    pm.environment.set('tenantPortalUrl', json.data.portalUrl);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sanu Public School\",\n  \"organizationType\": \"school\",\n  \"officialEmail\": \"admin.sps@example.com\",\n  \"subdomain\": \"sanu-public-school\",\n  \"plan\": \"{{planSlug}}\",\n  \"billingCycle\": \"monthly\",\n  \"trialDays\": 14,\n  \"registrationNumber\": \"SPS-2026-001\",\n  \"settings\": {\n    \"academicStructure\": \"k12\",\n    \"hasHostel\": true,\n    \"hasTransport\": true,\n    \"gradingSystem\": \"percentage\",\n    \"timezone\": \"Asia/Kolkata\",\n    \"currency\": \"INR\"\n  },\n  \"address\": {\n    \"line1\": \"12 Knowledge Avenue\",\n    \"line2\": \"Near City Library\",\n    \"city\": \"Kolkata\",\n    \"state\": \"West Bengal\",\n    \"country\": \"India\",\n    \"postalCode\": \"700001\"\n  },\n  \"contactInfo\": {\n    \"primaryPhone\": \"+91-9876543210\",\n    \"alternatePhone\": \"+91-9000000001\",\n    \"contactPerson\": \"Sanu Admin\",\n    \"website\": \"https://sanu-public-school.example.com\"\n  },\n  \"themeConfig\": {\n    \"primaryColor\": \"#2563EB\",\n    \"secondaryColor\": \"#1D4ED8\",\n    \"accentColor\": \"#0F172A\",\n    \"fontFamily\": \"Inter\"\n  },\n  \"brandingAssets\": {\n    \"logoUrl\": \"https://dummyimage.com/256x256/2563eb/ffffff.png&text=SPS\",\n    \"faviconUrl\": \"https://dummyimage.com/64x64/1d4ed8/ffffff.png&text=S\",\n    \"coverImageUrl\": \"https://dummyimage.com/1200x300/0f172a/ffffff.png&text=Sanu+Public+School\"\n  },\n  \"customFields\": {\n    \"board\": \"CBSE\"\n  },\n  \"metadata\": {\n    \"createdFrom\": \"postman\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}",
+          "host": [
+            "{{baseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Tenant via Register Route",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sanu Demo School\",\n  \"organizationType\": \"school\",\n  \"officialEmail\": \"owner.demo@example.com\",\n  \"subdomain\": \"sanu-demo-school\",\n  \"plan\": \"{{planSlug}}\",\n  \"billingCycle\": \"yearly\",\n  \"trialDays\": 21,\n  \"registrationNumber\": \"SDS-2026-002\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Tenant By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Patch Tenant via /:id",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sanu Public School Updated\",\n  \"officialEmail\": \"principal.sps@example.com\",\n  \"registrationNumber\": \"SPS-2026-UPDATED\",\n  \"address\": {\n    \"line1\": \"99 Learning Street\",\n    \"city\": \"Kolkata\"\n  },\n  \"contactInfo\": {\n    \"primaryPhone\": \"+91-9999999999\",\n    \"contactPerson\": \"Updated Contact\"\n  },\n  \"settings\": {\n    \"hasTransport\": false,\n    \"gradingSystem\": \"cgpa\"\n  },\n  \"customFields\": {\n    \"affiliationCode\": \"AFF-2026-001\"\n  },\n  \"metadata\": {\n    \"updatedFrom\": \"generic-patch-route\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Patch Tenant Profile",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Sanu Public School Profile Edit\",\n  \"address\": {\n    \"state\": \"West Bengal\",\n    \"postalCode\": \"700002\"\n  },\n  \"contactInfo\": {\n    \"website\": \"https://portal.sanu.com\"\n  },\n  \"metadata\": {\n    \"updatedFrom\": \"profile-route\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}/profile",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Suspend Tenant",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"suspend\",\n  \"reason\": \"Testing suspension flow from Postman\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Unsuspend Tenant",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"unsuspend\",\n  \"reason\": \"Testing activation flow from Postman\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Branding Config",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"themeConfig\": {\n    \"primaryColor\": \"#059669\",\n    \"secondaryColor\": \"#047857\",\n    \"accentColor\": \"#022C22\",\n    \"fontFamily\": \"Poppins\"\n  },\n  \"brandingAssets\": {\n    \"logoUrl\": \"https://dummyimage.com/256x256/059669/ffffff.png&text=NEW\",\n    \"faviconUrl\": \"https://dummyimage.com/64x64/047857/ffffff.png&text=N\",\n    \"coverImageUrl\": \"https://dummyimage.com/1200x300/022c22/ffffff.png&text=Updated+Branding\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}/branding",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}",
+            "branding"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Branding Assets",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"logo\": {\n    \"fileName\": \"logo.png\",\n    \"mimeType\": \"image/png\",\n    \"base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4c8AAAAASUVORK5CYII=\"\n  },\n  \"favicon\": {\n    \"fileName\": \"favicon.png\",\n    \"mimeType\": \"image/png\",\n    \"base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4c8AAAAASUVORK5CYII=\"\n  },\n  \"coverImage\": {\n    \"fileName\": \"cover.png\",\n    \"mimeType\": \"image/png\",\n    \"base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4c8AAAAASUVORK5CYII=\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}/branding/assets",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}",
+            "branding",
+            "assets"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Provisioning Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}/provisioning",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}",
+            "provisioning"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retry Provisioning All Failed Or Pending",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}/provisioning/retry",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}",
+            "provisioning",
+            "retry"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retry Provisioning Specific Steps",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"steps\": [\"schema_created\", \"dns_provisioned\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}/provisioning/retry",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}",
+            "provisioning",
+            "retry"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Archive Tenant",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Testing archive route from Postman\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{tenantId}}/archive",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{tenantId}}",
+            "archive"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1/tenants"
+    },
+    {
+      "key": "tenantId",
+      "value": ""
+    },
+    {
+      "key": "planSlug",
+      "value": "starter"
+    },
+    {
+      "key": "tenantPortalUrl",
+      "value": ""
+    }
+  ]
+}

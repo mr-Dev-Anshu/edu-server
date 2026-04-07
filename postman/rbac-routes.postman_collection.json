@@ -1,0 +1,239 @@
+{
+  "info": {
+    "_postman_id": "9d0c4df0-1cb8-46d9-9fb4-rbac-routes",
+    "name": "Edu Server RBAC Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing role and permission routes."
+  },
+  "item": [
+    {
+      "name": "Create Permission - Create Students",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('createStudentsPermissionId', json.data.id);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"create:abc_public_school_students\",\n  \"action\": \"create\",\n  \"resource\": \"abc_public_school_students\",\n  \"module\": \"academics\",\n  \"description\": \"Allows ABC Public School staff to create student records\"\n}"
+        },
+        "url": {
+          "raw": "{{permissionBaseUrl}}",
+          "host": [
+            "{{permissionBaseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Permission - Read Students",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('readStudentsPermissionId', json.data.id);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"read:abc_public_school_students\",\n  \"action\": \"read\",\n  \"resource\": \"abc_public_school_students\",\n  \"module\": \"academics\",\n  \"description\": \"Allows ABC Public School staff to view student records\"\n}"
+        },
+        "url": {
+          "raw": "{{permissionBaseUrl}}",
+          "host": [
+            "{{permissionBaseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Permission - Update Students",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('updateStudentsPermissionId', json.data.id);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"update:abc_public_school_students\",\n  \"action\": \"update\",\n  \"resource\": \"abc_public_school_students\",\n  \"module\": \"academics\",\n  \"description\": \"Allows ABC Public School staff to update student records\"\n}"
+        },
+        "url": {
+          "raw": "{{permissionBaseUrl}}",
+          "host": [
+            "{{permissionBaseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Role - ABC Public School Teacher",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('teacherRoleId', json.data.id);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"name\": \"Teacher\",\n  \"slug\": \"teacher\",\n  \"description\": \"Teacher role for ABC Public School\",\n  \"hierarchyLevel\": 5,\n  \"permissionIds\": [\n    \"{{createStudentsPermissionId}}\",\n    \"{{readStudentsPermissionId}}\",\n    \"{{updateStudentsPermissionId}}\"\n  ],\n  \"customFields\": {\n    \"campus\": \"Main Campus\",\n    \"department\": \"Academics\"\n  },\n  \"metadata\": {\n    \"schoolName\": \"ABC Public School\",\n    \"createdFrom\": \"postman\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{roleBaseUrl}}",
+          "host": [
+            "{{roleBaseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Role - ABC Public School Coordinator",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('coordinatorRoleId', json.data.id);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"name\": \"Academic Coordinator\",\n  \"slug\": \"academic-coordinator\",\n  \"description\": \"Academic coordination role for ABC Public School\",\n  \"hierarchyLevel\": 4,\n  \"permissionIds\": [\n    \"{{readStudentsPermissionId}}\",\n    \"{{updateStudentsPermissionId}}\"\n  ],\n  \"customFields\": {\n    \"campus\": \"Main Campus\",\n    \"department\": \"Coordination\"\n  },\n  \"metadata\": {\n    \"schoolName\": \"ABC Public School\",\n    \"createdFrom\": \"postman\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{roleBaseUrl}}",
+          "host": [
+            "{{roleBaseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "permissionBaseUrl",
+      "value": "http://localhost:5000/api/v1/permissions"
+    },
+    {
+      "key": "roleBaseUrl",
+      "value": "http://localhost:5000/api/v1/roles"
+    },
+    {
+      "key": "tenantId",
+      "value": ""
+    },
+    {
+      "key": "createStudentsPermissionId",
+      "value": ""
+    },
+    {
+      "key": "readStudentsPermissionId",
+      "value": ""
+    },
+    {
+      "key": "updateStudentsPermissionId",
+      "value": ""
+    },
+    {
+      "key": "teacherRoleId",
+      "value": ""
+    },
+    {
+      "key": "coordinatorRoleId",
+      "value": ""
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import { catchAsync } from "../utils/catchAsync.js";
+
 export class BaseController {
   constructor(service) {
     this.service = service;

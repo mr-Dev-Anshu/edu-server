@@ -1,4 +1,4 @@
-import sequelize from "../config/db";
+import sequelize from "../config/db.js";
 import { withTenant } from "./withTenant";
 
 export const Student = sequelize.define(

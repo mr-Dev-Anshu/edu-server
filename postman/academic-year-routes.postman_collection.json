@@ -1,0 +1,215 @@
+{
+  "info": {
+    "_postman_id": "academic-year-routes-collection",
+    "name": "Edu Server Academic Year CRUD Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing academic year management CRUD operations."
+  },
+  "item": [
+    {
+      "name": "Create Academic Year",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('academicYearId', json.data.id);",
+              "  }",
+              "  console.log('Academic Year created successfully:', json.data);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"2024-2025\",\n  \"startDate\": \"2024-04-01\",\n  \"endDate\": \"2025-03-31\",\n  \"isCurrent\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/academic-years",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "academic-years"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Academic Years",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/academic-years?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "academic-years"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Current Academic Year",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/academic-years/current",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "academic-years", "current"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Academic Year by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/academic-years/{{academicYearId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "academic-years", "{{academicYearId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Academic Year",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"2024-2025 (Updated)\",\n  \"isCurrent\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/academic-years/{{academicYearId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "academic-years", "{{academicYearId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Set as Current Academic Year",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/academic-years/{{academicYearId}}/set-current",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "academic-years", "{{academicYearId}}", "set-current"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Lock Academic Year",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/academic-years/{{academicYearId}}/lock",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "academic-years", "{{academicYearId}}", "lock"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Unlock Academic Year",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/academic-years/{{academicYearId}}/unlock",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "academic-years", "{{academicYearId}}", "unlock"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Academic Year",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/academic-years/{{academicYearId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "academic-years", "{{academicYearId}}"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

@@ -1,5 +1,5 @@
-import sequelize from "../../config/db";
-import { withTenant } from "../withTenant";
+import sequelize from "../../config/db.js";
+import { withTenant } from "../withTenant.js";
 
 export const Class = sequelize.define(
   "Class",

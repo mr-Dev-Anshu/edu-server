@@ -7,8 +7,9 @@ import { fileURLToPath } from 'url';
 import permissionRouter from './router/permission.router.js';
 import roleRouter from './router/role.router.js';
 import tenantRouter from './router/tenant.router.js';
+import staffRouter from './router/staff.router.js';
+import academicYearRouter from './router/Academic/academicYear.routes.js';
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
-
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -31,9 +32,17 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', timestamp: new Date().toISOString() });
 });
 
+// Middleware to extract tenantId from headers
+const tenantIdMiddleware = (req, res, next) => {
+  req.tenantId = req.headers['x-tenant-id'] || req.body?.tenantId || req.query?.tenantId;
+  next();
+};
+
 app.use('/api/v1/tenants', tenantRouter);
 app.use('/api/v1/roles', roleRouter);
 app.use('/api/v1/permissions', permissionRouter);
+app.use('/api/v1/staff', tenantIdMiddleware, staffRouter);
+app.use('/api/v1/academic-years', tenantIdMiddleware, academicYearRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

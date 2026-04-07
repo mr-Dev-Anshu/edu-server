@@ -77,62 +77,10 @@
       "response": []
     },
     {
-      "name": "Create Tenant via Register Route",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Sanu Demo School\",\n  \"organizationType\": \"school\",\n  \"officialEmail\": \"owner.demo@example.com\",\n  \"subdomain\": \"sanu-demo-school\",\n  \"plan\": \"{{planSlug}}\",\n  \"billingCycle\": \"yearly\",\n  \"trialDays\": 21,\n  \"registrationNumber\": \"SDS-2026-002\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/register",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "register"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
       "name": "Get Tenant By Id",
       "request": {
         "method": "GET",
         "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/{{tenantId}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "{{tenantId}}"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Patch Tenant via /:id",
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Sanu Public School Updated\",\n  \"officialEmail\": \"principal.sps@example.com\",\n  \"registrationNumber\": \"SPS-2026-UPDATED\",\n  \"address\": {\n    \"line1\": \"99 Learning Street\",\n    \"city\": \"Kolkata\"\n  },\n  \"contactInfo\": {\n    \"primaryPhone\": \"+91-9999999999\",\n    \"contactPerson\": \"Updated Contact\"\n  },\n  \"settings\": {\n    \"hasTransport\": false,\n    \"gradingSystem\": \"cgpa\"\n  },\n  \"customFields\": {\n    \"affiliationCode\": \"AFF-2026-001\"\n  },\n  \"metadata\": {\n    \"updatedFrom\": \"generic-patch-route\"\n  }\n}"
-        },
         "url": {
           "raw": "{{baseUrl}}/{{tenantId}}",
           "host": [

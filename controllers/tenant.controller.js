@@ -11,7 +11,14 @@ export class TenantController {
 
   create = catchAsync(async (req, res) => {
     const data = await tenantService.registerTenant(req.body);
-    res.status(201).json({ success: true, data });
+    const { _provisioningSucceeded, ...responseData } = data;
+    const statusCode = _provisioningSucceeded ? 201 : 202;
+
+    res.status(statusCode).json({
+      success: true,
+      provisioningStatus: _provisioningSucceeded ? "completed" : "failed",
+      data: responseData,
+    });
   });
 
   getOne = catchAsync(async (req, res) => {

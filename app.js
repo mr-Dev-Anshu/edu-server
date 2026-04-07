@@ -24,8 +24,8 @@ app.use(cors({
 
 // 2. Utility Middleware
 app.use(morgan('dev'));
-app.use(express.json({ limit: '6mb' })); 
-app.use(express.urlencoded({ extended: true, limit: '6mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static(uploadsRoot));
 
 app.get('/health', (req, res) => {

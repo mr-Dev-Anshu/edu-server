@@ -46,6 +46,7 @@ const Subscription = sequelize.define('Subscription', {
     tableName: 'subscriptions',
     indexes: [
         { fields: ['tenant_id'] },
+        { fields: ['plan_id'] },
         { fields: ['status'] },
         { fields: ['end_date'] }
     ]

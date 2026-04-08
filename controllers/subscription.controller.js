@@ -1,16 +1,16 @@
 import { validationResult } from 'express-validator';
 import SubscriptionService from '../services/subscription.service.js';
-import {catchAsync} from '../utils/catchAsync.js';
-import {AppError} from '../utils/AppError.js';
+import { catchAsync } from '../utils/catchAsync.js';
+import { AppError } from '../utils/AppError.js';
 
 // Import models for service layer validation
 import Plan from '../models/Plan.js';
 import Tenant from '../models/Tenant.js';
 
-// Instantiate service at top — NOT extending BaseController (Super Admin rule)
 const subscriptionService = new SubscriptionService();
 
 class SubscriptionController {
+
     /**
      * Super Admin assigns a plan to a tenant
      */
@@ -44,7 +44,6 @@ class SubscriptionController {
             return next(new AppError(errors.array()[0].msg, 422));
         }
 
-        // tenantId comes from authenticated school owner's JWT
         const tenantId = req.user.tenantId;
         if (!tenantId) {
             return next(new AppError('Tenant ID not found in token. Access denied.', 403));
@@ -68,7 +67,7 @@ class SubscriptionController {
     /**
      * Get all subscriptions with optional filters
      */
-    getAllSubscriptions = catchAsync(async (req, res) => {
+    getAllSubscriptions = catchAsync(async (req, res, next) => {
         const { status, tenantId } = req.query;
         const filters = {};
         if (status) filters.status = status;
@@ -86,7 +85,7 @@ class SubscriptionController {
     /**
      * Get a single subscription by ID
      */
-    getSubscriptionById = catchAsync(async (req, res) => {
+    getSubscriptionById = catchAsync(async (req, res, next) => {
         const subscription = await subscriptionService.getSubscriptionById(req.params.id);
 
         res.status(200).json({
@@ -98,7 +97,7 @@ class SubscriptionController {
     /**
      * Get all subscriptions for a specific tenant
      */
-    getTenantSubscriptions = catchAsync(async (req, res) => {
+    getTenantSubscriptions = catchAsync(async (req, res, next) => {
         const subscriptions = await subscriptionService.getTenantSubscriptions(
             req.params.tenantId
         );

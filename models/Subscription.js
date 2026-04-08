@@ -42,6 +42,7 @@ const Subscription = sequelize.define('Subscription', {
     }
 }, {
     timestamps: true,
+    paranoid: true,
     underscored: true,
     tableName: 'subscriptions',
     indexes: [

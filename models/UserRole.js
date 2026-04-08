@@ -1,3 +1,6 @@
+import { DataTypes } from "sequelize";
+import sequelize from "../config/db.js";
+
 export const UserRole = sequelize.define(
   "UserRole",
   {
@@ -48,3 +51,5 @@ export const UserRole = sequelize.define(
     ],
   }
 );
+
+export default UserRole;

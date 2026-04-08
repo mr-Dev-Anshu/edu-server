@@ -52,12 +52,38 @@ const Tenant = sequelize.define('Tenant', {
         }
     },
 
+    address: {
+        type: DataTypes.JSONB,
+        defaultValue: {}
+    },
+
+    contactInfo: {
+        type: DataTypes.JSONB,
+        defaultValue: {}
+    },
+
     themeConfig: {
         type: DataTypes.JSONB,
         defaultValue: {
             primaryColor: '#3B82F6',
+            secondaryColor: '#1E40AF',
+            accentColor: '#0F172A',
             fontFamily: 'Inter'
         }
+    },
+
+    brandingAssets: {
+        type: DataTypes.JSONB,
+        defaultValue: {
+            logoUrl: null,
+            faviconUrl: null,
+            coverImageUrl: null
+        }
+    },
+
+    portalUrl: {
+        type: DataTypes.STRING,
+        allowNull: true
     },
 
     // --- Compliance & Registration ---
@@ -86,8 +112,10 @@ const Tenant = sequelize.define('Tenant', {
     tableName: 'tenants', // Renamed from schools to reflect the multi-vertical nature
     indexes: [
         { unique: true, fields: ['subdomain'] },
+        { unique: true, fields: ['official_email'] },
         { fields: ['organization_type'] },
-        { fields: ['status'] }
+        { fields: ['status'] },
+        { fields: ['portal_url'] }
     ]
 });
 

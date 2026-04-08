@@ -1,3 +1,5 @@
+import { AppError } from "../../utils/AppError.js";
+
 export const globalErrorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;

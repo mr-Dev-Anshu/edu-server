@@ -1,5 +1,6 @@
-import sequelize from "../../config/db";
-import { withTenant } from "../withTenant";
+import { DataTypes } from "sequelize";
+import sequelize from "../../config/db.js";
+import { withTenant } from "../withTenant.js";
 
 export const Section = sequelize.define(
   "Section",

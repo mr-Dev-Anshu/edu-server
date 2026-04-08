@@ -9,6 +9,7 @@ const HEX_COLOR_REGEX = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
 const SUBDOMAIN_REGEX = /^[a-z0-9-]+$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_OR_UPLOAD_PATH_REGEX = /^(https?:\/\/|\/uploads\/).+/i;
+const MAX_BASE64_LENGTH = 7_000_000;
 
 const ensurePlainObject = (value, fieldName) => {
   if (value === undefined) return;
@@ -194,6 +195,10 @@ export const uploadTenantBrandingAssetsValidator = createValidator((req) => {
 
     if (typeof assetPayload.base64 !== "string" || !assetPayload.base64.trim()) {
       throw new AppError(`${assetKey}.base64 is required`, 400);
+    }
+
+    if (assetPayload.base64.length > MAX_BASE64_LENGTH) {
+      throw new AppError(`${assetKey} file size exceeds the 5MB limit`, 400);
     }
 
     if (assetPayload.mimeType !== undefined) {

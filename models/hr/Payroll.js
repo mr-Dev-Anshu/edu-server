@@ -51,6 +51,6 @@ export const LeaveApplication = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "leave_applications",
-    indexes: [...tenantIndex(["staff_id", "status"])],
+    // indexes: [...tenantIndex(["staff_id", "status"])],
   },
 );

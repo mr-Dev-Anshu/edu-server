@@ -44,11 +44,11 @@ export const UserRole = sequelize.define(
     timestamps: false,
     underscored: true,
     tableName: "user_roles",
-    indexes: [
-      { unique: true, fields: ["user_id", "role_id", "academic_year_id"] },
-      { fields: ["user_id"] },
-      { fields: ["role_id"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["user_id", "role_id", "academic_year_id"] },
+    //   { fields: ["user_id"] },
+    //   { fields: ["role_id"] },
+    // ],
   }
 );
 

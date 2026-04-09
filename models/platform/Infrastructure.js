@@ -37,8 +37,8 @@ export const BiometricPunch = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "biometric_punches",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "staff_id", "punch_time"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "staff_id", "punch_time"] },
+    // ],
   },
 );

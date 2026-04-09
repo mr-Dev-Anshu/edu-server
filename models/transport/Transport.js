@@ -20,6 +20,6 @@ export const Vehicle = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "vehicles",
-    indexes: [...tenantIndex(["registration_number"], { unique: true })],
+    // indexes: [...tenantIndex(["registration_number"], { unique: true })],
   },
 );

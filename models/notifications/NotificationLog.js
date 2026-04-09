@@ -10,5 +10,5 @@ export const NotificationLog = sequelize.define('NotificationLog', {
   sentAt: { type: DataTypes.DATE, allowNull: true },
 }, {
   timestamps: true, underscored: true, tableName: 'notification_logs',
-  indexes: [{ fields: ['tenant_id', 'channel', 'status'] }]
+  // indexes: [{ fields: ['tenant_id', 'channel', 'status'] }]
 });

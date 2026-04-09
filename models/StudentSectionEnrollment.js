@@ -43,11 +43,8 @@ const StudentSectionEnrollment = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "student_section_enrollments",
-    indexes: [
-      // Principal's Rule: A student can only have ONE enrollment per academic year per tenant
-      { unique: true, fields: ["tenant_id", "student_id", "academic_year_id"] },
-      { fields: ["tenant_id", "section_id"] },
-    ],
+    // indexes: [
+    // ],
   }
 );
 

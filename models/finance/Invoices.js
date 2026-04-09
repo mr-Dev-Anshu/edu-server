@@ -42,10 +42,10 @@ export const Invoice = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "invoices",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "invoice_number"] },
-      ...tenantIndex(["status"]),
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "invoice_number"] },
+    //   ...tenantIndex(["status"]),
+    // ],
   },
 );
 
@@ -113,9 +113,9 @@ export const Payment = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "payments",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "receipt_number"] },
-      ...tenantIndex(["payment_status"]),
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "receipt_number"] },
+    //   ...tenantIndex(["payment_status"]),
+    // ],
   },
 );

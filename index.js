@@ -9,7 +9,7 @@ const startServer = async () => {
     await connectWithRetry();
 
     if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
+      await sequelize.sync({ alter: false });
       console.log('🔹 Database models synchronized (alter mode)');
     }
 

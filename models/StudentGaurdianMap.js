@@ -39,10 +39,10 @@ const StudentGuardianMap = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "student_guardian_maps",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "student_id", "guardian_id"] },
-      { fields: ["tenant_id", "guardian_id"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "student_id", "guardian_id"] },
+    //   { fields: ["tenant_id", "guardian_id"] },
+    // ],
   }
 );
 

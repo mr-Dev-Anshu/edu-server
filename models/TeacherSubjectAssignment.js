@@ -40,10 +40,9 @@ const TeacherSubjectAssignment = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "teacher_subject_assignments",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "staff_id", "subject_id", "section_id", "academic_year_id"] },
-      { fields: ["tenant_id", "academic_year_id"] },
-    ],
+    // indexes: [
+    
+    // ],
   }
 );
 

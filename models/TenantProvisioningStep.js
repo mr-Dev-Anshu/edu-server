@@ -57,11 +57,11 @@ const TenantProvisioningStep = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "tenant_provisioning_steps",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "step_key"] },
-      { fields: ["tenant_id"] },
-      { fields: ["status"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "step_key"] },
+    //   { fields: ["tenant_id"] },
+    //   { fields: ["status"] },
+    // ],
   }
 );
 

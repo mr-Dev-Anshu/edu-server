@@ -38,9 +38,9 @@ export const Staff = sequelize.define(
     paranoid: true,
     underscored: true,
     tableName: "staff",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "employee_code"] },
-      { fields: ["tenant_id", "staff_type"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "employee_code"] },
+    //   { fields: ["tenant_id", "staff_type"] },
+    // ],
   }
 );

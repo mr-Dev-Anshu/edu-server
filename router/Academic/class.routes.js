@@ -8,22 +8,22 @@ import {
 const router = express.Router();
 const ctrl = new ClassController();
 
-// ✅ Create Class
+// Create Class
 router.post("/", createClassValidator, ctrl.create);
 
-// ✅ Get All Classes (pagination supported)
+// Get All Classes (pagination supported)
 router.get("/", ctrl.getAll);
 
-// ✅ Get Class by ID
+// Get Class by ID
 router.get("/:id", ctrl.getOne);
 
-// ✅ Update Class
+// Update Class
 router.patch("/:id", updateClassValidator, ctrl.update);
 
-// ✅ Delete Class
+// Delete Class
 router.delete("/:id", ctrl.delete);
 
-// 🔥 Extra: Get classes with sections
+// Extra: Get classes with sections
 router.get("/with-sections/all", ctrl.getWithSections);
 
 export default router;

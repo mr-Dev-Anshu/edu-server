@@ -12,7 +12,7 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
     super(StudentSectionEnrollment);
   }
 
-  // 🔥 Check existing enrollment (UNIQUE RULE)
+  // Check existing enrollment (UNIQUE RULE)
   async findByStudentAndYear(studentId, academicYearId, tenantId) {
     return await this.model.findOne({
       where: {
@@ -23,7 +23,7 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
     });
   }
 
-  // 🔍 Find by student
+  // Find by student
   async findByStudent(studentId, tenantId) {
     return await this.model.findAll({
       where: { studentId, tenantId },
@@ -31,14 +31,14 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
     });
   }
 
-  // 🔍 Find by section
+  // Find by section
   async findBySection(sectionId, tenantId) {
     return await this.model.findAll({
       where: { sectionId, tenantId },
     });
   }
 
-  // 📄 Pagination + relations
+  // Pagination + relations
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
     const offset = (page - 1) * limit;
 
@@ -77,7 +77,7 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
     };
   }
 
-  // 🔗 Get single enrollment with details
+  // Get single enrollment with details
   async findWithDetails(id, tenantId) {
     return await this.model.findOne({
       where: { id, tenantId },

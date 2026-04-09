@@ -5,11 +5,11 @@ const classRepo = new ClassRepository();
 
 export class ClassService {
 
-  // ✅ Create Class
+  // Create Class
   async createClass(payload) {
     const { tenantId, name, numericLevel, description } = payload;
 
-    // 🔥 Duplicate check
+    // Duplicate check
     const existing = await classRepo.findByName(name, tenantId);
     if (existing) {
       throw new AppError("Class name already exists for this tenant", 400);
@@ -25,7 +25,7 @@ export class ClassService {
     return this.formatClassResponse(newClass);
   }
 
-  // ✅ Get All Classes (with pagination + filters)
+  // Get All Classes (with pagination + filters)
   async getAllClasses(tenantId, query) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
@@ -36,17 +36,17 @@ export class ClassService {
     return await classRepo.findWithPagination(tenantId, filters, page, limit);
   }
 
-  // ✅ Get Class By ID
+  // Get Class By ID
   async getClassById(id, tenantId) {
     const classData = await classRepo.findById(id, tenantId);
     return this.formatClassResponse(classData);
   }
 
-  // ✅ Update Class
+  // Update Class
   async updateClass(id, tenantId, updateData) {
     const existingClass = await classRepo.findById(id, tenantId);
 
-    // 🔥 Name update → duplicate check
+    // Name update → duplicate check
     if (updateData.name && updateData.name !== existingClass.name) {
       const duplicate = await classRepo.findByName(updateData.name, tenantId);
       if (duplicate) {
@@ -63,7 +63,7 @@ export class ClassService {
     return this.formatClassResponse(updated);
   }
 
-  // ✅ Delete Class
+  // Delete Class
   async deleteClass(id, tenantId) {
     const classData = await classRepo.findById(id, tenantId);
 
@@ -75,12 +75,12 @@ export class ClassService {
     };
   }
 
-  // ✅ Get Classes with Sections (🔥 relation use)
+  // Get Classes with Sections (relation use)
   async getClassesWithSections(tenantId) {
     return await classRepo.findWithSections(tenantId);
   }
 
-  // 🎯 Response Formatter (clean response)
+  // Response Formatter (clean response)
   formatClassResponse(classData) {
     return {
       id: classData.id,

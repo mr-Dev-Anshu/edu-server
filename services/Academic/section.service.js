@@ -9,23 +9,23 @@ const academicYearRepo = new AcademicYearRepository();
 
 export class SectionService {
 
-  // ✅ Create Section
+  // Create Section
   async createSection(payload) {
     const { tenantId, name, classId, academicYearId, capacity, classTeacherId } = payload;
 
-    // 🔥 Check Class exists
+    // Check Class exists
     const classExists = await classRepo.findById(classId, tenantId);
     if (!classExists) {
       throw new AppError("Class not found", 404);
     }
 
-    // 🔥 Check Academic Year exists
+    // Check Academic Year exists
     const yearExists = await academicYearRepo.findById(academicYearId, tenantId);
     if (!yearExists) {
       throw new AppError("Academic year not found", 404);
     }
 
-    // 🔥 Duplicate check
+    // Duplicate check
     const duplicate = await sectionRepo.findDuplicate(
       name,
       classId,
@@ -49,7 +49,7 @@ export class SectionService {
     return this.formatSectionResponse(section);
   }
 
-  // ✅ Get All Sections
+  // Get All Sections
   async getAllSections(tenantId, query) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
@@ -61,7 +61,7 @@ export class SectionService {
     return await sectionRepo.findWithPagination(tenantId, filters, page, limit);
   }
 
-  // ✅ Get Section by ID
+  // Get Section by ID
   async getSectionById(id, tenantId) {
     const section = await sectionRepo.findWithDetails(id, tenantId);
     if (!section) {
@@ -70,11 +70,11 @@ export class SectionService {
     return this.formatSectionResponse(section);
   }
 
-  // ✅ Update Section
+  // Update Section
   async updateSection(id, tenantId, updateData) {
     const existing = await sectionRepo.findById(id, tenantId);
 
-    // 🔥 Duplicate check if name/class/year change
+    // Duplicate check if name/class/year change
     if (
       updateData.name ||
       updateData.classId ||
@@ -108,7 +108,7 @@ export class SectionService {
     return this.formatSectionResponse(updated);
   }
 
-  // ✅ Delete Section
+  // Delete Section
   async deleteSection(id, tenantId) {
     const section = await sectionRepo.findById(id, tenantId);
 
@@ -120,7 +120,7 @@ export class SectionService {
     };
   }
 
-  // 🎯 Clean Response
+  // Clean Response
   formatSectionResponse(section) {
     return {
       id: section.id,

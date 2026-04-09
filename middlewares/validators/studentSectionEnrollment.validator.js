@@ -11,7 +11,7 @@ const createValidator = (validateFn) => (req, res, next) => {
   }
 };
 
-// 🔹 Helpers
+// Helpers
 const ensureUuid = (value, fieldName) => {
   if (typeof value !== "string" || !UUID_REGEX.test(value.trim())) {
     throw new AppError(`${fieldName} must be a valid UUID`, 400);
@@ -44,7 +44,7 @@ const ensureBoolean = (value, fieldName) => {
   }
 };
 
-// 🔥 ENUM validation
+// ENUM validation
 const VALID_STATUS = ["regular", "repeater", "promoted", "detained"];
 
 const ensureStatus = (value, fieldName) => {
@@ -63,7 +63,7 @@ const ensureOptionalStatus = (value, fieldName) => {
 
 
 
-// ✅ Create Enrollment Validator
+// Create Enrollment Validator
 export const createEnrollmentValidator = createValidator((req) => {
   const { body } = req;
 
@@ -83,7 +83,7 @@ export const createEnrollmentValidator = createValidator((req) => {
 
 
 
-// ✅ Update Enrollment Validator
+// Update Enrollment Validator
 export const updateEnrollmentValidator = createValidator((req) => {
   const { body } = req;
 

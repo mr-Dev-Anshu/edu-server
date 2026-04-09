@@ -8,19 +8,19 @@ import {
 const router = express.Router();
 const ctrl = new SectionController();
 
-// ✅ Create Section
+// Create Section
 router.post("/", createSectionValidator, ctrl.create);
 
-// ✅ Get All Sections (pagination + filters)
+// Get All Sections (pagination + filters)
 router.get("/", ctrl.getAll);
 
-// ✅ Get Section by ID
+// Get Section by ID
 router.get("/:id", ctrl.getOne);
 
-// ✅ Update Section
+// Update Section
 router.patch("/:id", updateSectionValidator, ctrl.update);
 
-// ✅ Delete Section
+// Delete Section
 router.delete("/:id", ctrl.delete);
 
 export default router;

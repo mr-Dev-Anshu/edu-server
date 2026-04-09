@@ -9,19 +9,19 @@ export class ClassController extends BaseController {
     super(classService);
   }
 
-  // ✅ Override getAll (pagination support)
+  // Override getAll (pagination support)
   getAll = catchAsync(async (req, res) => {
     const result = await classService.getAllClasses(req.tenantId, req.query);
     res.status(200).json({ success: true, ...result });
   });
 
-  // ✅ Override getOne (formatted response)
+  // Override getOne (formatted response)
   getOne = catchAsync(async (req, res) => {
     const data = await classService.getClassById(req.params.id, req.tenantId);
     res.status(200).json({ success: true, data });
   });
 
-  // ✅ Override create (custom service method)
+  // Override create (custom service method)
   create = catchAsync(async (req, res) => {
     const data = await classService.createClass({
       ...req.body,
@@ -30,7 +30,7 @@ export class ClassController extends BaseController {
     res.status(201).json({ success: true, data });
   });
 
-  // ✅ Update Class
+  // Update Class
   update = catchAsync(async (req, res) => {
     const data = await classService.updateClass(
       req.params.id,
@@ -40,7 +40,7 @@ export class ClassController extends BaseController {
     res.status(200).json({ success: true, data });
   });
 
-  // ✅ Delete Class
+  // Delete Class
   delete = catchAsync(async (req, res) => {
     const data = await classService.deleteClass(
       req.params.id,
@@ -49,7 +49,7 @@ export class ClassController extends BaseController {
     res.status(200).json({ success: true, ...data });
   });
 
-  // 🔥 Extra: Get Classes with Sections
+  // Extra: Get Classes with Sections
   getWithSections = catchAsync(async (req, res) => {
     const data = await classService.getClassesWithSections(req.tenantId);
     res.status(200).json({ success: true, data });

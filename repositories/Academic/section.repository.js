@@ -1,7 +1,5 @@
 import { Op } from "sequelize";
-import { Section } from "../../models/Academic/Section.js";
-import { Class } from "../../models/Academic/Class.js";
-import { AcademicYear } from "../../models/Academic/AcademicYear.js";
+import { AcademicYear, Class, Section } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
 export class SectionRepository extends BaseRepository {
@@ -9,7 +7,7 @@ export class SectionRepository extends BaseRepository {
     super(Section);
   }
 
-  // 🔥 Duplicate check (based on UNIQUE INDEX)
+  // Duplicate check (based on UNIQUE INDEX)
   async findDuplicate(name, classId, academicYearId, tenantId) {
     return await this.model.findOne({
       where: {
@@ -21,7 +19,7 @@ export class SectionRepository extends BaseRepository {
     });
   }
 
-  // 🔍 Find sections by class
+  // Find sections by class
   async findByClass(classId, tenantId) {
     return await this.model.findAll({
       where: { classId, tenantId },
@@ -29,7 +27,7 @@ export class SectionRepository extends BaseRepository {
     });
   }
 
-  // 🔍 Find sections by academic year
+  // Find sections by academic year
   async findByAcademicYear(academicYearId, tenantId) {
     return await this.model.findAll({
       where: { academicYearId, tenantId },
@@ -37,7 +35,7 @@ export class SectionRepository extends BaseRepository {
     });
   }
 
-  // 📄 Pagination + filters
+  // Pagination + filters
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
     const offset = (page - 1) * limit;
 
@@ -59,7 +57,7 @@ export class SectionRepository extends BaseRepository {
         },
         {
           model: AcademicYear,
-          as: "academicYear", // ✅ FIXED alias
+          as: "academicYear",
           attributes: ["id", "name", "isCurrent"],
         },
       ],
@@ -74,7 +72,7 @@ export class SectionRepository extends BaseRepository {
     };
   }
 
-  // 🔗 Get single section with full details
+  // Get single section with full details
   async findWithDetails(id, tenantId) {
     return await this.model.findOne({
       where: { id, tenantId },
@@ -86,14 +84,14 @@ export class SectionRepository extends BaseRepository {
         },
         {
           model: AcademicYear,
-          as: "academicYear", // ✅ FIXED alias
+          as: "academicYear",
           attributes: ["id", "name", "isCurrent"],
         },
       ],
     });
   }
 
-  // 🔍 Search section by name
+  // Search section by name
   async searchByName(keyword, tenantId) {
     return await this.model.findAll({
       where: {

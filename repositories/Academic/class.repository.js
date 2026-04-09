@@ -1,22 +1,22 @@
 import { Op } from "sequelize";
-import "../../models/index.js"; // 🔥 ADD THIS LINE
-import { Class } from "../../models/Academic/Class.js";
-import { Section } from "../../models/Academic/Section.js";
+import "../../models/index.js";
+import {Class, Section} from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
+
 
 export class ClassRepository extends BaseRepository {
   constructor() {
     super(Class);
   }
 
-  // 🔍 Find class by name (for duplicate check)
+  // Find class by name (for duplicate check)
   async findByName(name, tenantId) {
     return await this.model.findOne({
       where: { name, tenantId },
     });
   }
 
-  // 🔍 Find by numeric level (e.g., Class 1, 2, 3...)
+  // Find by numeric level (e.g., Class 1, 2, 3...)
   async findByNumericLevel(numericLevel, tenantId) {
     return await this.model.findAll({
       where: { numericLevel, tenantId },
@@ -24,7 +24,7 @@ export class ClassRepository extends BaseRepository {
     });
   }
 
-  // 📄 Pagination + Filters
+  // Pagination + Filters
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
     const offset = (page - 1) * limit;
 
@@ -49,7 +49,7 @@ export class ClassRepository extends BaseRepository {
     };
   }
 
-  // 🔗 Get classes with sections (relation include)
+  // Get classes with sections (relation include)
   async findWithSections(tenantId) {
     return await this.model.findAll({
       where: { tenantId },
@@ -63,7 +63,7 @@ export class ClassRepository extends BaseRepository {
     });
   }
 
-  // 🔍 Search by name (optional but useful 🔥)
+  // Search by name
   async searchByName(keyword, tenantId) {
     return await this.model.findAll({
       where: {

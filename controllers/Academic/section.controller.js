@@ -9,7 +9,7 @@ export class SectionController extends BaseController {
     super(sectionService);
   }
 
-  // ✅ Create Section
+  // Create Section
   create = catchAsync(async (req, res) => {
     const data = await sectionService.createSection({
       ...req.body,
@@ -22,7 +22,7 @@ export class SectionController extends BaseController {
     });
   });
 
-  // ✅ Get All Sections (pagination + filters)
+  // Get All Sections (pagination + filters)
   getAll = catchAsync(async (req, res) => {
     const result = await sectionService.getAllSections(
       req.tenantId,
@@ -35,7 +35,7 @@ export class SectionController extends BaseController {
     });
   });
 
-  // ✅ Get Section by ID (with details)
+  // Get Section by ID (with details)
   getOne = catchAsync(async (req, res) => {
     const data = await sectionService.getSectionById(
       req.params.id,
@@ -48,7 +48,7 @@ export class SectionController extends BaseController {
     });
   });
 
-  // ✅ Update Section
+  // Update Section
   update = catchAsync(async (req, res) => {
     const data = await sectionService.updateSection(
       req.params.id,
@@ -62,7 +62,7 @@ export class SectionController extends BaseController {
     });
   });
 
-  // ✅ Delete Section
+  // Delete Section
   delete = catchAsync(async (req, res) => {
     const data = await sectionService.deleteSection(
       req.params.id,

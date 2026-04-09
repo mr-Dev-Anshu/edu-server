@@ -8,19 +8,19 @@ import {
 const router = express.Router();
 const ctrl = new StudentSectionEnrollmentController();
 
-// ✅ Enroll Student
+// Enroll Student
 router.post("/", createEnrollmentValidator, ctrl.create);
 
-// ✅ Get All
+// Get All
 router.get("/", ctrl.getAll);
 
-// ✅ Get One
+// Get One
 router.get("/:id", ctrl.getOne);
 
-// ✅ Update (transfer)
+// Update (transfer)
 router.patch("/:id", updateEnrollmentValidator, ctrl.update);
 
-// ✅ Delete
+// Delete
 router.delete("/:id", ctrl.delete);
 
 export default router;

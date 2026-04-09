@@ -9,7 +9,7 @@ export class StudentSectionEnrollmentController extends BaseController {
     super(enrollmentService);
   }
 
-  // ✅ Enroll Student
+  // Enroll Student
   create = catchAsync(async (req, res) => {
     const data = await enrollmentService.enrollStudent({
       ...req.body,
@@ -22,7 +22,7 @@ export class StudentSectionEnrollmentController extends BaseController {
     });
   });
 
-  // ✅ Get All
+  // Get All
   getAll = catchAsync(async (req, res) => {
     const result = await enrollmentService.getAllEnrollments(
       req.tenantId,
@@ -35,7 +35,7 @@ export class StudentSectionEnrollmentController extends BaseController {
     });
   });
 
-  // ✅ Get One
+  // Get One
   getOne = catchAsync(async (req, res) => {
     const data = await enrollmentService.getEnrollmentById(
       req.params.id,
@@ -48,7 +48,7 @@ export class StudentSectionEnrollmentController extends BaseController {
     });
   });
 
-  // ✅ Update (transfer)
+  // Update (transfer)
   update = catchAsync(async (req, res) => {
     const data = await enrollmentService.updateEnrollment(
       req.params.id,
@@ -62,7 +62,7 @@ export class StudentSectionEnrollmentController extends BaseController {
     });
   });
 
-  // ✅ Delete
+  // Delete
   delete = catchAsync(async (req, res) => {
     const data = await enrollmentService.deleteEnrollment(
       req.params.id,

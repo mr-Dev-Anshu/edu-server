@@ -9,7 +9,7 @@ const academicYearRepo = new AcademicYearRepository();
 
 export class StudentSectionEnrollmentService {
 
-  // ✅ Enroll Student
+  // Enroll Student
   async enrollStudent(payload) {
     const {
       tenantId,
@@ -20,15 +20,15 @@ export class StudentSectionEnrollmentService {
       enrollmentStatus,
     } = payload;
 
-    // 🔥 Check Academic Year exists
+    // Check Academic Year exists
     const year = await academicYearRepo.findById(academicYearId, tenantId);
     if (!year) throw new AppError("Academic year not found", 404);
 
-    // 🔥 Check Section exists
+    // Check Section exists
     const section = await sectionRepo.findById(sectionId, tenantId);
     if (!section) throw new AppError("Section not found", 404);
 
-    // 🔥 UNIQUE RULE → already enrolled?
+    // UNIQUE RULE → already enrolled?
     const existing = await enrollmentRepo.findByStudentAndYear(
       studentId,
       academicYearId,
@@ -39,13 +39,13 @@ export class StudentSectionEnrollmentService {
       throw new AppError("Student already enrolled in this academic year", 400);
     }
 
-    // 🔥 OPTIONAL (PRO): Capacity check
+    // OPTIONAL (PRO): Capacity check
     const totalStudents = await enrollmentRepo.findBySection(sectionId, tenantId);
     if (totalStudents.length >= section.capacity) {
       throw new AppError("Section capacity full", 400);
     }
 
-    // 🔥 OPTIONAL (PRO): Auto roll number
+    // OPTIONAL (PRO): Auto roll number
     let finalRoll = rollNumber;
     if (!rollNumber) {
       finalRoll = totalStudents.length + 1;
@@ -64,7 +64,7 @@ export class StudentSectionEnrollmentService {
     return this.formatResponse(enrollment);
   }
 
-  // ✅ Get All
+  // Get All
   async getAllEnrollments(tenantId, query) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
@@ -82,7 +82,7 @@ export class StudentSectionEnrollmentService {
     );
   }
 
-  // ✅ Get One
+  // Get One
   async getEnrollmentById(id, tenantId) {
     const data = await enrollmentRepo.findWithDetails(id, tenantId);
     if (!data) throw new AppError("Enrollment not found", 404);
@@ -90,11 +90,11 @@ export class StudentSectionEnrollmentService {
     return this.formatResponse(data);
   }
 
-  // ✅ Update (transfer / change section)
+  // Update (transfer / change section)
   async updateEnrollment(id, tenantId, updateData) {
     const existing = await enrollmentRepo.findById(id, tenantId);
 
-    // 🔥 If changing section → check capacity
+    // If changing section → check capacity
     if (updateData.sectionId && updateData.sectionId !== existing.sectionId) {
       const section = await sectionRepo.findById(updateData.sectionId, tenantId);
 
@@ -118,7 +118,7 @@ export class StudentSectionEnrollmentService {
     return this.formatResponse(updated);
   }
 
-  // ✅ Delete
+  // Delete
   async deleteEnrollment(id, tenantId) {
     const data = await enrollmentRepo.findById(id, tenantId);
 
@@ -130,7 +130,7 @@ export class StudentSectionEnrollmentService {
     };
   }
 
-  // 🎯 Clean Response
+  // Clean Response
   formatResponse(data) {
     return {
       id: data.id,

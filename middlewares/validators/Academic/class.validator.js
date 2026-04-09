@@ -9,7 +9,7 @@ const createValidator = (validateFn) => (req, res, next) => {
   }
 };
 
-// 🔹 Helpers
+// Helpers
 const ensureString = (value, fieldName, { min = 1, max = 255 } = {}) => {
   if (
     typeof value !== "string" ||
@@ -26,7 +26,7 @@ const ensureNumber = (value, fieldName) => {
   }
 };
 
-// ✅ Create Validator
+// Create Validator
 export const createClassValidator = createValidator((req) => {
   const { body } = req;
 
@@ -44,7 +44,7 @@ export const createClassValidator = createValidator((req) => {
   }
 });
 
-// ✅ Update Validator
+// Update Validator
 export const updateClassValidator = createValidator((req) => {
   const { body } = req;
 

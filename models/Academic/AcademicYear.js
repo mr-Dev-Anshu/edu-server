@@ -37,9 +37,9 @@ export const AcademicYear = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "academic_years",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "name"] },
-      { fields: ["tenant_id", "is_current"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "name"] },
+    //   { fields: ["tenant_id", "is_current"] },
+    // ],
   }
 );

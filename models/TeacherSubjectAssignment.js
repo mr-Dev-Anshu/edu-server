@@ -40,9 +40,9 @@ const TeacherSubjectAssignment = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "teacher_subject_assignments",
-    indexes: [
+    // indexes: [
     
-    ],
+    // ],
   }
 );
 

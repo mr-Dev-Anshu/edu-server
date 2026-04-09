@@ -1,3 +1,4 @@
+import { DataTypes } from "sequelize";
 import sequelize from "../../config/db.js";
 import { withTenant } from "../withTenant.js";
 
@@ -37,8 +38,8 @@ export const Section = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "sections",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "class_id", "name", "academic_year_id"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "class_id", "name", "academic_year_id"] },
+    // ],
   }
 );

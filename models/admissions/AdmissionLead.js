@@ -54,6 +54,6 @@ export const AdmissionLead = sequelize.define(
     paranoid: true,
     underscored: true,
     tableName: "admission_leads",
-    indexes: [...tenantIndex(["status"]), ...tenantIndex(["guardian_phone"])],
+    // indexes: [...tenantIndex(["status"]), ...tenantIndex(["guardian_phone"])],
   },
 );

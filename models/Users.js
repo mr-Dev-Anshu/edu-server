@@ -72,10 +72,10 @@ const User = sequelize.define(
     paranoid: true, 
     underscored: true,
     tableName: "users",
-    indexes: [
-      { unique: true, fields: [ "email"] },
-      { fields: ["user_type"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: [ "email"] },
+    //   { fields: ["user_type"] },
+    // ],
     defaultScope: {
       attributes: { exclude: ['password'] }
     },

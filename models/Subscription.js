@@ -45,12 +45,12 @@ const Subscription = sequelize.define('Subscription', {
     paranoid: true,
     underscored: true,
     tableName: 'subscriptions',
-    indexes: [
-        { fields: ['tenant_id'] },
-        { fields: ['plan_id'] },
-        { fields: ['status'] },
-        { fields: ['end_date'] }
-    ]
+    // indexes: [
+    //     { fields: ['tenant_id'] },
+    //     { fields: ['plan_id'] },
+    //     { fields: ['status'] },
+    //     { fields: ['end_date'] }
+    // ]
 });
 
 export default Subscription;

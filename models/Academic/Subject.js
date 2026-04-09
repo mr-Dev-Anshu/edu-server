@@ -1,7 +1,8 @@
+import { DataTypes } from "sequelize";
 import sequelize from "../../config/db.js";
 import { withTenant } from "../withTenant.js";
 
-export const Subject = sequelize.define(
+ const Subject = sequelize.define(
   "Subject",
   withTenant({
     id: {
@@ -39,9 +40,11 @@ export const Subject = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "subjects",
-    indexes: [
-      { fields: ["tenant_id", "class_id"] },
-      { fields: ["tenant_id", "code"] },
-    ],
+    // indexes: [
+    //   { fields: ["tenant_id", "class_id"] },
+    //   { fields: ["tenant_id", "code"] },
+    // ],
   }
 );
+
+export default Subject ; 

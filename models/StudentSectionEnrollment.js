@@ -43,8 +43,8 @@ const StudentSectionEnrollment = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "student_section_enrollments",
-    indexes: [
-    ],
+    // indexes: [
+    // ],
   }
 );
 

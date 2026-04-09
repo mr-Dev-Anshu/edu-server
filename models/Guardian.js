@@ -27,8 +27,8 @@ export const Guardian = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "guardians",
-    indexes: [
-      { fields: ["tenant_id", "phone"] },
-    ],
+    // indexes: [
+    //   { fields: ["tenant_id", "phone"] },
+    // ],
   }
 );

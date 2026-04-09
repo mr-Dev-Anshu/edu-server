@@ -27,9 +27,9 @@ export const Class = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "classes",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "name"] },
-      { fields: ["tenant_id", "numeric_level"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "name"] },
+    //   { fields: ["tenant_id", "numeric_level"] },
+    // ],
   }
 );

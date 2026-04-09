@@ -6,7 +6,7 @@ export const withTenant = (schema, options = { isGlobal: false }) => {
     ...schema,
     tenantId: {
       type: DataTypes.UUID,
-      allowNull: options.isGlobal, // true for Users, false for others
+      allowNull: options.isGlobal,
       references: {
         model: "tenants", 
         key: "id",

@@ -9,6 +9,9 @@ import roleRouter from './router/role.router.js';
 import tenantRouter from './router/tenant.router.js';
 import staffRouter from './router/staff.router.js';
 import academicYearRouter from './router/Academic/academicYear.routes.js';
+import classRouter from './router/Academic/class.routes.js';
+import sectionRouter from "./router/Academic/section.routes.js";
+import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 
 const app = express();
@@ -43,6 +46,9 @@ app.use('/api/v1/roles', roleRouter);
 app.use('/api/v1/permissions', permissionRouter);
 app.use('/api/v1/staff', tenantIdMiddleware, staffRouter);
 app.use('/api/v1/academic-years', tenantIdMiddleware, academicYearRouter);
+app.use('/api/v1/classes', tenantIdMiddleware, classRouter);
+app.use("/api/v1/sections", tenantIdMiddleware, sectionRouter);
+app.use("/api/v1/enrollments", tenantIdMiddleware, enrollmentRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

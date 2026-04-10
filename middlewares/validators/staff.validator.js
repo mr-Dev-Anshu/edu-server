@@ -9,6 +9,16 @@ const createValidator = (validateFn) => (req, res, next) => {
   }
 };
 
+export const tenantValidator = createValidator((req) => {
+  const tenantId = req.tenantId;
+
+  if (!tenantId) {
+    throw new AppError("tenant_id is required", 400);
+  }
+
+  ensureUUID(tenantId, "tenant_id");
+});
+
 const ensureString = (value, fieldName, { min = 1, max = 255 } = {}) => {
   if (typeof value !== "string" || value.trim().length < min || value.trim().length > max) {
     throw new AppError(`${fieldName} must be ${min}-${max} characters`, 400);

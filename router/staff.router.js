@@ -1,9 +1,12 @@
 import express from "express";
 import { StaffController } from "../controllers/staff.controller.js";
-import { createStaffValidator, updateStaffValidator } from "../middlewares/validators/staff.validator.js";
+import { tenantValidator ,createStaffValidator, updateStaffValidator } from "../middlewares/validators/staff.validator.js";
+
 
 const router = express.Router();
 const ctrl = new StaffController();
+
+router.use(tenantValidator);
 
 // Create staff
 router.post("/", createStaffValidator, ctrl.create);

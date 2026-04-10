@@ -39,11 +39,11 @@ export const Permission = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "permissions",
-    indexes: [
-      { unique: true, fields: ["name"] },
-      { fields: ["module"] },
-      { fields: ["resource"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["name"] },
+    //   { fields: ["module"] },
+    //   { fields: ["resource"] },
+    // ],
   }
 );
 

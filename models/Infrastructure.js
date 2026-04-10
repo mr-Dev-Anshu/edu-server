@@ -28,7 +28,7 @@ export const Room = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "rooms",
-    indexes: [{ unique: true, fields: ["tenant_id", "name"] }],
+    // indexes: [{ unique: true, fields: ["tenant_id", "name"] }],
   }
 );
 
@@ -64,7 +64,7 @@ export const Timetable = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "timetables",
-    indexes: [{ fields: ["tenant_id", "section_id", "status"] }],
+    // indexes: [{ fields: ["tenant_id", "section_id", "status"] }],
   }
 );
 
@@ -112,11 +112,11 @@ export const TimetableSlot = sequelize.define(
     timestamps: false,
     underscored: true,
     tableName: "timetable_slots",
-    indexes: [
-      // Collision detection: Teacher cannot be in two rooms at the same time
-      { unique: true, fields: ["tenant_id", "teacher_id", "day_of_week", "period_number"] },
-      // Collision detection: Room cannot host two subjects at the same time
-      { unique: true, fields: ["tenant_id", "room_id", "day_of_week", "period_number"] },
-    ],
+    // indexes: [
+    //   // Collision detection: Teacher cannot be in two rooms at the same time
+    //   { unique: true, fields: ["tenant_id", "teacher_id", "day_of_week", "period_number"] },
+    //   // Collision detection: Room cannot host two subjects at the same time
+    //   { unique: true, fields: ["tenant_id", "room_id", "day_of_week", "period_number"] },
+    // ],
   }
 );

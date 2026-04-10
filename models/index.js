@@ -27,7 +27,7 @@ import StudentGuardianMap from "./StudentGaurdianMap.js";
 // import AcademicYear from './Academic/AcademicYear.js';
 // import Class from './Academic/Class.js';
 // import Section from './Academic/Section.js';
-// import Subject from './Academic/Subject.js';
+import Subject from './Academic/Subject.js';
 
 // // --- Users & Relationships ---
 // import Student from './Students.js';

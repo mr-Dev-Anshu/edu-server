@@ -1,5 +1,6 @@
-import sequelize from "../../config/db";
-import { withTenant } from "../withTenant";
+import { DataTypes } from "sequelize";
+import sequelize from "../../config/db.js";
+import { withTenant } from "../withTenant.js";
 
 
 
@@ -36,9 +37,9 @@ export const AcademicYear = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "academic_years",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "name"] },
-      { fields: ["tenant_id", "is_current"] },
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "name"] },
+    //   { fields: ["tenant_id", "is_current"] },
+    // ],
   }
 );

@@ -1,5 +1,5 @@
 import { BaseRepository } from './base.repository.js';
-import Subscription from '../models/Subscription.js';
+import { Subscription } from '../models/index.js';
 import { Op } from 'sequelize';
 
 class SubscriptionRepository extends BaseRepository {

@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { BaseRepository } from './base.repository.js';
 import { AppError } from '../utils/AppError.js';
-import Plan from '../models/Plan.js';
+import { Plan } from '../models/index.js';
 
 export class PlanRepository extends BaseRepository {
     constructor() {

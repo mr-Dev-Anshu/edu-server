@@ -13,7 +13,7 @@ const Tenant = sequelize.define('Tenant', {
         type: DataTypes.ENUM('school', 'college', 'university', 'coaching', 'preschool', 'other'),
         allowNull: false,
         defaultValue: 'school',
-        index: true
+        // index: true
     },
 
     // --- Branding & Identity ---
@@ -110,13 +110,13 @@ const Tenant = sequelize.define('Tenant', {
     paranoid: true,
     underscored: true,
     tableName: 'tenants', // Renamed from schools to reflect the multi-vertical nature
-    indexes: [
-        { unique: true, fields: ['subdomain'] },
-        { unique: true, fields: ['official_email'] },
-        { fields: ['organization_type'] },
-        { fields: ['status'] },
-        { fields: ['portal_url'] }
-    ]
+    // indexes: [
+    //     { unique: true, fields: ['subdomain'] },
+    //     { unique: true, fields: ['official_email'] },
+    //     { fields: ['organization_type'] },
+    //     { fields: ['status'] },
+    //     { fields: ['portal_url'] }
+    // ]
 });
 
 export default Tenant;

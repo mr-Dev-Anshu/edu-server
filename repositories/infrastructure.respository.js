@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Room, Timetable, TimetableSlot } from "../models/Infrastructure.js";
+import { Room, Timetable, TimetableSlot } from "../models/index.js";
 import { AppError } from "../utils/AppError.js";
 import { BaseRepository } from "./base.repository.js";
 

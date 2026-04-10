@@ -46,10 +46,10 @@ export const StaffAttendance = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "staff_attendance",
-    indexes: [
-      { unique: true, fields: ["tenant_id", "staff_id", "date"] },
-      ...tenantIndex(["staff_id", "date"]),
-      ...tenantIndex(["date", "status"]),
-    ],
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "staff_id", "date"] },
+    //   ...tenantIndex(["staff_id", "date"]),
+    //   ...tenantIndex(["date", "status"]),
+    // ],
   },
 );

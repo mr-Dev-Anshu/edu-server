@@ -5,7 +5,7 @@ const staffService = new StaffService();
 
 export class StaffController {
   create = catchAsync(async (req, res) => {
-    const data = await staffService.createStaff({ ...req.body, tenantId: req.tenantId });
+    const data = await staffService.createStaff(req.tenantId, req.body);
     res.status(201).json({ success: true, data });
   });
 

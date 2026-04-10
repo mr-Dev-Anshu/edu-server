@@ -4,8 +4,8 @@ import { AppError } from "../utils/AppError.js";
 const staffRepo = new StaffRepository();
 
 export class StaffService {
-  async createStaff(payload) {
-    const { tenantId, employeeCode, userId, staffType, department, designation } = payload;
+  async createStaff(tenantId, payload) {
+    const { employeeCode, userId, staffType, department, designation } = payload;
 
     // Check if employee code already exists for this tenant
     const existingStaff = await staffRepo.findByEmployeeCode(employeeCode, tenantId);

@@ -4,8 +4,8 @@ import { AppError } from "../../utils/AppError.js";
 const academicYearRepo = new AcademicYearRepository();
 
 export class AcademicYearService {
-  async createAcademicYear(payload) {
-    const { tenantId, name, startDate, endDate, isCurrent } = payload;
+  async createAcademicYear(tenantId, payload) {
+    const { name, startDate, endDate, isCurrent } = payload;
 
     // Validate dates
     const start = new Date(startDate);

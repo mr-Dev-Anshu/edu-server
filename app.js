@@ -34,7 +34,7 @@ app.get('/health', (req, res) => {
 
 // Middleware to extract tenantId from headers
 const tenantIdMiddleware = (req, res, next) => {
-  req.tenantId = req.headers['x-tenant-id'] || req.body?.tenantId || req.query?.tenantId;
+  req.tenantId = req.headers['x-tenant-id'];
   next();
 };
 

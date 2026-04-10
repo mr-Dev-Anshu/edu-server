@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "code-review-graph": {
+      "type": "stdio",
+      "command": "C:\\Users\\admin\\AppData\\Local\\Python\\pythoncore-3.14-64\\Scripts\\code-review-graph.exe",
+      "args": []
+    }
+  }
+}

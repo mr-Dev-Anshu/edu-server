@@ -1,12 +1,15 @@
 import express from "express";
 import { AcademicYearController } from "../../controllers/Academic/academicYear.controller.js";
 import {
+  tenantIdValidator,
   createAcademicYearValidator,
   updateAcademicYearValidator,
 } from "../../middlewares/validators/Academic/academicYear.validator.js";
 
 const router = express.Router();
 const ctrl = new AcademicYearController();
+
+router.use(tenantIdValidator);
 
 // Create academic year
 router.post("/", createAcademicYearValidator, ctrl.create);

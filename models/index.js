@@ -118,6 +118,10 @@ Guardian.belongsToMany(Student, {
   foreignKey: "guardianId",
   as: "students",
 });
+Guardian.hasMany(StudentGuardianMap, {
+  foreignKey: 'guardianId',
+  as: 'studentMappings',
+});
 
 Tenant.addScope("active", { where: { status: "active" } });
 

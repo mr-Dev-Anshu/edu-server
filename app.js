@@ -44,7 +44,7 @@ app.use('/api/v1/roles', roleRouter);
 app.use('/api/v1/permissions', permissionRouter);
 app.use('/api/v1/staff', tenantIdMiddleware, staffRouter);
 app.use('/api/v1/academic-years', tenantIdMiddleware, academicYearRouter);
-app.use('api/v1/guardians' , guardianRouter)
+app.use('/api/v1/guardians' ,tenantIdMiddleware, guardianRouter)
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

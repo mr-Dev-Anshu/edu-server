@@ -1,0 +1,1210 @@
+{
+  "info": {
+    "_postman_id": "47dfc8f4-3b92-4de9-b8b8-31c4d520d73c",
+    "name": "Infrastructure Module — Rooms, Timetables, Slots",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48380864",
+    "_collection_link": "https://go.postman.co/collection/48380864-47dfc8f4-3b92-4de9-b8b8-31c4d520d73c?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "ROOMS",
+      "item": [
+        {
+          "name": "Create Room — 201 Valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('success is true', () => pm.expect(body.success).to.be.true);",
+                  "pm.collectionVariables.set('roomId', body.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lab A-101\",\n  \"roomType\": \"lab\",\n  \"capacity\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Room — 400 Missing name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomType\": \"lab\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Room — 400 Invalid roomType",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Room\",\n  \"roomType\": \"dungeon\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Room — 409 Duplicate name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lab A-101\",\n  \"roomType\": \"lab\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Rooms — 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns array', () => pm.expect(body.data).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Rooms — Filter by roomType",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "?roomType=lab",
+              "query": [
+                {
+                  "key": "roomType",
+                  "value": "lab"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get One Room — 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms/{{roomId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms",
+                "{{roomId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get One Room — 404 Invalid ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Room — 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 45\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms/{{roomId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms",
+                "{{roomId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Room — 400 Empty body",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms/{{roomId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms",
+                "{{roomId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Room — 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms/{{roomId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms",
+                "{{roomId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "No Token — 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/rooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "rooms"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "TIMETABLES",
+      "item": [
+        {
+          "name": "Create Timetable — 201 Valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('timetableId', body.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"name\": \"Class 10A — Term 1 Schedule\",\n  \"status\": \"draft\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Timetable — 400 Missing sectionId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"name\": \"Incomplete\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Timetables — 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Timetables — Filter by status=draft",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "?status=draft",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "draft"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get One Timetable (with slots) — 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables/{{timetableId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables",
+                "{{timetableId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get One Timetable — 404 Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Timetable Name — 200",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Class 10A — Term 1 (Updated)\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables/{{timetableId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables",
+                "{{timetableId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Timetable — 400 sectionId blocked",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sectionId\": \"{{sectionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables/{{timetableId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables",
+                "{{timetableId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Publish Timetable — 200",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables/{{timetableId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables",
+                "{{timetableId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Timetable — 200 (cascades slots)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables/{{timetableId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables",
+                "{{timetableId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "TIMETABLE SLOTS",
+      "item": [
+        {
+          "name": "Create Slot — 201 Valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('slotId', body.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timetableId\": \"{{timetableId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"teacherId\": \"{{teacherId}}\",\n  \"roomId\": \"{{roomId}}\",\n  \"dayOfWeek\": 1,\n  \"periodNumber\": 1,\n  \"startTime\": \"08:00\",\n  \"endTime\": \"09:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/slots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "slots"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Slot — 400 endTime before startTime",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timetableId\": \"{{timetableId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"teacherId\": \"{{teacherId}}\",\n  \"dayOfWeek\": 1,\n  \"periodNumber\": 2,\n  \"startTime\": \"09:00\",\n  \"endTime\": \"08:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/slots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "slots"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Slot — 409 Teacher collision",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 409', () => pm.response.to.have.status(409));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timetableId\": \"{{timetableId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"teacherId\": \"{{teacherId}}\",\n  \"dayOfWeek\": 1,\n  \"periodNumber\": 1,\n  \"startTime\": \"08:00\",\n  \"endTime\": \"09:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/slots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "slots"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Slot — 400 timetableId blocked on update check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timetableId\": \"{{timetableId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/slots/{{slotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "slots",
+                "{{slotId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Slots by Timetable — 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/timetables/{{timetableId}}/slots",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "timetables",
+                "{{timetableId}}",
+                "slots"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get One Slot — 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/slots/{{slotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "slots",
+                "{{slotId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get One Slot — 404 Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/slots/00000000-0000-0000-0000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "slots",
+                "00000000-0000-0000-0000-000000000000"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Slot — 200",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startTime\": \"08:30\",\n  \"endTime\": \"09:30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/slots/{{slotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "slots",
+                "{{slotId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Slot — 200",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/slots/{{slotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "slots",
+                "{{slotId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "No Token — 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/infrastructure/slots/{{slotId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "infrastructure",
+                "slots",
+                "{{slotId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN_HERE"
+    },
+    {
+      "key": "roomId",
+      "value": ""
+    },
+    {
+      "key": "timetableId",
+      "value": ""
+    },
+    {
+      "key": "slotId",
+      "value": ""
+    },
+    {
+      "key": "sectionId",
+      "value": "VALID_SECTION_UUID"
+    },
+    {
+      "key": "academicYearId",
+      "value": "VALID_ACADEMIC_YEAR_UUID"
+    },
+    {
+      "key": "subjectId",
+      "value": "VALID_SUBJECT_UUID"
+    },
+    {
+      "key": "teacherId",
+      "value": "VALID_TEACHER_UUID"
+    }
+  ]
+}

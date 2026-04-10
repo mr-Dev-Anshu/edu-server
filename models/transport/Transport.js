@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../../config/db.js";
-import { withTenant, tenantIndex } from "../../utils/withTenant.js";
+import { withTenant } from "../withTenant.js";
 export const Vehicle = sequelize.define(
   "Vehicle",
   withTenant({

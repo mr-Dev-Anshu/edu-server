@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../../config/db.js";
-import { withTenant, tenantIndex } from "../../utils/withTenant.js";
+import { withTenant } from "../withTenant.js";
 
 export const ExamGroup = sequelize.define(
   "ExamGroup",
@@ -43,10 +43,10 @@ export const ExamGroup = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "exam_groups",
-    indexes: [
-      ...tenantIndex(["academic_year_id"]),
-      ...tenantIndex(["exam_type"]),
-    ],
+    // indexes: [
+    //   ...tenantIndex(["academic_year_id"]),
+    //   ...tenantIndex(["exam_type"]),
+    // ],
   },
 );
 

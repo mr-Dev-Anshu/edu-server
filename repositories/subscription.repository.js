@@ -1,91 +1,71 @@
+import { Op } from 'sequelize';
+import { AppError } from '../utils/AppError.js';
 import { BaseRepository } from './base.repository.js';
 import { Subscription } from '../models/index.js';
-import { Op } from 'sequelize';
+import Plan from '../models/Plan.js';
 
-class SubscriptionRepository extends BaseRepository {
-    constructor() {
-        super(Subscription);
-    }
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-    /**
-     * Override: findById without tenantId scope (Super Admin)
-     */
+export class SubscriptionRepository extends BaseRepository {
     async findById(id) {
-        return await Subscription.findOne({
-            where: { id },
-        });
+        const record = await Subscription.findOne({ where: { id } });
+        if (!record) throw new AppError('Subscription not found', 404);
+        return record;
     }
 
-    /**
-     * Override: findAll with ORDER BY createdAt DESC
-     */
     async findAll(options = {}) {
-        const { status, tenantId } = options;
-        const where = {};
-
-        if (status) where.status = status;
-        if (tenantId) where.tenantId = tenantId;
-
-        return await Subscription.findAll({
-            where,
+        return Subscription.findAll({
             order: [['createdAt', 'DESC']],
+            ...options,
         });
     }
 
-    /**
-     * Find active subscription for a specific tenant
-     */
-    async findActiveByTenantId(tenantId) {
-        return await Subscription.findOne({
+    async findByTenant(tenantId, options = {}) {
+        return Subscription.findAll({
+            where: { tenantId },
+            order: [['createdAt', 'DESC']],
+            ...options,
+        });
+    }
+
+    async findActiveByTenant(tenantId) {
+        return Subscription.findOne({
             where: {
                 tenantId,
-                status: 'active',
-                endDate: { [Op.gte]: new Date() },
+                status: { [Op.in]: ['active', 'trialing'] },
             },
-        });
-    }
-
-    /**
-     * Find latest subscription for a tenant (any status)
-     */
-    async findByTenantId(tenantId) {
-        return await Subscription.findOne({
-            where: { tenantId },
             order: [['createdAt', 'DESC']],
         });
     }
 
-    /**
-     * Find all subscriptions for a specific tenant
-     */
-    async findAllByTenantId(tenantId) {
-        return await Subscription.findAll({
-            where: { tenantId },
-            order: [['createdAt', 'DESC']],
-        });
+    async findPlan(identifier) {
+        const normalized = String(identifier).trim();
+        if (UUID_REGEX.test(normalized)) {
+            return Plan.findOne({
+                where: { [Op.or]: [{ id: normalized }, { slug: normalized }] },
+            });
+        }
+        return Plan.findOne({ where: { slug: normalized } });
     }
 
-    /**
-     * Update subscription by id
-     */
-    async updateById(id, data) {
-        const [affectedRows, [updated]] = await Subscription.update(data, {
-            where: { id },
-            returning: true,
-        });
-        return affectedRows > 0 ? updated : null;
+    async create(data, options = {}) {
+        return Subscription.create(data, options);
     }
 
-    /**
-     * Toggle subscription status
-     */
-    async toggleStatus(id, newStatus) {
-        const [affectedRows, [updated]] = await Subscription.update(
-            { status: newStatus },
-            { where: { id }, returning: true }
-        );
-        return affectedRows > 0 ? updated : null;
+    async update(id, data, options = {}) {
+        const record = await this.findById(id);
+        return record.update(data, options);
+    }
+
+    async expireById(id, options = {}) {
+        const record = await this.findById(id);
+        return record.update({ status: 'expired' }, options);
+    }
+
+    async toggleStatus(id) {
+        const record = await this.findById(id);
+        return record.update({
+            status: record.status === 'active' ? 'canceled' : 'active',
+        });
     }
 }
-
-export default SubscriptionRepository;

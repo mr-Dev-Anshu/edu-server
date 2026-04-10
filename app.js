@@ -3,13 +3,14 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import planRoutes from './router/plan.routes.js';
-import { superAdminSubscriptionRouter, schoolOwnerSubscriptionRouter } from './router/subscription.routes.js';
+import  Subscription from './router/subscription.routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import permissionRouter from './router/permission.router.js';
 import roleRouter from './router/role.router.js';
 import tenantRouter from './router/tenant.router.js';
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
+import { subscribe } from 'diagnostics_channel';
 
 
 const app = express();
@@ -34,8 +35,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/v1/super-admin/plans', planRoutes);
-app.use('/api/v1/super-admin/subscriptions', superAdminSubscriptionRouter);
-app.use('/api/v1/school-owner/subscriptions', schoolOwnerSubscriptionRouter);
+app.use('/api/v1/super-admin/subscriptions', Subscription);
 
 app.use('/api/v1/tenants', tenantRouter);
 app.use('/api/v1/roles', roleRouter);

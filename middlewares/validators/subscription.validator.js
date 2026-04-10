@@ -1,84 +1,108 @@
-// src/middlewares/validators/subscription.validator.js
+import { AppError } from '../../utils/AppError.js';
+import { createValidator } from '../../utils/createValidator.js';
 
-import { body } from 'express-validator';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ALLOWED_STATUSES = ['active', 'past_due', 'canceled', 'trialing', 'expired'];
+const ALLOWED_BILLING = ['monthly', 'yearly'];
+const MAX_LIMIT = 100;
+const MIN_LIMIT = 1;
 
-/**
- * Validator for Super Admin assigning a plan to a tenant
- * Required: tenantId, planId, billingCycle, amountPaid
- */
-export const createSubscriptionValidator = [
-    body('tenantId')
-        .notEmpty().withMessage('tenantId is required')
-        .isUUID().withMessage('tenantId must be a valid UUID'),
+function ensureUUID(value, fieldName) {
+    if (!value || typeof value !== 'string' || !UUID_REGEX.test(value.trim())) {
+        throw new AppError(`${fieldName} must be a valid UUID`, 422);
+    }
+}
 
-    body('planId')
-        .notEmpty().withMessage('planId is required')
-        .isUUID().withMessage('planId must be a valid UUID'),
+function ensureString(value, fieldName) {
+    if (typeof value !== 'string' || value.trim() === '') {
+        throw new AppError(`${fieldName} must be a non-empty string`, 400);
+    }
+}
 
-    body('billingCycle')
-        .notEmpty().withMessage('billingCycle is required')
-        .isIn(['monthly', 'yearly']).withMessage('billingCycle must be either monthly or yearly'),
+function ensureEnum(value, fieldName, allowed) {
+    if (!allowed.includes(value)) {
+        throw new AppError(`${fieldName} must be one of: ${allowed.join(', ')}`, 400);
+    }
+}
 
-    body('amountPaid')
-        .notEmpty().withMessage('amountPaid is required')
-        .isDecimal({ decimal_digits: '0,2' }).withMessage('amountPaid must be a valid decimal number')
-        .custom((value) => parseFloat(value) >= 0).withMessage('amountPaid must be a non-negative number'),
+function ensureOptionalEnum(value, fieldName, allowed) {
+    if (value !== undefined) ensureEnum(value, fieldName, allowed);
+}
 
-    body('status')
-        .optional()
-        .isIn(['active', 'past_due', 'canceled', 'trialing', 'expired'])
-        .withMessage('status must be one of: active, past_due, canceled, trialing, expired'),
+function ensureOptionalPositiveInt(value, fieldName, min, max) {
+    if (value === undefined) return;
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < min || n > max) {
+        throw new AppError(`${fieldName} must be an integer between ${min} and ${max}`, 400);
+    }
+}
 
-    body('nextBillingDate')
-        .optional()
-        .isISO8601().withMessage('nextBillingDate must be a valid ISO 8601 date'),
-];
+function ensureDate(value, fieldName) {
+    if (!value) throw new AppError(`${fieldName} is required`, 400);
+    if (isNaN(new Date(value).getTime())) {
+        throw new AppError(`${fieldName} must be a valid ISO date string`, 400);
+    }
+}
 
-/**
- * Validator for updating an existing subscription
- * tenantId and planId CANNOT be changed after creation
- */
-export const updateSubscriptionValidator = [
-    body('tenantId')
-        .not().exists().withMessage('tenantId cannot be changed after creation'),
+function rejectAmountPaid(body) {
+    if (body.amountPaid !== undefined) {
+        throw new AppError(
+            'amountPaid must not be sent by the client — price is computed server-side',
+            400
+        );
+    }
+}
 
-    body('planId')
-        .not().exists().withMessage('planId cannot be changed after creation'),
+export const createSubscriptionValidator = createValidator((req) => {
+    rejectAmountPaid(req.body);
 
-    body('billingCycle')
-        .optional()
-        .isIn(['monthly', 'yearly']).withMessage('billingCycle must be either monthly or yearly'),
+    const { tenantId, planId, billingCycle } = req.body;
 
-    body('amountPaid')
-        .optional()
-        .isDecimal({ decimal_digits: '0,2' }).withMessage('amountPaid must be a valid decimal number')
-        .custom((value) => parseFloat(value) >= 0).withMessage('amountPaid must be a non-negative number'),
+    ensureUUID(tenantId, 'tenantId');
+    ensureString(planId, 'planId');
+    ensureEnum(billingCycle, 'billingCycle', ALLOWED_BILLING);
 
-    body('status')
-        .optional()
-        .isIn(['active', 'past_due', 'canceled', 'trialing', 'expired'])
-        .withMessage('status must be one of: active, past_due, canceled, trialing, expired'),
+    if (req.body.startDate !== undefined) ensureDate(req.body.startDate, 'startDate');
+    if (req.body.status !== undefined) ensureEnum(req.body.status, 'status', ALLOWED_STATUSES);
+});
 
-    body('nextBillingDate')
-        .optional()
-        .isISO8601().withMessage('nextBillingDate must be a valid ISO 8601 date'),
-];
+export const updateSubscriptionValidator = createValidator((req) => {
+    if (req.body.planId !== undefined) {
+        throw new AppError('planId cannot be changed after creation — use the /upgrade endpoint', 400);
+    }
+    if (req.body.tenantId !== undefined) {
+        throw new AppError('tenantId cannot be changed after creation', 400);
+    }
 
-/**
- * Validator for School Owner upgrading their own plan
- * tenantId comes from JWT — not required in body
- */
-export const upgradeSubscriptionValidator = [
-    body('planId')
-        .notEmpty().withMessage('planId is required')
-        .isUUID().withMessage('planId must be a valid UUID'),
+    rejectAmountPaid(req.body);
 
-    body('billingCycle')
-        .notEmpty().withMessage('billingCycle is required')
-        .isIn(['monthly', 'yearly']).withMessage('billingCycle must be either monthly or yearly'),
+    ensureOptionalEnum(req.body.billingCycle, 'billingCycle', ALLOWED_BILLING);
+    ensureOptionalEnum(req.body.status, 'status', ALLOWED_STATUSES);
 
-    body('amountPaid')
-        .notEmpty().withMessage('amountPaid is required')
-        .isDecimal({ decimal_digits: '0,2' }).withMessage('amountPaid must be a valid decimal number')
-        .custom((value) => parseFloat(value) >= 0).withMessage('amountPaid must be a non-negative number'),
-];
+    if (req.body.endDate !== undefined) ensureDate(req.body.endDate, 'endDate');
+    if (req.body.nextBillingDate !== undefined) ensureDate(req.body.nextBillingDate, 'nextBillingDate');
+});
+
+export const upgradeValidator = createValidator((req) => {
+    rejectAmountPaid(req.body);
+
+    ensureString(req.body.newPlanId, 'newPlanId');
+    ensureEnum(req.body.billingCycle, 'billingCycle', ALLOWED_BILLING);
+});
+
+export const validateSubscriptionId = createValidator((req) => {
+    ensureUUID(req.params.id, 'id');
+});
+
+export const validateTenantId = createValidator((req) => {
+    ensureUUID(req.params.tenantId, 'tenantId');
+});
+
+export const validateListFilters = createValidator((req) => {
+    ensureOptionalEnum(req.query.status, 'status', ALLOWED_STATUSES);
+    ensureOptionalEnum(req.query.billingCycle, 'billingCycle', ALLOWED_BILLING);
+    ensureOptionalPositiveInt(req.query.limit, 'limit', MIN_LIMIT, MAX_LIMIT);
+    ensureOptionalPositiveInt(req.query.offset, 'offset', 0, Number.MAX_SAFE_INTEGER);
+
+    if (req.query.tenantId !== undefined) ensureUUID(req.query.tenantId, 'tenantId (query)');
+});

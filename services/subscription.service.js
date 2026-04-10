@@ -1,185 +1,190 @@
-import SubscriptionRepository from '../repositories/subscription.repository.js';
-import {AppError} from '../utils/AppError.js';
+import { AppError } from '../utils/AppError.js';
+import { withTransaction } from '../utils/withTransaction.js';
+import { SubscriptionRepository } from '../repositories/subscription.repository.js';
 
-// Instantiate repository at top — NOT extending BaseService (Super Admin rule)
 const subscriptionRepo = new SubscriptionRepository();
 
-class SubscriptionService {
-    /**
-     * Super Admin assigns a plan to a tenant
-     * If subscription already exists → update it
-     * startDate = today, endDate = today + plan.durationDays
-     */
-    async assignPlanToTenant(data, planModel, tenantModel) {
-        const { tenantId, planId, billingCycle, amountPaid, status, nextBillingDate } = data;
+function computePrice(plan, billingCycle) {
+    return billingCycle === 'yearly'
+        ? parseFloat(plan.yearlyPrice)
+        : parseFloat(plan.monthlyPrice);
+}
 
-        // Validate tenant exists
-        const tenant = await tenantModel.findOne({ where: { id: tenantId } });
-        if (!tenant) {
-            throw new AppError('Tenant not found with the provided tenantId', 404);
-        }
+function calculateEndDate(startDate, billingCycle, plan) {
+    const end = new Date(startDate);
 
-        // Validate plan exists
-        const plan = await planModel.findOne({ where: { id: planId } });
-        if (!plan) {
-            throw new AppError('Plan not found with the provided planId', 404);
-        }
-
-        // Calculate startDate and endDate from plan.durationDays
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + (plan.durationDays || 30));
-
-        // Check if subscription already exists for this tenant
-        const existingSubscription = await subscriptionRepo.findByTenantId(tenantId);
-
-        if (existingSubscription) {
-            // Update existing subscription
-            const updated = await subscriptionRepo.updateById(existingSubscription.id, {
-                planId,
-                billingCycle,
-                amountPaid,
-                status: status || 'active',
-                startDate,
-                endDate,
-                nextBillingDate: nextBillingDate || endDate,
-            });
-
-            return { subscription: updated, isNew: false };
-        }
-
-        // Create new subscription
-        const newSubscription = await subscriptionRepo.create({
-            tenantId,
-            planId,
-            billingCycle,
-            amountPaid,
-            status: status || 'active',
-            startDate,
-            endDate,
-            nextBillingDate: nextBillingDate || endDate,
-        });
-
-        return { subscription: newSubscription, isNew: true };
+    if (billingCycle === 'yearly') {
+        end.setDate(end.getDate() + 365);
+        return end;
     }
 
-    /**
-     * School Owner upgrades their own plan
-     * tenantId is taken from req.user (authenticated school owner's JWT)
-     */
-    async upgradeMyPlan(tenantId, data, planModel) {
-        const { planId, billingCycle, amountPaid } = data;
-
-        // Validate plan exists
-        const plan = await planModel.findOne({ where: { id: planId } });
-        if (!plan) {
-            throw new AppError('Plan not found with the provided planId', 404);
-        }
-
-        // Calculate startDate and endDate
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + (plan.durationDays || 30));
-
-        // Check existing subscription
-        const existingSubscription = await subscriptionRepo.findByTenantId(tenantId);
-
-        if (existingSubscription) {
-            const updated = await subscriptionRepo.updateById(existingSubscription.id, {
-                planId,
-                billingCycle,
-                amountPaid,
-                status: 'active',
-                startDate,
-                endDate,
-                nextBillingDate: endDate,
-            });
-
-            return { subscription: updated, isNew: false };
-        }
-
-        // Create new subscription
-        const newSubscription = await subscriptionRepo.create({
-            tenantId,
-            planId,
-            billingCycle,
-            amountPaid,
-            status: 'active',
-            startDate,
-            endDate,
-            nextBillingDate: endDate,
-        });
-
-        return { subscription: newSubscription, isNew: true };
+    if (billingCycle === 'monthly') {
+        end.setDate(end.getDate() + 30);
+        return end;
     }
 
-    /**
-     * Get all subscriptions (Super Admin) with optional filters
-     */
-    async getAllSubscriptions(filters = {}) {
-        return await subscriptionRepo.findAll(filters);
+    if (plan.durationMonths) {
+        end.setMonth(end.getMonth() + plan.durationMonths);
+        return end;
     }
 
-    /**
-     * Get subscription by ID
-     */
-    async getSubscriptionById(id) {
-        const subscription = await subscriptionRepo.findById(id);
-        if (!subscription) {
-            throw new AppError('Subscription not found', 404);
-        }
-        return subscription;
+    if (plan.durationDays) {
+        end.setDate(end.getDate() + plan.durationDays);
+        return end;
     }
 
-    /**
-     * Get all subscriptions for a specific tenant
-     */
-    async getTenantSubscriptions(tenantId) {
-        return await subscriptionRepo.findAllByTenantId(tenantId);
-    }
+    throw new AppError(
+        'Plan is misconfigured: durationDays or durationMonths must be set for custom billing cycles',
+        500
+    );
+}
 
-    /**
-     * Get active subscription for a tenant
-     */
-    async getActiveSubscription(tenantId) {
-        const subscription = await subscriptionRepo.findActiveByTenantId(tenantId);
-        if (!subscription) {
-            throw new AppError('No active subscription found for this tenant', 404);
-        }
-        return subscription;
-    }
+export function formatSubscriptionResponse({ subscription, plan }) {
+    return {
+        id: subscription.id,
+        tenantId: subscription.tenantId,
+        status: subscription.status,
+        billingCycle: subscription.billingCycle,
+        startDate: subscription.startDate,
+        endDate: subscription.endDate,
+        nextBillingDate: subscription.nextBillingDate,
+        amountPaid: subscription.amountPaid,
+        plan: plan
+            ? {
+                id: plan.id,
+                name: plan.name,
+                slug: plan.slug,
+                currency: plan.currency,
+                features: plan.features,
+                price: computePrice(plan, subscription.billingCycle),
+            }
+            : null,
+        isExpired: subscription.status === 'expired',
+        isTrialing: subscription.status === 'trialing',
+        isActive: ['active', 'trialing'].includes(subscription.status),
+        createdAt: subscription.createdAt,
+        updatedAt: subscription.updatedAt,
+    };
+}
 
-    /**
-     * Update subscription details (Super Admin only)
-     */
-    async updateSubscription(id, data) {
-        const existing = await subscriptionRepo.findById(id);
-        if (!existing) {
-            throw new AppError('Subscription not found', 404);
-        }
+export class SubscriptionService {
+    async createSubscription(data) {
+        const plan = await subscriptionRepo.findPlan(data.planId);
+        if (!plan) throw new AppError('Plan not found', 404);
 
-        return await subscriptionRepo.updateById(id, data);
-    }
-
-    /**
-     * Toggle subscription status (cancel / reactivate / expire etc.)
-     */
-    async toggleSubscriptionStatus(id, newStatus) {
-        const existing = await subscriptionRepo.findById(id);
-        if (!existing) {
-            throw new AppError('Subscription not found', 404);
+        if (!plan.isActive) {
+            throw new AppError('This plan is no longer available for new subscriptions', 422);
         }
 
-        const validStatuses = ['active', 'past_due', 'canceled', 'trialing', 'expired'];
-        if (!validStatuses.includes(newStatus)) {
-            throw new AppError(
-                `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
-                400
+        const startDate = data.startDate ? new Date(data.startDate) : new Date();
+        const endDate = calculateEndDate(startDate, data.billingCycle, plan);
+        const amountPaid = computePrice(plan, data.billingCycle);
+
+        const subscription = await withTransaction(async (t) => {
+            return subscriptionRepo.create(
+                {
+                    tenantId: data.tenantId,
+                    planId: plan.id,
+                    status: data.status ?? 'trialing',
+                    billingCycle: data.billingCycle,
+                    startDate,
+                    endDate,
+                    nextBillingDate: endDate,
+                    amountPaid,
+                },
+                { transaction: t }
             );
+        });
+
+        return formatSubscriptionResponse({ subscription, plan });
+    }
+
+    async getSubscription(id) {
+        const subscription = await subscriptionRepo.findById(id);
+        const plan = await subscriptionRepo.findPlan(subscription.planId);
+        return formatSubscriptionResponse({ subscription, plan });
+    }
+
+    async listSubscriptions(filters = {}) {
+        const where = {};
+        const limit = parseInt(filters.limit ?? 20, 10);
+        const offset = parseInt(filters.offset ?? 0, 10);
+
+        if (filters.status) where.status = filters.status;
+        if (filters.billingCycle) where.billingCycle = filters.billingCycle;
+        if (filters.tenantId) where.tenantId = filters.tenantId;
+
+        const subscriptions = await subscriptionRepo.findAll({ where, limit, offset });
+        return subscriptions.map((s) => formatSubscriptionResponse({ subscription: s, plan: null }));
+    }
+
+    async listByTenant(tenantId, filters = {}) {
+        const where = {};
+        const limit = parseInt(filters.limit ?? 20, 10);
+        const offset = parseInt(filters.offset ?? 0, 10);
+
+        if (filters.status) where.status = filters.status;
+        if (filters.billingCycle) where.billingCycle = filters.billingCycle;
+
+        const subscriptions = await subscriptionRepo.findByTenant(tenantId, { where, limit, offset });
+        return subscriptions.map((s) => formatSubscriptionResponse({ subscription: s, plan: null }));
+    }
+
+    async updateSubscription(id, data) {
+        const subscription = await subscriptionRepo.update(id, {
+            ...(data.status !== undefined && { status: data.status }),
+            ...(data.billingCycle !== undefined && { billingCycle: data.billingCycle }),
+            ...(data.endDate !== undefined && { endDate: new Date(data.endDate) }),
+            ...(data.nextBillingDate !== undefined && { nextBillingDate: new Date(data.nextBillingDate) }),
+        });
+
+        const plan = await subscriptionRepo.findPlan(subscription.planId);
+        return formatSubscriptionResponse({ subscription, plan });
+    }
+
+    async upgradeSubscription(existingId, data) {
+        const [existing, newPlan] = await Promise.all([
+            subscriptionRepo.findById(existingId),
+            subscriptionRepo.findPlan(data.newPlanId),
+        ]);
+
+        if (!newPlan) throw new AppError('Plan not found', 404);
+
+        if (!newPlan.isActive) {
+            throw new AppError('Cannot upgrade to an inactive plan', 422);
         }
 
-        return await subscriptionRepo.toggleStatus(id, newStatus);
+        const billingCycle = data.billingCycle ?? existing.billingCycle;
+        const startDate = new Date();
+        const endDate = calculateEndDate(startDate, billingCycle, newPlan);
+        const amountPaid = computePrice(newPlan, billingCycle);
+
+        const newSubscription = await withTransaction(async (t) => {
+            await subscriptionRepo.expireById(existingId, { transaction: t });
+
+            return subscriptionRepo.create(
+                {
+                    tenantId: existing.tenantId,
+                    planId: newPlan.id,
+                    status: 'active',
+                    billingCycle,
+                    startDate,
+                    endDate,
+                    nextBillingDate: endDate,
+                    amountPaid,
+                },
+                { transaction: t }
+            );
+        });
+
+        return formatSubscriptionResponse({ subscription: newSubscription, plan: newPlan });
+    }
+
+    async toggleStatus(id) {
+        const updated = await subscriptionRepo.toggleStatus(id);
+        const plan = await subscriptionRepo.findPlan(updated.planId);
+        return formatSubscriptionResponse({ subscription: updated, plan });
     }
 }
 
-export default SubscriptionService;
+export const subscriptionService = new SubscriptionService();

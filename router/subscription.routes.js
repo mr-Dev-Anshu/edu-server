@@ -1,64 +1,57 @@
 import { Router } from 'express';
-import SubscriptionController from '../controllers/subscription.controller.js';
-// import { authenticate, isSuperAdmin, isSchoolOwner } from '../middlewares/auth.middleware.js';
+// import { authenticate } from '../middlewares/authenticate.js';
+// import { isSuperAdmin } from '../middlewares/isSuperAdmin.js';
 import {
     createSubscriptionValidator,
     updateSubscriptionValidator,
-    upgradeSubscriptionValidator,
+    upgradeValidator,
+    validateSubscriptionId,
+    validateTenantId,
+    validateListFilters,
 } from '../middlewares/validators/subscription.validator.js';
+import { subscriptionController } from '../controllers/subscription.controller.js';
 
-const subscriptionController = new SubscriptionController();
+const router = Router();
 
-// ─────────────────────────────────────────────────────────────────
-// SUPER ADMIN ROUTES — /api/v1/super-admin/subscriptions
-// ─────────────────────────────────────────────────────────────────
-export const superAdminSubscriptionRouter = Router();
+// router.use(authenticate, isSuperAdmin);
 
-// superAdminSubscriptionRouter.use(authenticate, isSuperAdmin);
-
-// POST   /api/v1/super-admin/subscriptions          → Assign plan to tenant
-superAdminSubscriptionRouter.post(
-    '/',
+router.post('/',
     createSubscriptionValidator,
-    subscriptionController.assignPlan
+    subscriptionController.create
 );
 
-// GET    /api/v1/super-admin/subscriptions           → Get all (filter: ?status=&tenantId=)
-superAdminSubscriptionRouter.get('/', subscriptionController.getAllSubscriptions);
-
-// GET    /api/v1/super-admin/subscriptions/tenant/:tenantId  → All subs of a tenant
-superAdminSubscriptionRouter.get(
-    '/tenant/:tenantId',
-    subscriptionController.getTenantSubscriptions
+router.get('/',
+    validateListFilters,
+    subscriptionController.getAll
 );
 
-// GET    /api/v1/super-admin/subscriptions/:id       → Get single subscription
-superAdminSubscriptionRouter.get('/:id', subscriptionController.getSubscriptionById);
+// Static segment must come before /:id to avoid route collision
+router.get('/tenant/:tenantId',
+    validateTenantId,
+    validateListFilters,
+    subscriptionController.getByTenant
+);
 
-// PATCH  /api/v1/super-admin/subscriptions/:id       → Update subscription
-superAdminSubscriptionRouter.patch(
-    '/:id',
+router.get('/:id',
+    validateSubscriptionId,
+    subscriptionController.getOne
+);
+
+router.patch('/:id',
+    validateSubscriptionId,
     updateSubscriptionValidator,
-    subscriptionController.updateSubscription
+    subscriptionController.update
 );
 
-// PATCH  /api/v1/super-admin/subscriptions/:id/status → Toggle status only
-superAdminSubscriptionRouter.patch('/:id/status', subscriptionController.toggleStatus);
-
-
-// ─────────────────────────────────────────────────────────────────
-// SCHOOL OWNER ROUTES — /api/v1/school-owner/subscriptions
-// ─────────────────────────────────────────────────────────────────
-export const schoolOwnerSubscriptionRouter = Router();
-
-// schoolOwnerSubscriptionRouter.use(authenticate, isSchoolOwner);
-
-// POST   /api/v1/school-owner/subscriptions/upgrade  → Upgrade own plan
-schoolOwnerSubscriptionRouter.post(
-    '/upgrade',
-    upgradeSubscriptionValidator,
-    subscriptionController.upgradeMyPlan
+router.patch('/:id/upgrade',
+    validateSubscriptionId,
+    upgradeValidator,
+    subscriptionController.upgrade
 );
 
-// GET    /api/v1/school-owner/subscriptions/active   → View own active subscription
-schoolOwnerSubscriptionRouter.get('/active', subscriptionController.getMyActiveSubscription);
+router.patch('/:id/status',
+    validateSubscriptionId,
+    subscriptionController.toggleStatus
+);
+
+export default router;

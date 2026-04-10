@@ -1,5 +1,5 @@
-import Role from "../models/Role.js";
-import { RolePermission } from "../models/RolePermission.js";
+import { Role } from "../models/index.js";
+import { RolePermission } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
 export class RoleRepository extends BaseRepository {

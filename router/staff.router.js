@@ -13,13 +13,13 @@ router.use(requireTenantId);
 router.post("/", createStaffValidator, ctrl.create);
 
 // Get all staff
-router.get("/", ctrl.getAll);
+router.get("/", requireTenantId, ctrl.getAll);
 
 // Search staff
-router.get("/search", ctrl.search);
+router.get("/search", requireTenantId, ctrl.search);
 
 // Get specific staff by ID
-router.get("/:id", staffIdValidator, ctrl.getOne);
+router.get("/:id", requireTenantId, staffIdValidator, ctrl.getOne);
 
 // Update staff
 router.patch("/:id", staffIdValidator, updateStaffValidator, ctrl.update);

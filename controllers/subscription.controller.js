@@ -8,7 +8,10 @@ export class SubscriptionController {
             const errors = validationResult(req);
             if (!errors.isEmpty()) return next(new AppError(errors.array()[0].msg, 422));
 
-            const data = await subscriptionService.createSubscription(req.body);
+            const data = await subscriptionService.createSubscription({
+                ...req.body,
+                tenantId: req.tenantId,
+            });
             res.status(201).json({ success: true, data });
         } catch (error) {
             next(error);

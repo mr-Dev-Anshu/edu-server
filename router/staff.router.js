@@ -3,7 +3,6 @@ import { StaffController } from "../controllers/staff.controller.js";
 import { tenantValidator, staffIdValidator ,createStaffValidator, updateStaffValidator } from "../middlewares/validators/staff.validator.js";
 import { requireTenantId, tenantIdMiddleware } from "../middlewares/tenant.middleware.js";
 
-
 const router = express.Router();
 const ctrl = new StaffController();
 

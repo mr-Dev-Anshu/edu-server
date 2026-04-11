@@ -9,6 +9,31 @@ const createValidator = (validateFn) => (req, res, next) => {
   }
 };
 
+export const tenantValidator = createValidator((req) => {
+  const tenantId = req.tenantId;
+
+  if (!tenantId) {
+    throw new AppError("tenant_id is required", 400);
+  }
+
+  ensureUUID(tenantId, "tenant_id");
+});
+
+export const staffIdValidator = createValidator((req) => {
+  const { id } = req.params;
+
+  if (!id) {
+    throw new AppError("Staff ID is required", 400);
+  }
+
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  if (!uuidRegex.test(id)) {
+    throw new AppError("Invalid Staff ID", 400);
+  }
+});
+
 const ensureString = (value, fieldName, { min = 1, max = 255 } = {}) => {
   if (typeof value !== "string" || value.trim().length < min || value.trim().length > max) {
     throw new AppError(`${fieldName} must be ${min}-${max} characters`, 400);

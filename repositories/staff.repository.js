@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Staff } from "../models/Staff.js";
+import { Staff } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
 export class StaffRepository extends BaseRepository {

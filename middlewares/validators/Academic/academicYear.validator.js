@@ -9,6 +9,13 @@ const createValidator = (validateFn) => (req, res, next) => {
   }
 };
 
+const ensureUUID = (value, fieldName) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(value)) {
+    throw new AppError(`${fieldName} must be a valid UUID`, 400);
+  }
+};
+
 const ensureString = (value, fieldName, { min = 1, max = 255 } = {}) => {
   if (typeof value !== "string" || value.trim().length < min || value.trim().length > max) {
     throw new AppError(`${fieldName} must be ${min}-${max} characters`, 400);
@@ -27,6 +34,16 @@ const ensureBoolean = (value, fieldName) => {
     throw new AppError(`${fieldName} must be a boolean`, 400);
   }
 };
+
+export const tenantIdValidator = createValidator((req) => {
+  const tenantId = req.tenantId;
+
+  if (!tenantId) {
+    throw new AppError("tenant_id is required", 400);
+  }
+
+  ensureUUID(tenantId, "tenantId");
+});
 
 export const createAcademicYearValidator = createValidator((req) => {
   const { body } = req;

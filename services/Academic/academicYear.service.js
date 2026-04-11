@@ -4,8 +4,8 @@ import { AppError } from "../../utils/AppError.js";
 const academicYearRepo = new AcademicYearRepository();
 
 export class AcademicYearService {
-  async createAcademicYear(payload) {
-    const { tenantId, name, startDate, endDate, isCurrent } = payload;
+  async createAcademicYear(tenantId, payload) {
+    const { name, startDate, endDate, isCurrent } = payload;
 
     // Validate dates
     const start = new Date(startDate);
@@ -18,29 +18,38 @@ export class AcademicYearService {
     // Check if name already exists for this tenant
     const existingYear = await academicYearRepo.findByName(name, tenantId);
     if (existingYear) {
-      throw new AppError("Academic year name already exists for this tenant", 400);
+      throw new AppError(
+        "Academic year name already exists for this tenant",
+        400,
+      );
     }
 
     // Check for date conflicts
-    const conflictingYears = await academicYearRepo.findYearsByDateRange(start, end, tenantId);
+    const conflictingYears = await academicYearRepo.findYearsByDateRange(
+      start,
+      end,
+      tenantId,
+    );
     if (conflictingYears.length > 0) {
-      throw new AppError("Date range overlaps with existing academic year", 400);
+      throw new AppError(
+        "Date range overlaps with existing academic year",
+        400,
+      );
     }
 
-    // If setting as current, unset other current years
-    let academicYear;
-    if (isCurrent) {
-      await academicYearRepo.updateCurrentYear(null, tenantId);
-    }
-
-    academicYear = await academicYearRepo.create({
+    let academicYear = await academicYearRepo.create({
       tenantId,
       name: name.trim(),
       startDate,
       endDate,
-      isCurrent: isCurrent || false,
+      isCurrent: false,
       isLocked: false,
     });
+
+    if (isCurrent) {
+      await academicYearRepo.updateCurrentYear(academicYear.id, tenantId);
+      academicYear.isCurrent = true;
+    }
 
     return this.formatAcademicYearResponse(academicYear);
   }
@@ -53,7 +62,12 @@ export class AcademicYearService {
     if (query.isCurrent === "true") filters.isCurrent = true;
     if (query.isLocked === "true") filters.isLocked = true;
 
-    return await academicYearRepo.findWithPagination(tenantId, filters, page, limit);
+    return await academicYearRepo.findWithPagination(
+      tenantId,
+      filters,
+      page,
+      limit,
+    );
   }
 
   async getAcademicYearById(id, tenantId) {
@@ -87,17 +101,30 @@ export class AcademicYearService {
       }
 
       // Check for date conflicts (excluding current record)
-      const conflictingYears = await academicYearRepo.findYearsByDateRange(start, end, tenantId);
+      const conflictingYears = await academicYearRepo.findYearsByDateRange(
+        start,
+        end,
+        tenantId,
+      );
       if (conflictingYears.some((year) => year.id !== id)) {
-        throw new AppError("Date range overlaps with existing academic year", 400);
+        throw new AppError(
+          "Date range overlaps with existing academic year",
+          400,
+        );
       }
     }
 
     // If updating name, check uniqueness
     if (updateData.name && updateData.name !== academicYear.name) {
-      const existingYear = await academicYearRepo.findByName(updateData.name, tenantId);
+      const existingYear = await academicYearRepo.findByName(
+        updateData.name,
+        tenantId,
+      );
       if (existingYear) {
-        throw new AppError("Academic year name already exists for this tenant", 400);
+        throw new AppError(
+          "Academic year name already exists for this tenant",
+          400,
+        );
       }
     }
 
@@ -108,11 +135,21 @@ export class AcademicYearService {
     }
 
     const updatedYear = await academicYearRepo.update(id, tenantId, {
-      ...(updateData.name !== undefined ? { name: updateData.name.trim() } : {}),
-      ...(updateData.startDate !== undefined ? { startDate: updateData.startDate } : {}),
-      ...(updateData.endDate !== undefined ? { endDate: updateData.endDate } : {}),
-      ...(updateData.isCurrent !== undefined ? { isCurrent: updateData.isCurrent } : {}),
-      ...(updateData.isLocked !== undefined ? { isLocked: updateData.isLocked } : {}),
+      ...(updateData.name !== undefined
+        ? { name: updateData.name.trim() }
+        : {}),
+      ...(updateData.startDate !== undefined
+        ? { startDate: updateData.startDate }
+        : {}),
+      ...(updateData.endDate !== undefined
+        ? { endDate: updateData.endDate }
+        : {}),
+      ...(updateData.isCurrent !== undefined
+        ? { isCurrent: updateData.isCurrent }
+        : {}),
+      ...(updateData.isLocked !== undefined
+        ? { isLocked: updateData.isLocked }
+        : {}),
     });
 
     return this.formatAcademicYearResponse(updatedYear);
@@ -130,7 +167,10 @@ export class AcademicYearService {
     }
 
     await academicYearRepo.delete(id, tenantId);
-    return { message: "Academic year deleted successfully", data: this.formatAcademicYearResponse(academicYear) };
+    return {
+      message: "Academic year deleted successfully",
+      data: this.formatAcademicYearResponse(academicYear),
+    };
   }
 
   async setCurrentYear(id, tenantId) {

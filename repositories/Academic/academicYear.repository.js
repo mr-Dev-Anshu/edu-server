@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { AcademicYear } from "../../models/Academic/AcademicYear.js";
+import { AcademicYear } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
 export class AcademicYearRepository extends BaseRepository {

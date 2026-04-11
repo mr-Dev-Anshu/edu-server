@@ -5,10 +5,7 @@ const academicYearService = new AcademicYearService();
 
 export class AcademicYearController {
   create = catchAsync(async (req, res) => {
-    const data = await academicYearService.createAcademicYear({
-      ...req.body,
-      tenantId: req.tenantId,
-    });
+    const data = await academicYearService.createAcademicYear(req.tenantId, req.body);
     res.status(201).json({ success: true, data });
   });
 

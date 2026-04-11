@@ -1,3 +1,12 @@
 /node_modules
 /.env
+.code-review-graph
 .vscode
+.mcp.json
+.opencode.json
+.claude
+.windsurfrules
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.cursorrules

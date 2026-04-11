@@ -10,8 +10,8 @@ const academicYearRepo = new AcademicYearRepository();
 export class SectionService {
 
   // Create Section
-  async createSection(payload) {
-    const { tenantId, name, classId, academicYearId, capacity, classTeacherId } = payload;
+  async createSection(tenantId, payload) {
+    const { name, classId, academicYearId, capacity, classTeacherId } = payload;
 
     // Check Class exists
     const classExists = await classRepo.findById(classId, tenantId);
@@ -42,7 +42,7 @@ export class SectionService {
       name: name.trim(),
       classId,
       academicYearId,
-      capacity: capacity || 40,
+      capacity: capacity ?? 40,
       classTeacherId,
     });
 
@@ -74,16 +74,24 @@ export class SectionService {
   async updateSection(id, tenantId, updateData) {
     const existing = await sectionRepo.findById(id, tenantId);
 
-    // Duplicate check if name/class/year change
+    // Validate changed references and duplicate values
+    if (updateData.classId !== undefined && updateData.classId !== existing.classId) {
+      await classRepo.findById(updateData.classId, tenantId);
+    }
+
+    if (updateData.academicYearId !== undefined && updateData.academicYearId !== existing.academicYearId) {
+      await academicYearRepo.findById(updateData.academicYearId, tenantId);
+    }
+
     if (
-      updateData.name ||
-      updateData.classId ||
-      updateData.academicYearId
+      updateData.name !== undefined ||
+      updateData.classId !== undefined ||
+      updateData.academicYearId !== undefined
     ) {
-      const name = updateData.name || existing.name;
-      const classId = updateData.classId || existing.classId;
+      const name = updateData.name !== undefined ? updateData.name.trim() : existing.name;
+      const classId = updateData.classId !== undefined ? updateData.classId : existing.classId;
       const academicYearId =
-        updateData.academicYearId || existing.academicYearId;
+        updateData.academicYearId !== undefined ? updateData.academicYearId : existing.academicYearId;
 
       const duplicate = await sectionRepo.findDuplicate(
         name,

@@ -32,9 +32,24 @@ const ensureNumber = (value, fieldName) => {
   }
 };
 
+const ensurePositiveNumber = (value, fieldName) => {
+  ensureNumber(value, fieldName);
+  if (value < 0) {
+    throw new AppError(`${fieldName} must be a non-negative number`, 400);
+  }
+};
+
+const ensureNoTenantId = (body) => {
+  if (body.tenantId !== undefined || body.tenant_id !== undefined) {
+    throw new AppError("tenantId may not be provided in request body", 400);
+  }
+};
+
 // Create Validator
 export const createSectionValidator = createValidator((req) => {
   const { body } = req;
+
+  ensureNoTenantId(body);
 
   // Required fields
   ensureString(body.name, "name", { min: 1, max: 50 });
@@ -43,7 +58,7 @@ export const createSectionValidator = createValidator((req) => {
 
   // Optional fields
   if (body.capacity !== undefined) {
-    ensureNumber(body.capacity, "capacity");
+    ensurePositiveNumber(body.capacity, "capacity");
   }
 
   if (body.classTeacherId !== undefined) {
@@ -54,6 +69,8 @@ export const createSectionValidator = createValidator((req) => {
 // Update Validator
 export const updateSectionValidator = createValidator((req) => {
   const { body } = req;
+
+  ensureNoTenantId(body);
 
   if (body.name !== undefined) {
     ensureString(body.name, "name", { min: 1, max: 50 });
@@ -68,7 +85,7 @@ export const updateSectionValidator = createValidator((req) => {
   }
 
   if (body.capacity !== undefined) {
-    ensureNumber(body.capacity, "capacity");
+    ensurePositiveNumber(body.capacity, "capacity");
   }
 
   if (body.classTeacherId !== undefined) {

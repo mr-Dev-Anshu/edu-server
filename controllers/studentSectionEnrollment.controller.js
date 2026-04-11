@@ -11,10 +11,7 @@ export class StudentSectionEnrollmentController extends BaseController {
 
   // Enroll Student
   create = catchAsync(async (req, res) => {
-    const data = await enrollmentService.enrollStudent({
-      ...req.body,
-      tenantId: req.tenantId,
-    });
+    const data = await enrollmentService.enrollStudent(req.tenantId, req.body);
 
     res.status(201).json({
       success: true,

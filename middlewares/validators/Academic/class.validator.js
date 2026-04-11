@@ -26,9 +26,17 @@ const ensureNumber = (value, fieldName) => {
   }
 };
 
+const ensureNoTenantId = (body) => {
+  if (body.tenantId !== undefined || body.tenant_id !== undefined) {
+    throw new AppError("tenantId may not be provided in request body", 400);
+  }
+};
+
 // Create Validator
 export const createClassValidator = createValidator((req) => {
   const { body } = req;
+
+  ensureNoTenantId(body);
 
   // name required
   ensureString(body.name, "name", { min: 2, max: 50 });
@@ -47,6 +55,8 @@ export const createClassValidator = createValidator((req) => {
 // Update Validator
 export const updateClassValidator = createValidator((req) => {
   const { body } = req;
+
+  ensureNoTenantId(body);
 
   if (body.name !== undefined) {
     ensureString(body.name, "name", { min: 2, max: 50 });

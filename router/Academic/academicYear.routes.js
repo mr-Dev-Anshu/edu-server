@@ -1,7 +1,6 @@
 import express from "express";
 import { AcademicYearController } from "../../controllers/Academic/academicYear.controller.js";
 import {
-  tenantIdValidator,
   createAcademicYearValidator,
   updateAcademicYearValidator,
 } from "../../middlewares/validators/Academic/academicYear.validator.js";
@@ -11,10 +10,10 @@ const router = express.Router();
 const ctrl = new AcademicYearController();
 
 router.use(tenantIdMiddleware);
-router.use(tenantIdValidator);
+router.use(requireTenantId);
 
 // Create academic year
-router.post("/", requireTenantId, createAcademicYearValidator, ctrl.create);
+router.post("/", createAcademicYearValidator, ctrl.create);
 
 // Get all academic years
 router.get("/", ctrl.getAll);
@@ -26,18 +25,18 @@ router.get("/current", ctrl.getCurrent);
 router.get("/:id", ctrl.getOne);
 
 // Update academic year
-router.patch("/:id", requireTenantId, updateAcademicYearValidator, ctrl.update);
+router.patch("/:id", updateAcademicYearValidator, ctrl.update);
 
 // Delete academic year
-router.delete("/:id", requireTenantId, ctrl.delete);
+router.delete("/:id", ctrl.delete);
 
 // Set academic year as current
-router.post("/:id/set-current", requireTenantId, ctrl.setCurrent);
+router.post("/:id/set-current", ctrl.setCurrent);
 
 // Lock academic year
-router.post("/:id/lock", requireTenantId, ctrl.lock);
+router.post("/:id/lock", ctrl.lock);
 
 // Unlock academic year
-router.post("/:id/unlock", requireTenantId, ctrl.unlock);
+router.post("/:id/unlock", ctrl.unlock);
 
 export default router;

@@ -10,9 +10,8 @@ const academicYearRepo = new AcademicYearRepository();
 export class StudentSectionEnrollmentService {
 
   // Enroll Student
-  async enrollStudent(payload) {
+  async enrollStudent(tenantId, payload) {
     const {
-      tenantId,
       studentId,
       sectionId,
       academicYearId,
@@ -40,15 +39,15 @@ export class StudentSectionEnrollmentService {
     }
 
     // OPTIONAL (PRO): Capacity check
-    const totalStudents = await enrollmentRepo.findBySection(sectionId, tenantId);
-    if (totalStudents.length >= section.capacity) {
+    const enrolledCount = await enrollmentRepo.countBySection(sectionId, tenantId);
+    if (enrolledCount >= section.capacity) {
       throw new AppError("Section capacity full", 400);
     }
 
     // OPTIONAL (PRO): Auto roll number
     let finalRoll = rollNumber;
-    if (!rollNumber) {
-      finalRoll = totalStudents.length + 1;
+    if (finalRoll === undefined || finalRoll === null) {
+      finalRoll = enrolledCount + 1;
     }
 
     const enrollment = await enrollmentRepo.create({
@@ -95,23 +94,22 @@ export class StudentSectionEnrollmentService {
     const existing = await enrollmentRepo.findById(id, tenantId);
 
     // If changing section → check capacity
-    if (updateData.sectionId && updateData.sectionId !== existing.sectionId) {
+    if (updateData.sectionId !== undefined && updateData.sectionId !== existing.sectionId) {
       const section = await sectionRepo.findById(updateData.sectionId, tenantId);
-
-      const students = await enrollmentRepo.findBySection(
+      const enrolledCount = await enrollmentRepo.countBySection(
         updateData.sectionId,
         tenantId
       );
 
-      if (students.length >= section.capacity) {
+      if (enrolledCount >= section.capacity) {
         throw new AppError("Target section is full", 400);
       }
     }
 
     const updated = await enrollmentRepo.update(id, tenantId, {
-      ...(updateData.sectionId && { sectionId: updateData.sectionId }),
-      ...(updateData.rollNumber && { rollNumber: updateData.rollNumber }),
-      ...(updateData.enrollmentStatus && { enrollmentStatus: updateData.enrollmentStatus }),
+      ...(updateData.sectionId !== undefined && { sectionId: updateData.sectionId }),
+      ...(updateData.rollNumber !== undefined && { rollNumber: updateData.rollNumber }),
+      ...(updateData.enrollmentStatus !== undefined && { enrollmentStatus: updateData.enrollmentStatus }),
       ...(updateData.isCurrent !== undefined && { isCurrent: updateData.isCurrent }),
     });
 

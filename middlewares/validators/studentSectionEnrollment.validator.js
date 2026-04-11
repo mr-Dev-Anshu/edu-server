@@ -61,11 +61,23 @@ const ensureOptionalStatus = (value, fieldName) => {
   ensureStatus(value, fieldName);
 };
 
+const ensureNoTenantId = (body) => {
+  if (body.tenantId !== undefined || body.tenant_id !== undefined) {
+    throw new AppError("tenantId may not be provided in request body", 400);
+  }
+};
 
+const ensureDisallowedField = (value, fieldName) => {
+  if (value !== undefined) {
+    throw new AppError(`${fieldName} cannot be modified`, 400);
+  }
+};
 
 // Create Enrollment Validator
 export const createEnrollmentValidator = createValidator((req) => {
   const { body } = req;
+
+  ensureNoTenantId(body);
 
   // Required fields
   ensureUuid(body.studentId, "studentId");
@@ -87,10 +99,10 @@ export const createEnrollmentValidator = createValidator((req) => {
 export const updateEnrollmentValidator = createValidator((req) => {
   const { body } = req;
 
-  // Optional fields only
-  ensureOptionalUuid(body.studentId, "studentId");
+  ensureNoTenantId(body);
+  ensureDisallowedField(body.studentId, "studentId");
   ensureOptionalUuid(body.sectionId, "sectionId");
-  ensureOptionalUuid(body.academicYearId, "academicYearId");
+  ensureDisallowedField(body.academicYearId, "academicYearId");
 
   ensureOptionalString(body.rollNumber, "rollNumber", { min: 1, max: 30 });
   ensureOptionalStatus(body.enrollmentStatus, "enrollmentStatus");

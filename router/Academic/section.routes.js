@@ -4,9 +4,13 @@ import {
   createSectionValidator,
   updateSectionValidator,
 } from "../../middlewares/validators/Academic/section.validator.js";
+import { requireTenantId, tenantIdMiddleware } from "../../middlewares/tenant.middleware.js";
 
 const router = express.Router();
 const ctrl = new SectionController();
+
+router.use(tenantIdMiddleware);
+router.use(requireTenantId);
 
 // Create Section
 router.post("/", createSectionValidator, ctrl.create);

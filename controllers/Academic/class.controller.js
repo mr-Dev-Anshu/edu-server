@@ -23,10 +23,7 @@ export class ClassController extends BaseController {
 
   // Override create (custom service method)
   create = catchAsync(async (req, res) => {
-    const data = await classService.createClass({
-      ...req.body,
-      tenantId: req.tenantId,
-    });
+    const data = await classService.createClass(req.tenantId, req.body);
     res.status(201).json({ success: true, data });
   });
 

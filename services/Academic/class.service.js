@@ -6,8 +6,8 @@ const classRepo = new ClassRepository();
 export class ClassService {
 
   // Create Class
-  async createClass(payload) {
-    const { tenantId, name, numericLevel, description } = payload;
+  async createClass(tenantId, payload) {
+    const { name, numericLevel, description } = payload;
 
     // Duplicate check
     const existing = await classRepo.findByName(name, tenantId);

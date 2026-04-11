@@ -11,10 +11,7 @@ export class SectionController extends BaseController {
 
   // Create Section
   create = catchAsync(async (req, res) => {
-    const data = await sectionService.createSection({
-      ...req.body,
-      tenantId: req.tenantId,
-    });
+    const data = await sectionService.createSection(req.tenantId, req.body);
 
     res.status(201).json({
       success: true,

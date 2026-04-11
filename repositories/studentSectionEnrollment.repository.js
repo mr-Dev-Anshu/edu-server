@@ -38,6 +38,12 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
     });
   }
 
+  async countBySection(sectionId, tenantId) {
+    return await this.model.count({
+      where: { sectionId, tenantId },
+    });
+  }
+
   // Pagination + relations
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
     const offset = (page - 1) * limit;

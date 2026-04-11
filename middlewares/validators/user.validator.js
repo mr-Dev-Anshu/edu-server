@@ -80,9 +80,10 @@ export const createUserValidator = createValidator((req) => {
   // Validate preferences
   ensurePlainObject(body.preferences, "preferences");
 
-  // Validate tenantId
-  if (body.tenantId !== undefined) {
-    ensureUuid(body.tenantId, "tenantId");
+  if (req.tenantId) {
+    ensureUuid(req.tenantId, "x-tenant-id header");
+  } else if (body.userType !== "super_admin") {
+    throw new AppError("x-tenant-id header is required for tenant-scoped users", 400);
   }
 });
 

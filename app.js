@@ -20,7 +20,7 @@ app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*', 
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id']
 }));
 
 // 2. Utility Middleware
@@ -32,6 +32,8 @@ app.use('/uploads', express.static(uploadsRoot));
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', timestamp: new Date().toISOString() });
 });
+
+app.use(tenantIdMiddleware);
 
 app.use('/api/v1/tenants', tenantRouter);
 app.use('/api/v1/roles', roleRouter);

@@ -78,10 +78,10 @@ export const assignRoleValidator = createValidator((req) => {
   ensureOptionalUuid(body.academicYearId, "academicYearId");
   ensureOptionalUuid(body.assignedById, "assignedById");
 
-  if (body.tenantId === undefined) {
-    throw new AppError("tenantId is required", 400);
+  if (!req.tenantId) {
+    throw new AppError("x-tenant-id header is required", 400);
   }
-  ensureUuid(body.tenantId, "tenantId");
+  ensureUuid(req.tenantId, "x-tenant-id header");
 });
 
 export const assignMultipleRolesValidator = createValidator((req) => {
@@ -100,10 +100,10 @@ export const assignMultipleRolesValidator = createValidator((req) => {
   ensureOptionalUuid(body.academicYearId, "academicYearId");
   ensureOptionalUuid(body.assignedById, "assignedById");
 
-  if (body.tenantId === undefined) {
-    throw new AppError("tenantId is required", 400);
+  if (!req.tenantId) {
+    throw new AppError("x-tenant-id header is required", 400);
   }
-  ensureUuid(body.tenantId, "tenantId");
+  ensureUuid(req.tenantId, "x-tenant-id header");
 });
 
 export const revokeRoleValidator = createValidator((req) => {
@@ -121,10 +121,10 @@ export const revokeRoleValidator = createValidator((req) => {
 
   ensureOptionalUuid(body.academicYearId, "academicYearId");
 
-  if (body.tenantId === undefined) {
-    throw new AppError("tenantId is required", 400);
+  if (!req.tenantId) {
+    throw new AppError("x-tenant-id header is required", 400);
   }
-  ensureUuid(body.tenantId, "tenantId");
+  ensureUuid(req.tenantId, "x-tenant-id header");
 });
 
 export const revokeMultipleRolesValidator = createValidator((req) => {
@@ -140,10 +140,10 @@ export const revokeMultipleRolesValidator = createValidator((req) => {
   }
   ensureNonEmptyArray(body.roleIds, "roleIds", ensureUuid);
 
-  if (body.tenantId === undefined) {
-    throw new AppError("tenantId is required", 400);
+  if (!req.tenantId) {
+    throw new AppError("x-tenant-id header is required", 400);
   }
-  ensureUuid(body.tenantId, "tenantId");
+  ensureUuid(req.tenantId, "x-tenant-id header");
 });
 
 export const updateRoleExpiryValidator = createValidator((req) => {

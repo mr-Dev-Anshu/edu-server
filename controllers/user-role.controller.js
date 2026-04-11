@@ -5,7 +5,10 @@ const userRoleService = new UserRoleService();
 
 export class UserRoleController {
   assignRole = catchAsync(async (req, res) => {
-    const data = await userRoleService.assignRoleToUser(req.body);
+    const data = await userRoleService.assignRoleToUser({
+      ...req.body,
+      tenantId: req.tenantId,
+    });
     res.status(201).json({
       success: true,
       message: "Role assigned successfully",
@@ -14,7 +17,10 @@ export class UserRoleController {
   });
 
   assignMultipleRoles = catchAsync(async (req, res) => {
-    const data = await userRoleService.assignMultipleRolesToUser(req.body);
+    const data = await userRoleService.assignMultipleRolesToUser({
+      ...req.body,
+      tenantId: req.tenantId,
+    });
     res.status(201).json({
       success: true,
       message: "Roles assigned successfully",
@@ -23,7 +29,7 @@ export class UserRoleController {
   });
 
   revokeRole = catchAsync(async (req, res) => {
-    await userRoleService.revokeRoleFromUser(req.body);
+    await userRoleService.revokeRoleFromUser({ ...req.body, tenantId: req.tenantId });
     res.status(200).json({
       success: true,
       message: "Role revoked successfully",
@@ -31,7 +37,10 @@ export class UserRoleController {
   });
 
   revokeMultipleRoles = catchAsync(async (req, res) => {
-    await userRoleService.revokeMultipleRolesFromUser(req.body);
+    await userRoleService.revokeMultipleRolesFromUser({
+      ...req.body,
+      tenantId: req.tenantId,
+    });
     res.status(200).json({
       success: true,
       message: "Roles revoked successfully",
@@ -40,9 +49,8 @@ export class UserRoleController {
 
   getUserRoles = catchAsync(async (req, res) => {
     const { userId } = req.params;
-    const tenantId = req.body.tenantId || req.query.tenantId;
     const filter = req.query.filter ? JSON.parse(req.query.filter) : {};
-    const data = await userRoleService.getUserRoles(userId, tenantId, filter);
+    const data = await userRoleService.getUserRoles(userId, req.tenantId, filter);
     res.status(200).json({ success: true, data });
   });
 

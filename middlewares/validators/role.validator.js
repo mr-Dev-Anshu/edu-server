@@ -58,10 +58,10 @@ export const createRoleValidator = createValidator((req) => {
     throw new AppError("hierarchyLevel must be an integer between 0 and 100", 400);
   }
 
-  if (body.tenantId !== undefined) {
-    ensureUuid(body.tenantId, "tenantId");
+  if (req.tenantId) {
+    ensureUuid(req.tenantId, "x-tenant-id header");
   } else if (body.isSystem !== true) {
-    throw new AppError("tenantId is required for tenant-specific roles", 400);
+    throw new AppError("x-tenant-id header is required for tenant-specific roles", 400);
   }
 
   if (body.permissionIds !== undefined) {

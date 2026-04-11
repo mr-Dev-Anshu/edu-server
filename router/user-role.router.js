@@ -7,21 +7,22 @@ import {
   revokeMultipleRolesValidator,
   updateRoleExpiryValidator,
 } from "../middlewares/validators/user-role.validator.js";
+import { requireTenantId } from "../middlewares/tenant.middleware.js";
 
 const router = express.Router();
 const ctrl = new UserRoleController();
 
 // Assign single role to user
-router.route("/assign").post(assignRoleValidator, ctrl.assignRole);
+router.route("/assign").post(requireTenantId, assignRoleValidator, ctrl.assignRole);
 
 // Assign multiple roles to user
-router.route("/assign-multiple").post(assignMultipleRolesValidator, ctrl.assignMultipleRoles);
+router.route("/assign-multiple").post(requireTenantId, assignMultipleRolesValidator, ctrl.assignMultipleRoles);
 
 // Revoke single role from user
-router.route("/revoke").post(revokeRoleValidator, ctrl.revokeRole);
+router.route("/revoke").post(requireTenantId, revokeRoleValidator, ctrl.revokeRole);
 
 // Revoke multiple roles from user
-router.route("/revoke-multiple").post(revokeMultipleRolesValidator, ctrl.revokeMultipleRoles);
+router.route("/revoke-multiple").post(requireTenantId, revokeMultipleRolesValidator, ctrl.revokeMultipleRoles);
 
 // Get user role by ID
 router.route("/:id").get(ctrl.getById);
@@ -30,7 +31,7 @@ router.route("/:id").get(ctrl.getById);
 router.route("/:id/expiry").put(updateRoleExpiryValidator, ctrl.updateExpiry);
 
 // Get all roles for a user
-router.route("/user/:userId").get(ctrl.getUserRoles);
+router.route("/user/:userId").get(requireTenantId, ctrl.getUserRoles);
 
 // Get all users with a specific role
 router.route("/role/:roleId").get(ctrl.getRoleUsers);

@@ -7,6 +7,7 @@ import {
   assignUserRolesValidator,
   removeUserRolesValidator,
 } from "../middlewares/validators/user.validator.js";
+import { requireTenantId } from "../middlewares/tenant.middleware.js";
 
 const router = express.Router();
 const ctrl = new UserController();
@@ -15,36 +16,36 @@ const ctrl = new UserController();
 router.route("/").post(createUserValidator, ctrl.create);
 
 // Get all users
-router.route("/").get(ctrl.getAll);
+router.route("/").get(requireTenantId, ctrl.getAll);
 
 // Get active users
-router.route("/active").get(ctrl.getActive);
+router.route("/active").get(requireTenantId, ctrl.getActive);
 
 // Get user by ID
-router.route("/:id").get(ctrl.getById);
+router.route("/:id").get(requireTenantId, ctrl.getById);
 
 // Update user
-router.route("/:id").put(updateUserValidator, ctrl.update);
+router.route("/:id").put(requireTenantId, updateUserValidator, ctrl.update);
 
 // Delete user (soft delete)
-router.route("/:id").delete(ctrl.delete);
+router.route("/:id").delete(requireTenantId, ctrl.delete);
 
 // Restore user
-router.route("/:id/restore").post(ctrl.restore);
+router.route("/:id/restore").post(requireTenantId, ctrl.restore);
 
 // Update user status
-router.route("/:id/status").put(updateUserStatusValidator, ctrl.updateStatus);
+router.route("/:id/status").put(requireTenantId, updateUserStatusValidator, ctrl.updateStatus);
 
 // Verify email
-router.route("/:id/verify-email").post(ctrl.verifyEmail);
+router.route("/:id/verify-email").post(requireTenantId, ctrl.verifyEmail);
 
 // Get users by type
-router.route("/type/:userType").get(ctrl.getByType);
+router.route("/type/:userType").get(requireTenantId, ctrl.getByType);
 
 // Assign roles to user
-router.route("/:id/roles").post(assignUserRolesValidator, ctrl.assignRoles);
+router.route("/:id/roles").post(requireTenantId, assignUserRolesValidator, ctrl.assignRoles);
 
 // Remove roles from user
-router.route("/:id/roles").delete(removeUserRolesValidator, ctrl.removeRoles);
+router.route("/:id/roles").delete(requireTenantId, removeUserRolesValidator, ctrl.removeRoles);
 
 export default router;

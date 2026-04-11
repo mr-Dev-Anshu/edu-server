@@ -22,9 +22,12 @@ export class SubscriptionRepository extends BaseRepository {
 
     async findByTenant(tenantId, options = {}) {
         return Subscription.findAll({
-            where: { tenantId },
-            order: [['createdAt', 'DESC']],
             ...options,
+            order: [['createdAt', 'DESC']],
+            where: {
+                ...options.where,
+                tenantId,  // always last — cannot be overwritten
+            },
         });
     }
 
@@ -64,8 +67,16 @@ export class SubscriptionRepository extends BaseRepository {
 
     async toggleStatus(id) {
         const record = await this.findById(id);
+
+        if (!['active', 'paused'].includes(record.status)) {
+            throw new AppError(
+                `Cannot toggle a subscription with status '${record.status}'`,
+                422
+            );
+        }
+
         return record.update({
-            status: record.status === 'active' ? 'canceled' : 'active',
+            status: record.status === 'active' ? 'paused' : 'active',
         });
     }
 }

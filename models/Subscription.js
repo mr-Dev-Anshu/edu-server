@@ -18,7 +18,7 @@ const Subscription = sequelize.define('Subscription', {
         references: { model: 'plans', key: 'id' },
     },
     status: {
-        type: DataTypes.ENUM('active', 'past_due', 'canceled', 'trialing', 'expired'),
+        type: DataTypes.ENUM('active', 'past_due', 'canceled', 'trialing', 'expired', 'paused'),
         defaultValue: 'trialing',
     },
     billingCycle: {

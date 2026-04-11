@@ -1,6 +1,8 @@
 import { Router } from 'express';
 // import { authenticate } from '../middlewares/authenticate.js';
 // import { isSuperAdmin } from '../middlewares/isSuperAdmin.js';
+import { tenantGuard } from '../middlewares/tenantGuard.js';
+
 import {
     createSubscriptionValidator,
     updateSubscriptionValidator,
@@ -14,6 +16,7 @@ import { subscriptionController } from '../controllers/subscription.controller.j
 const router = Router();
 
 // router.use(authenticate, isSuperAdmin);
+router.use(tenantGuard)
 
 router.post('/',
     createSubscriptionValidator,

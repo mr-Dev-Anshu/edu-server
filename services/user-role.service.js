@@ -8,8 +8,13 @@ const userRepo = new UserRepository();
 
 export class UserRoleService {
   async assignRoleToUser(payload) {
-    const { userId, roleId, tenantId, academicYearId = null, assignedById = null } =
-      payload;
+    const {
+      userId,
+      roleId,
+      tenantId,
+      academicYearId = null,
+      assignedById = null,
+    } = payload;
 
     // Validate user exists
     await userRepo.findById(userId, tenantId);
@@ -18,15 +23,20 @@ export class UserRoleService {
       userId,
       roleId,
       academicYearId,
-      assignedById
+      assignedById,
     );
 
     return this.formatUserRoleResponse(userRole);
   }
 
   async assignMultipleRolesToUser(payload) {
-    const { userId, roleIds, tenantId, academicYearId = null, assignedById = null } =
-      payload;
+    const {
+      userId,
+      roleIds,
+      tenantId,
+      academicYearId = null,
+      assignedById = null,
+    } = payload;
 
     // Validate user exists
     await userRepo.findById(userId, tenantId);
@@ -38,11 +48,13 @@ export class UserRoleService {
     const transaction = await sequelize.transaction();
 
     try {
+      // In the service — pass transaction
       const userRoles = await userRoleRepo.bulkAssignRoles(
         userId,
         roleIds,
         academicYearId,
-        assignedById
+        assignedById,
+        { transaction }, // ✅
       );
 
       await transaction.commit();

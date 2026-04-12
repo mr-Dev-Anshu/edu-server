@@ -61,7 +61,7 @@ export class UserService {
     if (payload.email && payload.email.toLowerCase().trim() !== user.email) {
       const existingUser = await userRepo.findByEmail(
         payload.email.toLowerCase().trim(),
-        tenantId
+        tenantId,
       );
       if (existingUser) {
         throw new AppError("Email already exists", 409);
@@ -73,15 +73,23 @@ export class UserService {
     if (payload.firstName) updateData.firstName = payload.firstName.trim();
     if (payload.lastName) updateData.lastName = payload.lastName.trim();
     if (payload.email) updateData.email = payload.email.toLowerCase().trim();
-    if (payload.phone !== undefined) updateData.phone = payload.phone?.trim() || null;
+    if (payload.phone !== undefined)
+      updateData.phone = payload.phone?.trim() || null;
     if (payload.preferences) updateData.preferences = payload.preferences;
     if (payload.cognitoSub) updateData.cognitoSub = payload.cognitoSub;
 
-    return await userRepo.update(userId, tenantId, updateData);
+    await userRepo.update(userId, tenantId, updateData);
+    const updated = await userRepo.findByIdWithAssociations(userId, tenantId);
+    return this.formatUserResponse(updated); 
   }
 
   async updateUserStatus(userId, tenantId, status) {
-    const validStatuses = ["active", "inactive", "suspended", "pending_verification"];
+    const validStatuses = [
+      "active",
+      "inactive",
+      "suspended",
+      "pending_verification",
+    ];
     if (!validStatuses.includes(status)) {
       throw new AppError("Invalid status value", 400);
     }
@@ -96,7 +104,11 @@ export class UserService {
   }
 
   async updatePassword(userId, tenantId, hashedPassword) {
-    const user = await userRepo.updatePassword(userId, tenantId, hashedPassword);
+    const user = await userRepo.updatePassword(
+      userId,
+      tenantId,
+      hashedPassword,
+    );
     return this.formatUserResponse(user);
   }
 
@@ -121,12 +133,12 @@ export class UserService {
 
     try {
       for (const role of roles) {
-        await userRoleRepo.assignRoleToUser(
+        await userRoleRepo.assignRoleupdateUserToUser(
           userId,
           role.roleId,
           role.academicYearId || null,
           null,
-          { transaction }
+          { transaction },
         );
       }
       await transaction.commit();

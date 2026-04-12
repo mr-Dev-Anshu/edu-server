@@ -1,6 +1,7 @@
 import { UserRole } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 import { AppError } from "../utils/AppError.js";
+import { Op } from "sequelize";
 
 export class UserRoleRepository extends BaseRepository {
   constructor() {
@@ -51,35 +52,39 @@ export class UserRoleRepository extends BaseRepository {
     return await this.model.findAll({
       where: {
         ...filter,
-        expiresAt: {
-          [this.model.sequelize.where(
-            this.model.sequelize.fn("NOW", this.model.sequelize.col("expires_at")),
-            ">",
-            this.model.sequelize.fn("NOW")
-          )]: true,
-        },
+        expiresAt: { [Op.lt]: new Date() }, // ✅ expiresAt < now = expired
       },
     });
   }
 
-  async assignRoleToUser(userId, roleId, academicYearId = null, assignedById = null) {
+  async assignRoleToUser(
+    userId,
+    roleId,
+    academicYearId = null,
+    assignedById = null,
+    options = {},
+  ) {
     const existing = await this.findByUserRoleAndAcademicYear(
       userId,
       roleId,
-      academicYearId
-    );
-
-    if (existing) {
-      throw new AppError("User already has this role for the specified academic year", 409);
-    }
-
-    return await this.model.create({
-      userId,
-      roleId,
       academicYearId,
-      assignedById,
-      assignedAt: new Date(),
-    });
+    );
+    if (existing) {
+      throw new AppError(
+        "User already has this role for the specified academic year",
+        409,
+      );
+    }
+    return await this.model.create(
+      {
+        userId,
+        roleId,
+        academicYearId,
+        assignedById,
+        assignedAt: new Date(),
+      },
+      options,
+    );
   }
 
   async revokeRoleFromUser(userId, roleId, academicYearId = null) {
@@ -101,7 +106,13 @@ export class UserRoleRepository extends BaseRepository {
     return await userRole.update({ expiresAt });
   }
 
-  async bulkAssignRoles(userId, roleIds, academicYearId = null, assignedById = null) {
+  async bulkAssignRoles(
+    userId,
+    roleIds,
+    academicYearId = null,
+    assignedById = null,
+    options = {},
+  ) {
     const assignments = roleIds.map((roleId) => ({
       userId,
       roleId,
@@ -109,8 +120,10 @@ export class UserRoleRepository extends BaseRepository {
       assignedById,
       assignedAt: new Date(),
     }));
-
-    return await this.model.bulkCreate(assignments, { ignoreDuplicates: true });
+    return await this.model.bulkCreate(assignments, {
+      ignoreDuplicates: true,
+      ...options, // ✅ transaction flows in here
+    });
   }
 
   async bulkRevokeRoles(userId, roleIds) {

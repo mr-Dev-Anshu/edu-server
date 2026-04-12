@@ -1,11 +1,13 @@
 import { StudentSectionEnrollmentRepository } from "../repositories/studentSectionEnrollment.repository.js";
 import { SectionRepository } from "../repositories/Academic/section.repository.js";
 import { AcademicYearRepository } from "../repositories/Academic/academicYear.repository.js";
+import { StudentRepository } from "../repositories/student.repository.js";
 import { AppError } from "../utils/AppError.js";
 
 const enrollmentRepo = new StudentSectionEnrollmentRepository();
 const sectionRepo = new SectionRepository();
 const academicYearRepo = new AcademicYearRepository();
+const studentRepo = new StudentRepository();
 
 export class StudentSectionEnrollmentService {
 
@@ -26,6 +28,17 @@ export class StudentSectionEnrollmentService {
     // Check Section exists
     const section = await sectionRepo.findById(sectionId, tenantId);
     if (!section) throw new AppError("Section not found", 404);
+
+    // Ensure section belongs to the chosen academic year
+    if (section.academicYearId !== academicYearId) {
+      throw new AppError(
+        "Section does not belong to the provided academic year",
+        400,
+      );
+    }
+
+    // Check Student exists in tenant
+    await studentRepo.findById(studentId, tenantId);
 
     // UNIQUE RULE → already enrolled?
     const existing = await enrollmentRepo.findByStudentAndYear(
@@ -93,9 +106,16 @@ export class StudentSectionEnrollmentService {
   async updateEnrollment(id, tenantId, updateData) {
     const existing = await enrollmentRepo.findById(id, tenantId);
 
-    // If changing section → check capacity
+    // If changing section → check capacity and academic year consistency
     if (updateData.sectionId !== undefined && updateData.sectionId !== existing.sectionId) {
       const section = await sectionRepo.findById(updateData.sectionId, tenantId);
+      if (section.academicYearId !== existing.academicYearId) {
+        throw new AppError(
+          "Cannot move enrollment to a section from a different academic year",
+          400,
+        );
+      }
+
       const enrolledCount = await enrollmentRepo.countBySection(
         updateData.sectionId,
         tenantId

@@ -40,6 +40,7 @@ export const AcademicYear = sequelize.define(
     // indexes: [
     //   { unique: true, fields: ["tenant_id", "name"] },
     //   { fields: ["tenant_id", "is_current"] },
+    //   { unique: true, fields: ["tenant_id"], where: { is_current: true } },
     // ],
   }
 );

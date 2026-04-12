@@ -86,9 +86,19 @@ export class AcademicYearService {
   async updateAcademicYear(id, tenantId, updateData) {
     const academicYear = await academicYearRepo.findById(id, tenantId);
 
-    // If year is locked and not being unlocked, prevent updates
-    if (academicYear.isLocked && !updateData.isLocked) {
-      throw new AppError("Cannot update a locked academic year", 400);
+    // If year is locked, only allow unlock requests through the dedicated action
+    if (academicYear.isLocked) {
+      const updateKeys = Object.keys(updateData);
+      if (!updateKeys.includes("isLocked")) {
+        throw new AppError("Cannot update a locked academic year", 400);
+      }
+
+      if (updateKeys.length > 1) {
+        throw new AppError(
+          "Cannot unlock and modify a locked academic year in the same request",
+          400,
+        );
+      }
     }
 
     // Validate dates if provided

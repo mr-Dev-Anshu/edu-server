@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
-import { AcademicYear } from "../../models/index.js";
+import { sequelize, AcademicYear } from "../../models/index.js";
+import { AppError } from "../../utils/AppError.js";
 import { BaseRepository } from "../base.repository.js";
 
 export class AcademicYearRepository extends BaseRepository {
@@ -51,17 +52,29 @@ export class AcademicYearRepository extends BaseRepository {
   }
 
   async updateCurrentYear(newCurrentId, tenantId) {
-    // Remove current flag from all years for this tenant
-    await this.model.update(
-      { isCurrent: false },
-      { where: { tenantId, isCurrent: true } }
-    );
+    return await sequelize.transaction(async (transaction) => {
+      await this.model.update(
+        { isCurrent: false },
+        {
+          where: { tenantId, isCurrent: true },
+          transaction,
+        }
+      );
 
-    // Set new current year
-    return await this.model.update(
-      { isCurrent: true },
-      { where: { id: newCurrentId, tenantId } }
-    );
+      const [updatedCount] = await this.model.update(
+        { isCurrent: true },
+        {
+          where: { id: newCurrentId, tenantId },
+          transaction,
+        }
+      );
+
+      if (updatedCount === 0) {
+        throw new AppError("Academic year could not be set as current", 500);
+      }
+
+      return updatedCount;
+    });
   }
 
   async lockYear(id, tenantId) {

@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
-import { withTenant } from "./withTenant.js";
+import { withTenant } from "../utils/model-helper.js";
 
 export const Student = sequelize.define(
   "Student",
@@ -148,5 +148,9 @@ export const Student = sequelize.define(
     paranoid: true,
     underscored: true,
     tableName: "students",
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "admission_number"] },
+    //   { unique: true, fields: ["tenant_id", "user_id"] },
+    // ],
   }
 );

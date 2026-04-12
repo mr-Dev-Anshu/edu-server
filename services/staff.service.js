@@ -102,8 +102,6 @@ export class StaffService {
       department: staff.department,
       joiningDate: staff.joiningDate,
       employmentStatus: staff.employmentStatus,
-      panNumber: staff.panNumber,
-      bankAccountNumber: staff.bankAccountNumber,
       createdAt: staff.createdAt,
       updatedAt: staff.updatedAt,
     };

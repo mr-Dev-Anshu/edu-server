@@ -44,6 +44,7 @@ const StudentSectionEnrollment = sequelize.define(
     underscored: true,
     tableName: "student_section_enrollments",
     // indexes: [
+    //   { unique: true, fields: ["tenant_id", "student_id", "academic_year_id"] },
     // ],
   }
 );

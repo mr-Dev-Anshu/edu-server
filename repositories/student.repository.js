@@ -52,7 +52,7 @@ export class StudentRepository extends BaseRepository {
         {
           model: User,
           as: "user",
-          attributes: ["id", "username", "email"],
+          attributes: ["id", "firstName", "lastName", "email"],
         },
       ],
     });
@@ -73,7 +73,7 @@ export class StudentRepository extends BaseRepository {
         {
           model: User,
           as: "user",
-          attributes: ["id", "username", "email"],
+          attributes: ["id", "firstName", "lastName", "email"],
         },
         {
           model: StudentSectionEnrollment,

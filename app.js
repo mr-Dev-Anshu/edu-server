@@ -10,6 +10,7 @@ import tenantRouter from './router/tenant.router.js';
 import userRouter from './router/user.router.js';
 import userRoleRouter from './router/user-role.router.js';
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
+import { tenantIdMiddleware } from './middlewares/tenant.middleware.js'
 
 
 const app = express();

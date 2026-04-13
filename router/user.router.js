@@ -6,11 +6,15 @@ import {
   updateUserStatusValidator,
   assignUserRolesValidator,
   removeUserRolesValidator,
+  loginValidator,
 } from "../middlewares/validators/user.validator.js";
 import { requireTenantId } from "../middlewares/tenant.middleware.js";
 
 const router = express.Router();
 const ctrl = new UserController();
+
+// ✅ Authentication routes (no ID parameter)
+router.route("/auth/login").post(loginValidator, ctrl.login);
 
 // ✅ Static routes FIRST
 router.route("/").get(requireTenantId, ctrl.getAll);

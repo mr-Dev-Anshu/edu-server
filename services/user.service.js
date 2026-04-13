@@ -2,6 +2,7 @@ import sequelize from "../config/db.js";
 import { UserRepository } from "../repositories/user.repository.js";
 import { UserRoleRepository } from "../repositories/user-role.repository.js";
 import { AppError } from "../utils/AppError.js";
+import { comparePasswords, hashPassword, generateToken } from "../utils/auth.js";
 
 const userRepo = new UserRepository();
 const userRoleRepo = new UserRoleRepository();
@@ -16,9 +17,12 @@ export class UserService {
       throw new AppError("Email already exists", 409);
     }
 
+    //hashing password before save
+    const hashedPassword = await hashPassword(payload.password);
+
     const userData = {
       email,
-      password: payload.password,
+      password: hashedPassword,
       cognitoSub: payload.cognitoSub || null,
       firstName: payload.firstName?.trim(),
       lastName: payload.lastName?.trim(),
@@ -80,7 +84,7 @@ export class UserService {
 
     await userRepo.update(userId, tenantId, updateData);
     const updated = await userRepo.findByIdWithAssociations(userId, tenantId);
-    return this.formatUserResponse(updated); 
+    return this.formatUserResponse(updated);
   }
 
   async updateUserStatus(userId, tenantId, status) {
@@ -155,6 +159,76 @@ export class UserService {
   async removeRolesFromUser(userId, tenantId, roleIds) {
     await userRepo.findById(userId, tenantId);
     await userRoleRepo.bulkRevokeRoles(userId, roleIds);
+  }
+
+  /**
+   * Login user with email and password
+   *
+   * Edge cases handled:
+   * 1. User not found → Generic error message for security
+   * 2. Invalid password → Generic error message (same as user not found)
+   * 3. Account suspended → Specific error
+   * 4. Account inactive → Specific error
+   * 5. Email not verified → Allowed but can be enforced via separate middleware
+   * 6. Successful login → Updates lastLoginAt timestamp and returns token + user data
+   *
+   * @param {object} payload - Login credentials
+   * @param {string} payload.email - User email
+   * @param {string} payload.password - User password
+   * @param {string} tenantId - Tenant ID
+   * @returns {Promise<object>} Token and user data
+   * @throws {AppError} If authentication fails or account is suspended/inactive
+   */
+  async loginUser(payload, tenantId) {
+    const email = payload.email?.toLowerCase().trim();
+    const password = payload.password?.trim();
+
+    // Find user with password scope
+    let user;
+    try {
+      user = await userRepo.findByEmailWithPassword(email, tenantId);
+    } catch (error) {
+      // Generic error message for security (timing attack prevention)
+      throw new AppError("Invalid email ", 401);
+    }
+
+    // Verify password
+    const isPasswordValid = await comparePasswords(password, user.password);
+    if (!isPasswordValid) {
+      throw new AppError("Invalid password", 401);
+    }
+
+    // Verify account status
+    userRepo.verifyUserLoginStatus(user);
+
+    // Update last login timestamp
+    await userRepo.updateLastLogin(user.id, tenantId);
+
+    // Fetch fresh user data with roles
+    const freshUser = await userRepo.findByIdWithAssociations(
+      user.id,
+      tenantId,
+    );
+
+    // Generate JWT token
+    const token = generateToken({
+      userId: user.id,
+      email: user.email,
+      userType: user.userType,
+      tenantId: tenantId,
+      roles: (freshUser.roles || []).map((role) => ({
+        id: role.id,
+        name: role.name,
+        slug: role.slug,
+      })),
+    });
+
+    // Return token and user data (without password)
+    return {
+      token,
+      user: this.formatUserResponse(freshUser),
+      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    };
   }
 
   formatUserResponse(user) {

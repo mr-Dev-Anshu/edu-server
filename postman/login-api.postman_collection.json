@@ -1,0 +1,394 @@
+{
+  "info": {
+    "_postman_id": "login-api-collection",
+    "name": "Login API - User Authentication",
+    "description": "Postman collection for testing the Login API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Successful Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"teacher@school.com\",\n  \"password\": \"SecurePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Successfully login with valid credentials"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Invalid Credentials - Wrong Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"teacher@school.com\",\n  \"password\": \"WrongPassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Wrong password should return generic error (401)"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Invalid Credentials - User Not Found",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"nonexistent@school.com\",\n  \"password\": \"AnyPassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Non-existent user should return generic error (401)"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Missing x-tenant-id Header",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"teacher@school.com\",\n  \"password\": \"SecurePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Missing tenant ID header (400)"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Missing Email Field",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"SecurePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Missing email field (400)"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Missing Password Field",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"teacher@school.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Missing password field (400)"
+      },
+      "response": []
+    },
+    {
+      "name": "7. Invalid Email Format",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"invalid-email-format\",\n  \"password\": \"SecurePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Invalid email format (400)"
+      },
+      "response": []
+    },
+    {
+      "name": "8. Empty Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"\",\n  \"password\": \"SecurePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Empty email string (400)"
+      },
+      "response": []
+    },
+    {
+      "name": "9. Empty Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"teacher@school.com\",\n  \"password\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Empty password string (should be allowed per validator, but will fail auth)"
+      },
+      "response": []
+    },
+    {
+      "name": "10. Suspended Account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"suspended@school.com\",\n  \"password\": \"CorrectPassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Suspended account should return 403 with specific message"
+      },
+      "response": []
+    },
+    {
+      "name": "11. Inactive Account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"inactive@school.com\",\n  \"password\": \"CorrectPassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Inactive account should return 403 with specific message"
+      },
+      "response": []
+    },
+    {
+      "name": "12. Case-Insensitive Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"TEACHER@SCHOOL.COM\",\n  \"password\": \"SecurePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Email should be case-insensitive (should login successfully)"
+      },
+      "response": []
+    },
+    {
+      "name": "13. Email with Whitespace",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"  teacher@school.com  \",\n  \"password\": \"SecurePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Leading/trailing whitespace should be trimmed"
+      },
+      "response": []
+    },
+    {
+      "name": "14. Unverified Email Account",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"unverified@school.com\",\n  \"password\": \"SecurePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/users/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "users", "auth", "login"]
+        },
+        "description": "Edge case: Unverified email should still allow login (can be enforced via middleware later)"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "tenant_id",
+      "value": "68c38d4e-27ff-4449-bf12-76bc68374be4"
+    }
+  ]
+}

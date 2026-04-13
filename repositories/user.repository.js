@@ -104,4 +104,42 @@ export class UserRepository extends BaseRepository {
     if (!user) throw new AppError("User not found", 404);
     return await user.restore();
   }
+
+  /**
+   * Find user by email with password scope (for authentication)
+   * This method retrieves the user including the password hash
+   * 
+   * @param {string} email - User email
+   * @param {string} tenantId - Tenant ID
+   * @returns {Promise<User>} User object with password
+   * @throws {AppError} If user not found
+   */
+  async findByEmailWithPassword(email, tenantId) {
+    const where = { email: email.toLowerCase().trim(), tenantId };
+    const user = await this.model.scope("withPassword").findOne({ where });
+    if (!user) throw new AppError("Invalid Credentials", 401);
+    return user;
+  }
+
+  /**
+   * Verify user status for login
+   * Checks if user account is eligible for login
+   * 
+   * Edge cases:
+   * - User is suspended → throw error
+   * - User is inactive → throw error
+   * - User is pending_verification → allow but warn (can be enforced later)
+   * 
+   * @param {User} user - User object
+   * @throws {AppError} If user account is not eligible for login
+   */
+  verifyUserLoginStatus(user) {
+    if (user.status === "suspended") {
+      throw new AppError("Account is suspended. Contact support.", 403);
+    }
+    if (user.status === "inactive") {
+      throw new AppError("Account is inactive. Please contact administrator.", 403);
+    }
+    // Note: pending_verification is allowed - email verification can be enforced via middleware
+  }
 }

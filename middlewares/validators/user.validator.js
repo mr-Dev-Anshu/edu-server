@@ -160,3 +160,34 @@ export const removeUserRolesValidator = createValidator((req) => {
     ensureUuid(roleId, "roleIds");
   }
 });
+
+/**
+ * Login validator
+ * Validates email and password for credentials-based login
+ *
+ * Edge cases handled:
+ * - Empty email or password
+ * - Invalid email format
+ * - Missing x-tenant-id header
+ */
+export const loginValidator = createValidator((req) => {
+  const { body } = req;
+
+  // Email validation
+  if (body.email === undefined) {
+    throw new AppError("email is required", 400);
+  }
+  ensureEmail(body.email, "email");
+
+  // Password validation
+  if (body.password === undefined) {
+    throw new AppError("password is required", 400);
+  }
+  ensureString(body.password, "password", { min: 1, max: 255 });
+
+  // Tenant validation - login requires tenant context
+  if (!req.tenantId) {
+    throw new AppError("x-tenant-id header is required for login", 400);
+  }
+  ensureUuid(req.tenantId, "x-tenant-id header");
+});

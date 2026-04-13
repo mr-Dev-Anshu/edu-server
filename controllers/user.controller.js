@@ -92,4 +92,26 @@ export class UserController {
       message: "Roles removed successfully",
     });
   });
+
+  /**
+   * Login endpoint
+   * Authenticates user with email and password, returns JWT token
+   * 
+   * Request body:
+   * - email: string (required, valid email format)
+   * - password: string (required, min 1 character)
+   * 
+   * Response:
+   * - token: JWT token for authenticated requests
+   * - user: User object with roles
+   * - expiresIn: Token expiration time
+   */
+  login = catchAsync(async (req, res) => {
+    const data = await userService.loginUser(req.body, req.tenantId);
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data,
+    });
+  });
 }

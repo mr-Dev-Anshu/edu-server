@@ -38,8 +38,5 @@ app.use('/api/v1/permissions', permissionRouter);
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });
 });
-
-
 app.use(globalErrorHandler);
-
 export default app;

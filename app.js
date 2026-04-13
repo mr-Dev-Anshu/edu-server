@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import permissionRouter from './router/permission.router.js';
 import roleRouter from './router/role.router.js';
 import tenantRouter from './router/tenant.router.js';
+import transportRoutes from "./router/transport.router.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 
 
@@ -31,9 +32,11 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', timestamp: new Date().toISOString() });
 });
 
+
 app.use('/api/v1/tenants', tenantRouter);
 app.use('/api/v1/roles', roleRouter);
 app.use('/api/v1/permissions', permissionRouter);
+app.use("/api/v1/transports", transportRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

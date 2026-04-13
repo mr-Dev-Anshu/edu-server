@@ -5,6 +5,8 @@ import { createPermissionValidator } from "../middlewares/validators/permission.
 const router = express.Router();
 const ctrl = new PermissionController();
 
-router.route("/").post(createPermissionValidator, ctrl.create);
+router.route("/")
+  .post(createPermissionValidator, ctrl.create)
+  .get(ctrl.getAll); 
 
 export default router;

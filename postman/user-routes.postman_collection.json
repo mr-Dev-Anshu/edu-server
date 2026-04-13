@@ -1,0 +1,611 @@
+{
+  "info": {
+    "_postman_id": "f3fe4277-69f2-4e7d-91df-user-routes",
+    "name": "Edu Server User and User Role Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing user and user-role routes using x-tenant-id headers."
+  },
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create Org Admin User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('userId', json.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"org.admin.{{$timestamp}}@example.com\",\n  \"password\": \"Password@123\",\n  \"firstName\": \"Org\",\n  \"lastName\": \"Admin\",\n  \"userType\": \"org_admin\",\n  \"phone\": \"+91-9000000001\",\n  \"status\": \"active\",\n  \"emailVerified\": false,\n  \"preferences\": {\n    \"language\": \"en\",\n    \"theme\": \"system\"\n  },\n  \"metadata\": {\n    \"createdFrom\": \"postman-user-collection\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Staff User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('secondaryUserId', json.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff.user.{{$timestamp}}@example.com\",\n  \"password\": \"Password@123\",\n  \"firstName\": \"Staff\",\n  \"lastName\": \"Member\",\n  \"userType\": \"staff\",\n  \"phone\": \"+91-9000000002\",\n  \"status\": \"active\",\n  \"emailVerified\": false,\n  \"preferences\": {\n    \"language\": \"en\",\n    \"theme\": \"system\"\n  },\n  \"metadata\": {\n    \"createdFrom\": \"postman-user-collection\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userBaseUrl}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userBaseUrl}}/{{userId}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Admin\",\n  \"phone\": \"+91-9555555555\",\n  \"preferences\": {\n    \"language\": \"en\",\n    \"theme\": \"light\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/{{userId}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/{{userId}}/status",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{userId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify User Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userBaseUrl}}/{{userId}}/verify-email",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{userId}}",
+                "verify-email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Roles To User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roles\": [\n    {\n      \"roleId\": \"{{teacherRoleId}}\"\n    },\n    {\n      \"roleId\": \"{{coordinatorRoleId}}\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/{{userId}}/roles",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{userId}}",
+                "roles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Roles From User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleIds\": [\n    \"{{teacherRoleId}}\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/{{userId}}/roles",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{userId}}",
+                "roles"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userBaseUrl}}/{{secondaryUserId}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{secondaryUserId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restore User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userBaseUrl}}/{{secondaryUserId}}/restore",
+              "host": [
+                "{{userBaseUrl}}"
+              ],
+              "path": [
+                "{{secondaryUserId}}",
+                "restore"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Roles",
+      "item": [
+        {
+          "name": "Assign Single Role To User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('userRoleAssignmentId', json.data.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{secondaryUserId}}\",\n  \"roleId\": \"{{teacherRoleId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{userRoleBaseUrl}}/assign",
+              "host": [
+                "{{userRoleBaseUrl}}"
+              ],
+              "path": [
+                "assign"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Multiple Roles To User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"roleIds\": [\n    \"{{teacherRoleId}}\",\n    \"{{coordinatorRoleId}}\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{userRoleBaseUrl}}/assign-multiple",
+              "host": [
+                "{{userRoleBaseUrl}}"
+              ],
+              "path": [
+                "assign-multiple"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userRoleBaseUrl}}/user/{{userId}}",
+              "host": [
+                "{{userRoleBaseUrl}}"
+              ],
+              "path": [
+                "user",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Role Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userRoleBaseUrl}}/role/{{teacherRoleId}}",
+              "host": [
+                "{{userRoleBaseUrl}}"
+              ],
+              "path": [
+                "role",
+                "{{teacherRoleId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Role By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userRoleBaseUrl}}/{{userRoleAssignmentId}}",
+              "host": [
+                "{{userRoleBaseUrl}}"
+              ],
+              "path": [
+                "{{userRoleAssignmentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Role Expiry",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expiresAt\": \"2099-12-31T23:59:59.000Z\"\n}"
+            },
+            "url": {
+              "raw": "{{userRoleBaseUrl}}/{{userRoleAssignmentId}}/expiry",
+              "host": [
+                "{{userRoleBaseUrl}}"
+              ],
+              "path": [
+                "{{userRoleAssignmentId}}",
+                "expiry"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Single Role From User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{secondaryUserId}}\",\n  \"roleId\": \"{{teacherRoleId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{userRoleBaseUrl}}/revoke",
+              "host": [
+                "{{userRoleBaseUrl}}"
+              ],
+              "path": [
+                "revoke"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Multiple Roles From User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"roleIds\": [\n    \"{{teacherRoleId}}\",\n    \"{{coordinatorRoleId}}\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{userRoleBaseUrl}}/revoke-multiple",
+              "host": [
+                "{{userRoleBaseUrl}}"
+              ],
+              "path": [
+                "revoke-multiple"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseApiUrl",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "userBaseUrl",
+      "value": "{{baseApiUrl}}/users"
+    },
+    {
+      "key": "userRoleBaseUrl",
+      "value": "{{baseApiUrl}}/user-roles"
+    },
+    {
+      "key": "tenantId",
+      "value": "c43e1e2a-9aad-4f59-9a72-776514d361f1"
+    },
+    {
+      "key": "teacherRoleId",
+      "value": ""
+    },
+    {
+      "key": "coordinatorRoleId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "secondaryUserId",
+      "value": ""
+    },
+    {
+      "key": "userRoleAssignmentId",
+      "value": ""
+    }
+  ]
+}

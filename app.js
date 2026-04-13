@@ -7,7 +7,10 @@ import { fileURLToPath } from 'url';
 import permissionRouter from './router/permission.router.js';
 import roleRouter from './router/role.router.js';
 import tenantRouter from './router/tenant.router.js';
+import userRouter from './router/user.router.js';
+import userRoleRouter from './router/user-role.router.js';
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
+import { tenantIdMiddleware } from './middlewares/tenant.middleware.js'
 
 
 const app = express();
@@ -18,7 +21,7 @@ app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*', 
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id']
 }));
 
 // 2. Utility Middleware
@@ -31,9 +34,13 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', timestamp: new Date().toISOString() });
 });
 
+app.use(tenantIdMiddleware);
+
 app.use('/api/v1/tenants', tenantRouter);
 app.use('/api/v1/roles', roleRouter);
 app.use('/api/v1/permissions', permissionRouter);
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/user-roles', userRoleRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

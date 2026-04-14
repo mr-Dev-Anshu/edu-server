@@ -20,6 +20,7 @@ import { Guardian } from "./Guardian.js";
 import { UserRole } from "./UserRole.js";
 import { RolePermission } from "./RolePermission.js";
 import StudentGuardianMap from "./StudentGaurdianMap.js";
+import {NotificationLog} from "./notifications/NotificationLog.js"
 // import UserRole from './UserRole.js';
 // import RolePermission from './RolePermission.js';
 
@@ -144,4 +145,5 @@ export {
   Room,
   Timetable,
   TimetableSlot,
+  NotificationLog
 };

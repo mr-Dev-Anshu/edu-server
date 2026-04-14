@@ -29,6 +29,12 @@ function ensureOptionalEnum(value, fieldName, allowed) {
     if (value !== undefined) ensureEnum(value, fieldName, allowed);
 }
 
+function ensureSlugOrUUID(value, fieldName) {
+    if (!value || typeof value !== 'string' || !UUID_REGEX.test(value.trim())) {
+        throw new AppError(`${fieldName} must be a valid plan ID or slug`, 422);
+    }
+}
+
 function ensureOptionalPositiveInt(value, fieldName, min, max) {
     if (value === undefined) return;
     const n = Number(value);
@@ -59,7 +65,7 @@ export const createSubscriptionValidator = createValidator((req) => {
     const { tenantId, planId, billingCycle } = req.body;
 
     ensureUUID(tenantId, 'tenantId');
-    ensureString(planId, 'planId');
+    ensureSlugOrUUID(planId, 'planId');
     ensureEnum(billingCycle, 'billingCycle', ALLOWED_BILLING);
 
     if (req.body.startDate !== undefined) ensureDate(req.body.startDate, 'startDate');

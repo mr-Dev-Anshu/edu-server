@@ -1,128 +1,158 @@
-import { body } from 'express-validator';
+import { AppError } from '../../utils/AppError.js';
 
 const RESERVED_SLUGS = ['free', 'trial', 'admin', 'test', 'demo', 'default'];
+const ALLOWED_CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED'];
 
-// ─── Create Plan Validator ────────────────────────────────────────────────────
-export const createPlanValidator = [
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
 
-    body('name')
-        .trim()
-        .notEmpty().withMessage('Plan name is required')
-        .isLength({ min: 2, max: 100 }).withMessage('Plan name must be between 2 and 100 characters'),
+function createValidator(validatorFn) {
+    return (req, res, next) => {
+        try {
+            validatorFn(req);
+            next();
+        } catch (error) {
+            if (error instanceof AppError) return next(error);  // ✅ status preserved
+            next(new AppError(error.message || 'Validation failed', 400));
+        }
+    };
+}
 
-    body('slug')
-        .trim()
-        .notEmpty().withMessage('Slug is required')
-        .customSanitizer(value => value?.toLowerCase())      
-        .matches(/^[a-z0-9-]+$/).withMessage('Slug must contain only lowercase letters, numbers, and hyphens')
-        .isLength({ min: 2, max: 100 }).withMessage('Slug must be between 2 and 100 characters')
-        .custom(value => {                                       
-            if (RESERVED_SLUGS.includes(value)) {
-                throw new Error(`Slug "${value}" is reserved and cannot be used`);
-            }
-            return true;
-        }),
+function ensureString(value, field, min = 1, max = 100) {
+    if (typeof value !== 'string' || value.trim().length < min || value.trim().length > max) {
+        throw new AppError(`${field} must be between ${min} and ${max} characters`, 400);
+    }
+}
 
-    body('description')
-        .optional()
-        .trim()
-        .isString().withMessage('Description must be a string')
-        .isLength({ max: 1000 }).withMessage('Description must not exceed 1000 characters'),
+function ensureSlug(value) {
+    if (!value || typeof value !== 'string') {
+        throw new AppError('Slug is required', 400);
+    }
 
-    body('monthlyPrice')
-        .notEmpty().withMessage('Monthly price is required')
-        .isFloat({ min: 0 }).withMessage('Monthly price must be a valid number >= 0'),
+    const slug = value.trim().toLowerCase();
 
-    body('yearlyPrice')
-        .notEmpty().withMessage('Yearly price is required')
-        .isFloat({ min: 0 }).withMessage('Yearly price must be a valid number >= 0'),
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+        throw new AppError('Slug must contain only lowercase letters, numbers, and hyphens', 400);
+    }
 
-    body('currency')
-        .optional()
-        .trim()
-        .isLength({ min: 3, max: 3 }).withMessage('Currency must be a 3-letter code (e.g. INR, USD)')
-        .toUpperCase()                                           
-        .isIn(['INR', 'USD', 'EUR', 'GBP', 'AED']).withMessage('Currency must be a supported code: INR, USD, EUR, GBP, AED'),
+    if (slug.length < 2 || slug.length > 100) {
+        throw new AppError('Slug must be between 2 and 100 characters', 400);
+    }
 
-    body('features')
-        .optional()
-        .isObject().withMessage('Features must be a valid JSON object'),
+    if (RESERVED_SLUGS.includes(slug)) {
+        throw new AppError(`Slug "${slug}" is reserved and cannot be used`, 400);
+    }
+}
 
-    body('features.maxStudents')
-        .optional()
-        .isInt({ min: 1 }).withMessage('maxStudents must be a positive integer'),
+function ensurePrice(value, field) {
+    if (value === undefined || value === null) {
+        throw new AppError(`${field} is required`, 400);
+    }
 
-    body('features.hasTransport')
-        .optional()
-        .isBoolean().withMessage('hasTransport must be true or false'),
+    const num = Number(value);
+    if (isNaN(num) || num < 0) {
+        throw new AppError(`${field} must be a number >= 0`, 400);
+    }
+}
 
-    body('features.hasLMS')
-        .optional()
-        .isBoolean().withMessage('hasLMS must be true or false'),
+function ensureOptionalPrice(value, field) {
+    if (value === undefined) return;
+    const num = Number(value);
+    if (isNaN(num) || num < 0) {
+        throw new AppError(`${field} must be a number >= 0`, 400);
+    }
+}
 
-    body('features.hasExams')
-        .optional()
-        .isBoolean().withMessage('hasExams must be true or false'),
+function ensureCurrency(value) {
+    if (value === undefined) return;
 
-    body('features.storageLimitGb')
-        .optional()
-        .isFloat({ min: 1 }).withMessage('storageLimitGb must be at least 1 GB'),
-];
+    if (typeof value !== 'string' || value.trim().length !== 3) {
+        throw new AppError('Currency must be a 3-letter code', 400);
+    }
 
-// ─── Update Plan Validator ────────────────────────────────────────────────────
+    const upper = value.toUpperCase();
 
-export const updatePlanValidator = [
+    if (!ALLOWED_CURRENCIES.includes(upper)) {
+        throw new AppError(`Currency must be one of: ${ALLOWED_CURRENCIES.join(', ')}`, 400);
+    }
+}
 
-    body('slug')
-        .not().exists().withMessage('Slug cannot be updated after creation'),
+function ensureFeatures(features) {
+    if (features === undefined) return;
 
-    body('name')
-        .optional()
-        .trim()
-        .isLength({ min: 2, max: 100 }).withMessage('Plan name must be between 2 and 100 characters'),
+    if (typeof features !== 'object' || Array.isArray(features)) {
+        throw new AppError('Features must be a valid object', 400);
+    }
 
-    body('description')
-        .optional()
-        .trim()
-        .isString().withMessage('Description must be a string')
-        .isLength({ max: 1000 }).withMessage('Description must not exceed 1000 characters'),
+    if (features.maxStudents !== undefined) {
+        if (!Number.isInteger(features.maxStudents) || features.maxStudents < 1) {
+            throw new AppError('features.maxStudents must be a positive integer', 400);
+        }
+    }
 
-    body('monthlyPrice')
-        .optional()
-        .isFloat({ min: 0 }).withMessage('Monthly price must be a valid number >= 0'),
+    if (features.hasTransport !== undefined && typeof features.hasTransport !== 'boolean') {
+        throw new AppError('features.hasTransport must be boolean', 400);
+    }
 
-    body('yearlyPrice')
-        .optional()
-        .isFloat({ min: 0 }).withMessage('Yearly price must be a valid number >= 0'),
+    if (features.hasLMS !== undefined && typeof features.hasLMS !== 'boolean') {
+        throw new AppError('features.hasLMS must be boolean', 400);
+    }
 
-    body('currency')
-        .optional()
-        .trim()
-        .isLength({ min: 3, max: 3 }).withMessage('Currency must be a 3-letter code')
-        .toUpperCase()
-        .isIn(['INR', 'USD', 'EUR', 'GBP', 'AED']).withMessage('Currency must be a supported code: INR, USD, EUR, GBP, AED'),
+    if (features.hasExams !== undefined && typeof features.hasExams !== 'boolean') {
+        throw new AppError('features.hasExams must be boolean', 400);
+    }
 
-    body('features')
-        .optional()
-        .isObject().withMessage('Features must be a valid JSON object'),
+    if (features.storageLimitGb !== undefined) {
+        if (typeof features.storageLimitGb !== 'number' || features.storageLimitGb < 1) {
+            throw new AppError('features.storageLimitGb must be >= 1', 400);
+        }
+    }
+}
 
-    body('features.maxStudents')
-        .optional()
-        .isInt({ min: 1 }).withMessage('maxStudents must be a positive integer'),
+// ─────────────────────────────────────────────
+// Create Plan
+// ─────────────────────────────────────────────
 
-    body('features.hasTransport')
-        .optional()
-        .isBoolean().withMessage('hasTransport must be true or false'),
+export const createPlanValidator = createValidator((req) => {
+    const { name, slug, description, monthlyPrice, yearlyPrice, currency, features } = req.body;
 
-    body('features.hasLMS')
-        .optional()
-        .isBoolean().withMessage('hasLMS must be true or false'),
+    ensureString(name, 'Plan name', 2, 100);
+    ensureSlug(slug);
 
-    body('features.hasExams')
-        .optional()
-        .isBoolean().withMessage('hasExams must be true or false'),
+    if (description !== undefined) {
+        ensureString(description, 'Description', 0, 1000);
+    }
 
-    body('features.storageLimitGb')
-        .optional()
-        .isFloat({ min: 1 }).withMessage('storageLimitGb must be at least 1 GB'),
-];
+    ensurePrice(monthlyPrice, 'Monthly price');
+    ensurePrice(yearlyPrice, 'Yearly price');
+
+    ensureCurrency(currency);
+    ensureFeatures(features);
+});
+
+// ─────────────────────────────────────────────
+// Update Plan
+// ─────────────────────────────────────────────
+
+export const updatePlanValidator = createValidator((req) => {
+    const { name, description, monthlyPrice, yearlyPrice, currency, features, slug } = req.body;
+
+    if (slug !== undefined) {
+        throw new AppError('Slug cannot be updated after creation', 400);
+    }
+
+    if (name !== undefined) {
+        ensureString(name, 'Plan name', 2, 100);
+    }
+
+    if (description !== undefined) {
+        ensureString(description, 'Description', 0, 1000);
+    }
+
+    ensureOptionalPrice(monthlyPrice, 'Monthly price');
+    ensureOptionalPrice(yearlyPrice, 'Yearly price');
+
+    ensureCurrency(currency);
+    ensureFeatures(features);
+});

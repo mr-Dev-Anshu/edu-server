@@ -10,7 +10,7 @@ import permissionRouter from './router/permission.router.js';
 import roleRouter from './router/role.router.js';
 import tenantRouter from './router/tenant.router.js';
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
-import { subscribe } from 'diagnostics_channel';
+import subscriptionRoutes from './router/subscription.routes.js';
 
 
 const app = express();
@@ -35,7 +35,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/v1/super-admin/plans', planRoutes);
-app.use('/api/v1/super-admin/subscriptions', Subscription);
+app.use('/api/v1/subscriptions', subscriptionRoutes);
 
 app.use('/api/v1/tenants', tenantRouter);
 app.use('/api/v1/roles', roleRouter);

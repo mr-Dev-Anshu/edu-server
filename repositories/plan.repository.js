@@ -15,6 +15,15 @@ export class PlanRepository extends BaseRepository {
         return plan;
     }
 
+    // ─── Find Plan by Name ─────────────────────────
+    async findByName(name) {
+        return await this.model.findOne({
+            where: sequelize.where(
+                sequelize.fn('LOWER', sequelize.col('name')),
+                name.toLowerCase()
+            )
+        });
+    }
     // ─── Override: findAll — explicit where, ORDER BY createdAt DESC ──────────
     async findAll(options = {}) {
         const where = {};
@@ -40,10 +49,9 @@ export class PlanRepository extends BaseRepository {
 
     // ─── Custom: active subscription count for a plan ────────────────────────
     async getActiveSubscriptionCount(planId) {
-        const { default: Subscription } = await import('../models/Subscription.js');
-        return await Subscription.count({
+        return await this.model.count({
             where: {
-                plan_id: planId,
+                planId,
                 status: { [Op.in]: ['active', 'trialing', 'past_due'] },
             },
         });

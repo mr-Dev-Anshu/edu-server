@@ -20,6 +20,7 @@ export class PlanService {
         return await planRepo.findAll(options);
     }
 
+
     // ─── Get Single Plan ─────────────────────────
     async getPlanDetails(id) {
         return await planRepo.findById(id);
@@ -32,11 +33,8 @@ export class PlanService {
             throw new AppError('A plan with this slug already exists', 409);
         }
 
-        const allPlans = await planRepo.findAll({});
-        const duplicateName = allPlans.find(
-            p => p.name.toLowerCase() === data.name.toLowerCase()
-        );
-        if (duplicateName) {
+        const existingName = await planRepo.findByName(data.name);
+        if (existingName) {
             throw new AppError('A plan with this name already exists', 409);
         }
 
@@ -52,16 +50,24 @@ export class PlanService {
         const plan = await planRepo.findById(id);
 
         if (data.name) {
-            const allPlans = await planRepo.findAll({});
-            const duplicate = allPlans.find(
-                p => p.name.toLowerCase() === data.name.toLowerCase() && p.id !== id
-            );
-            if (duplicate) {
+            const existingName = await planRepo.findByName(data.name);
+
+            if (existingName && existingName.id !== plan.id) {
                 throw new AppError('A plan with this name already exists', 409);
             }
         }
 
-        return await plan.update(data);
+        const updateData = {
+            ...(data.name && { name: data.name }),
+            ...(data.description && { description: data.description }),
+            ...(data.monthlyPrice !== undefined && { monthlyPrice: data.monthlyPrice }),
+            ...(data.yearlyPrice !== undefined && { yearlyPrice: data.yearlyPrice }),
+            ...(data.features && { features: data.features }),
+            ...(data.isActive !== undefined && { isActive: data.isActive }),
+        };
+
+        await plan.update(updateData);
+        return plan;
     }
 
     // ─── Toggle / Set Plan Status ──────────────────────────

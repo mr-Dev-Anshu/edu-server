@@ -1,1322 +1,189 @@
 {
   "info": {
-    "_postman_id": "1c5ffe29-3e16-4e4b-8e5f-3937120aec5e",
-    "name": "Subscription API — Complete Test Suite",
+    "_postman_id": "9e6bd015-b409-4fbd-b924-83564cd74ac6",
+    "name": "Subscription API Collection",
+    "description": "Test all subscription APIs",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "48380864",
-    "_collection_link": "https://go.postman.co/collection/48380864-1c5ffe29-3e16-4e4b-8e5f-3937120aec5e?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/48380864-9e6bd015-b409-4fbd-b924-83564cd74ac6?source=collection_link"
   },
   "item": [
     {
-      "name": "── Auth Guards ──────────────────────────",
-      "item": [
-        {
-          "name": "AUTH.1 — No token → 401",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 401', () => pm.response.to.have.status(401));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
+      "name": "Create Subscription",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"planId\": \"{{planId}}\",\n  \"billingCycle\": \"monthly\"\n}"
         },
-        {
-          "name": "AUTH.2 — School owner token on super-admin route → 403",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 403', () => pm.response.to.have.status(403));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SCHOOL_OWNER_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "AUTH.3 — Super admin token on school-owner route → 403",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 403', () => pm.response.to.have.status(403));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/school-owner/subscriptions/mine",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "school-owner",
-                "subscriptions",
-                "mine"
-              ]
-            }
-          },
-          "response": []
+        "url": {
+          "raw": "{{baseUrl}}",
+          "host": [
+            "{{baseUrl}}"
+          ]
         }
-      ]
+      },
+      "response": []
     },
     {
-      "name": "── Super Admin — Create & Assign ────────",
-      "item": [
-        {
-          "name": "SA.1 — Create monthly subscription for school → 201",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "const d = pm.response.json().data;",
-                  "pm.collectionVariables.set('SUB_ID', d.id);",
-                  "pm.test('Has id', () => pm.expect(d.id).to.be.a('string'));",
-                  "pm.test('Status is trialing', () => pm.expect(d.status).to.equal('trialing'));",
-                  "pm.test('billingCycle is monthly', () => pm.expect(d.billingCycle).to.equal('monthly'));",
-                  "const diff = (new Date(d.endDate) - new Date(d.startDate)) / 86400000;",
-                  "pm.test('endDate is ~30 days out', () => pm.expect(diff).to.be.closeTo(30, 1));",
-                  "pm.test('amountPaid is above 0', () => pm.expect(d.amountPaid).to.be.above(0));"
-                ],
-                "type": "text/javascript"
-              }
-            }
+      "name": "Get All Subscriptions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}?limit=10&offset=0",
+          "host": [
+            "{{baseUrl}}"
           ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{TENANT_ID}}\",\n  \"planId\": \"{{ACTIVE_PLAN_ID}}\",\n  \"billingCycle\": \"monthly\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.2 — Create yearly subscription for school → 201",
-          "event": [
+          "query": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "const d = pm.response.json().data;",
-                  "const diff = (new Date(d.endDate) - new Date(d.startDate)) / 86400000;",
-                  "pm.test('endDate is ~365 days out', () => pm.expect(diff).to.be.closeTo(365, 1));",
-                  "pm.test('billingCycle is yearly', () => pm.expect(d.billingCycle).to.equal('yearly'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{TENANT_ID}}\",\n  \"planId\": \"{{ACTIVE_PLAN_ID}}\",\n  \"billingCycle\": \"yearly\"\n}"
+              "key": "limit",
+              "value": "10"
             },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.3 — Price spoofing rejected → 400",
-          "event": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
-                  "pm.test('Correct error message', () => pm.expect(pm.response.json().message).to.include('amountPaid must not be sent'));"
-                ],
-                "type": "text/javascript"
-              }
+              "key": "offset",
+              "value": "0"
             }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{TENANT_ID}}\",\n  \"planId\": \"{{ACTIVE_PLAN_ID}}\",\n  \"billingCycle\": \"monthly\",\n  \"amountPaid\": 0\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.4 — Inactive plan rejected → 422",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 422', () => pm.response.to.have.status(422));",
-                  "pm.test('Correct error message', () => pm.expect(pm.response.json().message).to.include('no longer available'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{TENANT_ID}}\",\n  \"planId\": \"{{INACTIVE_PLAN_ID}}\",\n  \"billingCycle\": \"monthly\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.5 — Missing billingCycle → 400",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{TENANT_ID}}\",\n  \"planId\": \"{{ACTIVE_PLAN_ID}}\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.6 — Missing tenantId → 422",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 422', () => pm.response.to.have.status(422));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"planId\": \"{{ACTIVE_PLAN_ID}}\",\n  \"billingCycle\": \"monthly\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
+          ]
         }
-      ]
+      },
+      "response": []
     },
     {
-      "name": "── Super Admin — Read ───────────────────",
-      "item": [
-        {
-          "name": "SA.7 — Get all subscriptions → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has results count', () => pm.expect(pm.response.json().results).to.be.a('number'));",
-                  "pm.test('Data is array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
+      "name": "Get Subscription By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/{{subscriptionId}}",
+          "host": [
+            "{{baseUrl}}"
           ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.8 — Get all with status filter → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('All items have correct status', () => {",
-                  "  pm.response.json().data.forEach(s => pm.expect(s.status).to.equal('trialing'));",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "?status=trialing",
-              "query": [
-                {
-                  "key": "status",
-                  "value": "trialing"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.9 — Get all with billingCycle filter → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "?billingCycle=monthly",
-              "query": [
-                {
-                  "key": "billingCycle",
-                  "value": "monthly"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.10 — Invalid status filter → 400",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "?status=invalid",
-              "query": [
-                {
-                  "key": "status",
-                  "value": "invalid"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.11 — Get single subscription → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('ID matches', () => pm.expect(pm.response.json().data.id).to.equal(pm.collectionVariables.get('SUB_ID')));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{SUB_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{SUB_ID}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.12 — Invalid UUID on :id → 422",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 422', () => pm.response.to.have.status(422));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/not-a-uuid",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "not-a-uuid"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.13 — Valid UUID not found → 404",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/00000000-0000-0000-0000-000000000000",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "00000000-0000-0000-0000-000000000000"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.14 — Get subscriptions by tenant → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('All belong to correct tenant', () => {",
-                  "  pm.response.json().data.forEach(s => pm.expect(s.tenantId).to.equal(pm.collectionVariables.get('TENANT_ID')));",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/tenant/{{TENANT_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "tenant",
-                "{{TENANT_ID}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.15 — Invalid tenant UUID → 422",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 422', () => pm.response.to.have.status(422));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/tenant/bad-uuid",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "tenant",
-                "bad-uuid"
-              ]
-            }
-          },
-          "response": []
+          "path": [
+            "{{subscriptionId}}"
+          ]
         }
-      ]
+      },
+      "response": []
     },
     {
-      "name": "── Super Admin — Update ─────────────────",
-      "item": [
-        {
-          "name": "SA.16 — Update subscription status → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Status updated', () => pm.expect(pm.response.json().data.status).to.equal('active'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
+      "name": "Get Subscriptions By Tenant",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tenant/{{tenantId}}?limit=10",
+          "host": [
+            "{{baseUrl}}"
           ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"active\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{SUB_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{SUB_ID}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.17 — planId change rejected → 400",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
-                  "pm.test('Correct error message', () => pm.expect(pm.response.json().message).to.include('planId cannot be changed'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
+          "path": [
+            "tenant",
+            "{{tenantId}}"
           ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"planId\": \"{{PREMIUM_PLAN_ID}}\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{SUB_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{SUB_ID}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.18 — tenantId change rejected → 400",
-          "event": [
+          "query": [
             {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
+              "key": "limit",
+              "value": "10"
             }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"tenantId\": \"{{TENANT_ID}}\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{SUB_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{SUB_ID}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.19 — amountPaid change rejected → 400",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"amountPaid\": 0\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{SUB_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{SUB_ID}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.20 — Toggle status → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Status toggled', () => pm.expect(pm.response.json().data.status).to.be.oneOf(['active', 'canceled']));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{SUB_ID}}/status",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{SUB_ID}}",
-                "status"
-              ]
-            }
-          },
-          "response": []
+          ]
         }
-      ]
+      },
+      "response": []
     },
     {
-      "name": "── Super Admin — Upgrade ────────────────",
-      "item": [
-        {
-          "name": "SA.21 — Upgrade to premium yearly → 201 (new row created)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
-                  "const d = pm.response.json().data;",
-                  "pm.collectionVariables.set('NEW_SUB_ID', d.id);",
-                  "pm.test('New ID is different from old', () => pm.expect(d.id).to.not.equal(pm.collectionVariables.get('SUB_ID')));",
-                  "pm.test('Status is active', () => pm.expect(d.status).to.equal('active'));",
-                  "pm.test('billingCycle is yearly', () => pm.expect(d.billingCycle).to.equal('yearly'));",
-                  "const diff = (new Date(d.endDate) - new Date(d.startDate)) / 86400000;",
-                  "pm.test('endDate is ~365 days out', () => pm.expect(diff).to.be.closeTo(365, 1));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"newPlanId\": \"{{PREMIUM_PLAN_ID}}\",\n  \"billingCycle\": \"yearly\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{SUB_ID}}/upgrade",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{SUB_ID}}",
-                "upgrade"
-              ]
-            }
-          },
-          "response": []
+      "name": "Update Subscription",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"active\",\n  \"billingCycle\": \"yearly\"\n}"
         },
-        {
-          "name": "SA.22 — Old subscription is now expired → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Old sub is expired', () => pm.expect(pm.response.json().data.status).to.equal('expired'));"
-                ],
-                "type": "text/javascript"
-              }
-            }
+        "url": {
+          "raw": "{{baseUrl}}/{{subscriptionId}}",
+          "host": [
+            "{{baseUrl}}"
           ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{SUB_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{SUB_ID}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.23 — Tenant history has both old + new → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('At least 2 subscriptions in history', () => pm.expect(pm.response.json().results).to.be.at.least(2));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/tenant/{{TENANT_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "tenant",
-                "{{TENANT_ID}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.24 — Upgrade to inactive plan rejected → 422",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 422', () => pm.response.to.have.status(422));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"newPlanId\": \"{{INACTIVE_PLAN_ID}}\",\n  \"billingCycle\": \"monthly\"\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{NEW_SUB_ID}}/upgrade",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{NEW_SUB_ID}}",
-                "upgrade"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "SA.25 — Price spoofing on upgrade rejected → 400",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"newPlanId\": \"{{PREMIUM_PLAN_ID}}\",\n  \"billingCycle\": \"yearly\",\n  \"amountPaid\": 0\n}"
-            },
-            "url": {
-              "raw": "{{BASE_URL}}/super-admin/subscriptions/{{NEW_SUB_ID}}/upgrade",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "super-admin",
-                "subscriptions",
-                "{{NEW_SUB_ID}}",
-                "upgrade"
-              ]
-            }
-          },
-          "response": []
+          "path": [
+            "{{subscriptionId}}"
+          ]
         }
-      ]
+      },
+      "response": []
     },
     {
-      "name": "── Pagination & Filters ─────────────────",
-      "item": [
-        {
-          "name": "PAG.1 — Pagination with limit and offset → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Respects limit', () => pm.expect(pm.response.json().data.length).to.be.at.most(2));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "?limit=2&offset=0",
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "2"
-                },
-                {
-                  "key": "offset",
-                  "value": "0"
-                }
-              ]
-            }
-          },
-          "response": []
+      "name": "Upgrade Subscription",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"newPlanId\": \"{{planId}}\",\n  \"billingCycle\": \"yearly\"\n}"
         },
-        {
-          "name": "PAG.2 — limit above 100 rejected → 400",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
+        "url": {
+          "raw": "{{baseUrl}}/{{subscriptionId}}/upgrade",
+          "host": [
+            "{{baseUrl}}"
           ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "?limit=999",
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "999"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PAG.3 — Filter by tenantId in query → 200",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "?tenantId={{TENANT_ID}}",
-              "query": [
-                {
-                  "key": "tenantId",
-                  "value": "{{TENANT_ID}}"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PAG.4 — Invalid billingCycle filter → 400",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{SUPER_ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "?billingCycle=weekly",
-              "query": [
-                {
-                  "key": "billingCycle",
-                  "value": "weekly"
-                }
-              ]
-            }
-          },
-          "response": []
+          "path": [
+            "{{subscriptionId}}",
+            "upgrade"
+          ]
         }
-      ]
+      },
+      "response": []
+    },
+    {
+      "name": "Toggle Subscription Status",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/{{subscriptionId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{subscriptionId}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
     }
   ],
   "variable": [
     {
-      "key": "BASE_URL",
-      "value": "http://localhost:3000/api/v1"
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1/super-admin/subscriptions"
     },
     {
-      "key": "SUPER_ADMIN_TOKEN",
-      "value": "<paste super admin JWT here>"
+      "key": "tenantId",
+      "value": "REPLACE_WITH_UUID"
     },
     {
-      "key": "SCHOOL_OWNER_TOKEN",
-      "value": "<paste school owner JWT here>"
+      "key": "subscriptionId",
+      "value": "REPLACE_WITH_SUBSCRIPTION_ID"
     },
     {
-      "key": "TENANT_ID",
-      "value": "<paste valid tenant UUID>"
-    },
-    {
-      "key": "ACTIVE_PLAN_ID",
-      "value": "<paste active plan UUID>"
-    },
-    {
-      "key": "INACTIVE_PLAN_ID",
-      "value": "<paste inactive plan UUID>"
-    },
-    {
-      "key": "PREMIUM_PLAN_ID",
-      "value": "<paste premium plan UUID>"
-    },
-    {
-      "key": "SUB_ID",
-      "value": ""
-    },
-    {
-      "key": "NEW_SUB_ID",
-      "value": ""
+      "key": "planId",
+      "value": "REPLACE_WITH_PLAN_ID"
     }
   ]
 }

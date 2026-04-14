@@ -1,7 +1,7 @@
 import { Router } from 'express';
 // import { authenticate } from '../middlewares/authenticate.js';
 // import { isSuperAdmin } from '../middlewares/isSuperAdmin.js';
-import { tenantGuard } from '../middlewares/tenantGuard.js';
+import { tenantIdMiddleware, requireTenantId } from '../middlewares/tenant.middleware.js';
 
 import {
     createSubscriptionValidator,
@@ -16,9 +16,10 @@ import { subscriptionController } from '../controllers/subscription.controller.j
 const router = Router();
 
 // router.use(authenticate, isSuperAdmin);
-router.use(tenantGuard)
 
 router.post('/',
+    tenantIdMiddleware,
+    requireTenantId,
     createSubscriptionValidator,
     subscriptionController.create
 );
@@ -40,12 +41,7 @@ router.get('/:id',
     subscriptionController.getOne
 );
 
-router.patch('/:id',
-    validateSubscriptionId,
-    updateSubscriptionValidator,
-    subscriptionController.update
-);
-
+// ✅ specific first
 router.patch('/:id/upgrade',
     validateSubscriptionId,
     upgradeValidator,
@@ -55,6 +51,13 @@ router.patch('/:id/upgrade',
 router.patch('/:id/status',
     validateSubscriptionId,
     subscriptionController.toggleStatus
+);
+
+// ✅ generic last
+router.patch('/:id',
+    validateSubscriptionId,
+    updateSubscriptionValidator,
+    subscriptionController.update
 );
 
 export default router;

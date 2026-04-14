@@ -15,18 +15,11 @@ import {
     timetableSlotController,
 } from "../controllers/infrastructure.controller.js";
 
+import { tenantIdMiddleware, requireTenantId } from "../middlewares/tenant.middleware.js";
+
 const router = Router();
 
-// All routes require authentication and tenant-level authorization
-// Adjust roles to match your system — e.g., "admin", "teacher", etc.
-// router.use(authenticate);
-
-// ─── Room Routes ───────────────────────────────────────────────────────────────
-// GET  /infrastructure/rooms              → list all rooms (filterable by roomType)
-// POST /infrastructure/rooms              → create room (admin only)
-// GET  /infrastructure/rooms/:id          → get one room
-// PATCH /infrastructure/rooms/:id         → update room (admin only)
-// DELETE /infrastructure/rooms/:id        → soft delete room (admin only)
+router.use(tenantIdMiddleware, requireTenantId);
 
 router.get("/rooms",
     roomController.getAll

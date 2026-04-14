@@ -2,7 +2,7 @@ import {
     RoomRepository,
     TimetableRepository,
     TimetableSlotRepository,
-} from "../repositories/infrastructure.respository.js";
+} from "../repositories/infrastructure.repository.js";
 import { AppError } from "../utils/AppError.js";
 import { withTransaction } from "../utils/withTransaction.js";
 
@@ -24,19 +24,15 @@ export function formatRoomResponse(room) {
     };
 }
 
-export function formatTimetableResponse(timetable, slots = []) {
-    const formattedSlots = slots.map(formatSlotResponse);
-
+export function formatTimetableListResponse(timetable) {
     return {
         id: timetable.id,
         name: timetable.name,
         sectionId: timetable.sectionId,
         academicYearId: timetable.academicYearId,
         status: timetable.status,
-        tenantId: timetable.tenantId,
         isPublished: timetable.status === "published",
-        slotCount: formattedSlots.length,
-        slots: formattedSlots,
+        tenantId: timetable.tenantId,
         createdAt: timetable.createdAt,
         updatedAt: timetable.updatedAt,
     };
@@ -80,7 +76,7 @@ export class RoomService {
         const room = await roomRepo.create({
             name: name.trim(),
             roomType: roomType ?? "classroom",
-            capacity: capacity ?? 40,
+            capacity: capacity,
             tenantId,
         });
 
@@ -114,17 +110,30 @@ export class RoomService {
 export class TimetableService {
     async listTimetables(tenantId, filters = {}) {
         const timetables = await timetableRepo.findAll(tenantId, filters);
-        return timetables.map((t) => formatTimetableResponse(t));
+        return timetables.map((t) => formatTimetableListResponse(t));
     }
 
     async getTimetableDetails(id, tenantId) {
         const timetable = await timetableRepo.findWithSlots(id, tenantId);
         const slots = timetable.slots ?? [];
-        return formatTimetableResponse(timetable, slots);
+        return formatTimetableListResponse(timetable, slots);
     }
 
     async createTimetable(body, tenantId) {
         const { sectionId, academicYearId, name, status } = body;
+
+        const duplicate = await timetableRepo.findByNameForSectionYear(
+            name,
+            sectionId,
+            academicYearId,
+            tenantId
+        );
+        if (duplicate) {
+            throw new AppError(
+                "A timetable with this name already exists for this section and academic year",
+                409
+            );
+        }
 
         const timetable = await timetableRepo.create({
             sectionId,
@@ -134,7 +143,7 @@ export class TimetableService {
             tenantId,
         });
 
-        return formatTimetableResponse(timetable);
+        return formatTimetableListResponse(timetable);
     }
 
     async updateTimetable(id, tenantId, body) {
@@ -159,15 +168,16 @@ export class TimetableService {
             updates.status = body.status;
         }
 
-        const timetable = await timetableRepo.update(id, tenantId, updates);
-        return formatTimetableResponse(timetable);
+        await timetableRepo.update(id, tenantId, updates);
+        const updated = await timetableRepo.findWithSlots(id, tenantId);
+        return formatTimetableListResponse(updated, updated.slots ?? []);
     }
 
     async deleteTimetable(id, tenantId) {
         // Cascade delete slots inside a transaction before soft-deleting the timetable
         await withTransaction(async (t) => {
             await slotRepo.deleteByTimetable(id, tenantId, t);
-            const timetable = await timetableRepo.findById(id, tenantId);
+            const timetable = await timetableRepo.findById(id, tenantId, { transaction: t });
             await timetable.destroy({ transaction: t });
         });
         return { message: "Timetable and all its slots deleted successfully" };
@@ -266,7 +276,7 @@ export class TimetableSlotService {
         const updates = {};
         if (body.subjectId !== undefined) updates.subjectId = body.subjectId;
         if (body.teacherId !== undefined) updates.teacherId = body.teacherId;
-        if (body.roomId !== undefined) updates.roomId = body.roomId;
+        if (body.roomId !== undefined) updates.roomId = body.roomId ?? null;
         if (body.dayOfWeek !== undefined) updates.dayOfWeek = body.dayOfWeek;
         if (body.periodNumber !== undefined) updates.periodNumber = body.periodNumber;
         if (body.startTime !== undefined) updates.startTime = body.startTime;

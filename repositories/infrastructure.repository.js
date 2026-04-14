@@ -22,6 +22,17 @@ export class TimetableRepository extends BaseRepository {
         super(Timetable);
     }
 
+    async findByNameForSectionYear(name, sectionId, academicYearId, tenantId) {
+        return await Timetable.findOne({
+            where: {
+                name: name.trim(),
+                sectionId,
+                academicYearId,
+                tenantId,
+            },
+        });
+    }
+
     async findWithSlots(id, tenantId) {
         const record = await Timetable.findOne({
             where: { id, tenantId },
@@ -32,10 +43,14 @@ export class TimetableRepository extends BaseRepository {
                     required: false,
                 },
             ],
-            order: [[{ model: TimetableSlot, as: "slots" }, "dayOfWeek", "ASC"],
-            [{ model: TimetableSlot, as: "slots" }, "periodNumber", "ASC"]],
+            order: [
+                [{ model: TimetableSlot, as: "slots" }, "dayOfWeek", "ASC"],
+                [{ model: TimetableSlot, as: "slots" }, "periodNumber", "ASC"]
+            ],
         });
+
         if (!record) throw new AppError("Timetable not found", 404);
+
         return record;
     }
 

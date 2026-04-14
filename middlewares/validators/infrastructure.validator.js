@@ -1,7 +1,18 @@
 import { AppError } from "../../utils/AppError.js";
-import { createValidator } from "../../utils/createValidator.js";
 
 // ─── Shared Helpers ────────────────────────────────────────────────────────────
+
+function createValidator(validatorFn) {
+    return (req, res, next) => {
+        try {
+            validatorFn(req);
+            next();
+        } catch (error) {
+            if (error instanceof AppError) return next(error);  // ✅ status preserved
+            next(new AppError(error.message || 'Validation failed', 400));
+        }
+    };
+}
 
 function ensureString(value, fieldName) {
     if (typeof value !== "string" || value.trim() === "") {
@@ -115,13 +126,15 @@ export const updateRoomValidator = createValidator((req) => {
 export const createTimetableValidator = createValidator((req) => {
     const { sectionId, academicYearId, name, status } = req.body;
 
+    if (!sectionId) throw new AppError("sectionId is required", 400);
+
     ensureString(sectionId, "sectionId");
     ensureUUID(sectionId, "sectionId");
 
-    ensureString(academicYearId, "academicYearId");
+    if (!academicYearId) throw new AppError("academicYearId is required", 400);
     ensureUUID(academicYearId, "academicYearId");
 
-    ensureString(name, "name");
+    if (!name) throw new AppError("name is required", 400);
     if (name.trim().length > 150)
         throw new AppError("name must not exceed 150 characters", 400);
 

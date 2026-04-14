@@ -10,38 +10,8 @@ export class RoomRepository extends BaseRepository {
         super(Room);
     }
 
-    async findById(id, tenantId) {
-        const record = await Room.findOne({ where: { id, tenantId } });
-        if (!record) throw new AppError("Room not found", 404);
-        return record;
-    }
-
-    async findAll(tenantId, filters = {}) {
-        const where = { tenantId };
-        if (filters.roomType) where.roomType = filters.roomType;
-
-        return await Room.findAll({
-            where,
-            order: [["createdAt", "DESC"]],
-        });
-    }
-
     async findByName(name, tenantId) {
         return await Room.findOne({ where: { name: name.trim(), tenantId } });
-    }
-
-    async create(data) {
-        return await Room.create(data);
-    }
-
-    async update(id, tenantId, data) {
-        const room = await this.findById(id, tenantId);
-        return await room.update(data);
-    }
-
-    async softDelete(id, tenantId) {
-        const room = await this.findById(id, tenantId);
-        return await room.destroy(); // paranoid: true → sets deletedAt
     }
 }
 
@@ -50,24 +20,6 @@ export class RoomRepository extends BaseRepository {
 export class TimetableRepository extends BaseRepository {
     constructor() {
         super(Timetable);
-    }
-
-    async findById(id, tenantId) {
-        const record = await Timetable.findOne({ where: { id, tenantId } });
-        if (!record) throw new AppError("Timetable not found", 404);
-        return record;
-    }
-
-    async findAll(tenantId, filters = {}) {
-        const where = { tenantId };
-        if (filters.sectionId) where.sectionId = filters.sectionId;
-        if (filters.academicYearId) where.academicYearId = filters.academicYearId;
-        if (filters.status) where.status = filters.status;
-
-        return await Timetable.findAll({
-            where,
-            order: [["createdAt", "DESC"]],
-        });
     }
 
     async findWithSlots(id, tenantId) {
@@ -85,15 +37,6 @@ export class TimetableRepository extends BaseRepository {
         });
         if (!record) throw new AppError("Timetable not found", 404);
         return record;
-    }
-
-    async create(data) {
-        return await Timetable.create(data);
-    }
-
-    async update(id, tenantId, data) {
-        const timetable = await this.findById(id, tenantId);
-        return await timetable.update(data);
     }
 
     async softDelete(id, tenantId) {
@@ -116,11 +59,6 @@ export class TimetableSlotRepository extends BaseRepository {
         super(TimetableSlot);
     }
 
-    async findById(id, tenantId) {
-        const record = await TimetableSlot.findOne({ where: { id, tenantId } });
-        if (!record) throw new AppError("Timetable slot not found", 404);
-        return record;
-    }
 
     async findByTimetable(timetableId, tenantId) {
         return await TimetableSlot.findAll({
@@ -130,20 +68,6 @@ export class TimetableSlotRepository extends BaseRepository {
                 ["periodNumber", "ASC"],
             ],
         });
-    }
-
-    async create(data) {
-        return await TimetableSlot.create(data);
-    }
-
-    async update(id, tenantId, data) {
-        const slot = await this.findById(id, tenantId);
-        return await slot.update(data);
-    }
-
-    async delete(id, tenantId) {
-        const slot = await this.findById(id, tenantId);
-        return await slot.destroy();
     }
 
     async deleteByTimetable(timetableId, tenantId, transaction) {
@@ -168,10 +92,10 @@ export class TimetableSlotRepository extends BaseRepository {
         return await TimetableSlot.findOne({ where });
     }
 
-    async bulkCreate(slots, transaction) {
-        return await TimetableSlot.bulkCreate(slots, {
-            transaction,
-            validate: true,
-        });
-    }
+    // async bulkCreate(slots, transaction) {
+    //     return await TimetableSlot.bulkCreate(slots, {
+    //         transaction,
+    //         validate: true,
+    //     });
+    // }
 }

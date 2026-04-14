@@ -1,3 +1,5 @@
+import sequelize from '../config/db.js';
+
 export async function withTransaction(operation) {
     const transaction = await sequelize.transaction();
 

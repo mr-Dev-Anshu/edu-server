@@ -64,9 +64,12 @@ function ensureDayOfWeek(value) {
 }
 
 function ensureTimeFormat(value, fieldName) {
-    // Accepts HH:MM or HH:MM:SS
     if (!/^\d{2}:\d{2}(:\d{2})?$/.test(value)) {
         throw new AppError(`${fieldName} must be in HH:MM or HH:MM:SS format`, 400);
+    }
+    const [hours, minutes] = value.split(':').map(Number);
+    if (hours > 23 || minutes > 59) {
+        throw new AppError(`${fieldName} must be a valid time (hours 0-23, minutes 0-59)`, 400);
     }
 }
 

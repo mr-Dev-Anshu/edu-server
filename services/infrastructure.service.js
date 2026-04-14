@@ -104,7 +104,7 @@ export class RoomService {
     }
 
     async deleteRoom(id, tenantId) {
-        await roomRepo.softDelete(id, tenantId);
+        await roomRepo.delete(id, tenantId);
         return { message: "Room deleted successfully" };
     }
 }

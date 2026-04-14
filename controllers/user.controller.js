@@ -92,4 +92,14 @@ export class UserController {
       message: "Roles removed successfully",
     });
   });
+
+  login = catchAsync(async (req, res) => {
+    const { email, password } = req.body;
+    const data = await userService.loginByEmail(email, password);
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data,
+    });
+  });
 }

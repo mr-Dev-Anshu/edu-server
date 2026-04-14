@@ -2,6 +2,8 @@ import sequelize from "../config/db.js";
 import { UserRepository } from "../repositories/user.repository.js";
 import { UserRoleRepository } from "../repositories/user-role.repository.js";
 import { AppError } from "../utils/AppError.js";
+import { BcryptHelper } from "../utils/bcrypt.js";
+import { JwtHelper } from "../utils/jwt.js";
 
 const userRepo = new UserRepository();
 const userRoleRepo = new UserRoleRepository();
@@ -16,9 +18,12 @@ export class UserService {
       throw new AppError("Email already exists", 409);
     }
 
+    // Hash password with bcrypt
+    const hashedPassword = await BcryptHelper.hashPassword(payload.password);
+
     const userData = {
       email,
-      password: payload.password,
+      password: hashedPassword,
       cognitoSub: payload.cognitoSub || null,
       firstName: payload.firstName?.trim(),
       lastName: payload.lastName?.trim(),
@@ -127,13 +132,13 @@ export class UserService {
   }
 
   async assignRolesWithUsers(userId, tenantId, roles) {
-    const user = await userRepo.findById(userId, tenantId);
+    // const user = await userRepo.findById(userId, tenantId);
 
     const transaction = await sequelize.transaction();
 
     try {
       for (const role of roles) {
-        await userRoleRepo.assignRoleupdateUserToUser(
+        await userRoleRepo.assignRoleToUser(
           userId,
           role.roleId,
           role.academicYearId || null,
@@ -155,6 +160,50 @@ export class UserService {
   async removeRolesFromUser(userId, tenantId, roleIds) {
     await userRepo.findById(userId, tenantId);
     await userRoleRepo.bulkRevokeRoles(userId, roleIds);
+  }
+
+  async loginByEmail(email, password) {
+    const trimmedEmail = email?.toLowerCase().trim();
+    
+    if (!trimmedEmail) {
+      throw new AppError("Email is required", 400);
+    }
+
+    if (!password) {
+      throw new AppError("Password is required", 400);
+    }
+
+    // Search by email only, across entire user table (no tenantId filter)
+    const user = await userRepo.findByEmail(trimmedEmail);
+    if (!user) {
+      throw new AppError("Invalid email or password", 401);
+    }
+
+    // Verify password with bcrypt
+    const isPasswordValid = await BcryptHelper.comparePassword(password, user.password);
+    if (!isPasswordValid) {
+      throw new AppError("Invalid email or password", 401);
+    }
+
+    // Update last login timestamp (global search)
+    await userRepo.updateLastLoginGlobal(user.id);
+
+    // Fetch user with associations for complete profile (global search)
+    const userWithAssociations = await userRepo.findByIdGlobal(user.id);
+    const userResponse = this.formatUserResponse(userWithAssociations);
+
+    // Generate JWT token
+    const token = JwtHelper.generateToken({
+      id: userWithAssociations.id,
+      email: userWithAssociations.email,
+      userType: userWithAssociations.userType,
+      tenantId: userWithAssociations.tenantId,
+    });
+
+    return {
+      ...userResponse,
+      token,
+    };
   }
 
   formatUserResponse(user) {

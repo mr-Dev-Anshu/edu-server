@@ -6,6 +6,7 @@ import {
   updateUserStatusValidator,
   assignUserRolesValidator,
   removeUserRolesValidator,
+  loginValidator,
 } from "../middlewares/validators/user.validator.js";
 import { requireTenantId } from "../middlewares/tenant.middleware.js";
 
@@ -15,6 +16,7 @@ const ctrl = new UserController();
 // ✅ Static routes FIRST
 router.route("/").get(requireTenantId, ctrl.getAll);
 router.route("/").post(createUserValidator, ctrl.create);
+router.route("/login").post(loginValidator, ctrl.login);
 router.route("/active").get(requireTenantId, ctrl.getActive);
 router.route("/type/:userType").get(requireTenantId, ctrl.getByType);
 

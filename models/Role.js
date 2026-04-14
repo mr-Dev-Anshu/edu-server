@@ -1,4 +1,4 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, ENUM } from "sequelize";
 import sequelize from "../config/db.js";
 import { withTenant } from "../utils/model-helper.js";
 
@@ -17,6 +17,7 @@ const Role = sequelize.define(
     slug: {
       type: DataTypes.STRING(100),
       allowNull: false,
+      ENUM:["portal", "staff", "platform", "admin"]
     },
     description: {
       type: DataTypes.TEXT,

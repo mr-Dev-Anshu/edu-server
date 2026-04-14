@@ -160,3 +160,18 @@ export const removeUserRolesValidator = createValidator((req) => {
     ensureUuid(roleId, "roleIds");
   }
 });
+
+export const loginValidator = createValidator((req) => {
+  const { body } = req;
+
+  if (body.email === undefined) {
+    throw new AppError("email is required", 400);
+  }
+
+  if (body.password === undefined) {
+    throw new AppError("password is required", 400);
+  }
+
+  ensureEmail(body.email, "email");
+  ensureString(body.password, "password", { min: 1, max: 255 });
+});

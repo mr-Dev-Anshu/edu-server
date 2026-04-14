@@ -104,4 +104,29 @@ export class UserRepository extends BaseRepository {
     if (!user) throw new AppError("User not found", 404);
     return await user.restore();
   }
+
+  async findByIdGlobal(id) {
+    const defaultInclude = [
+      {
+        association: "roles",
+        attributes: ["id", "name", "slug"],
+        through: { attributes: [] },
+      },
+    ];
+
+    const user = await this.model.findOne({
+      where: { id },
+      attributes: { exclude: ["password"] },
+      include: defaultInclude,
+    });
+
+    if (!user) throw new AppError("User not found", 404);
+    return user;
+  }
+
+  async updateLastLoginGlobal(id) {
+    const user = await this.model.findByPk(id);
+    if (!user) throw new AppError("User not found", 404);
+    return await user.update({ lastLoginAt: new Date() });
+  }
 }

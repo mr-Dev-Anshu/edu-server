@@ -194,7 +194,6 @@ All commits must follow the **Conventional Commits** format.
 * One commit = one logical change.
 * Do not mix unrelated changes.
 * Ensure code passes lint and formatting before commit.
-* Before every commit, run `npm run lint` and `npm run format` to ensure compliance.
 
 ---
 

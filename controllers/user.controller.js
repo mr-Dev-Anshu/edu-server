@@ -1,5 +1,10 @@
 import { UserService } from "../services/user.service.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import {
+  getTokenCookieClearOptions,
+  getTokenCookieName,
+  getTokenCookieOptions,
+} from "../utils/cookie.js";
 
 const userService = new UserService();
 
@@ -96,10 +101,22 @@ export class UserController {
   login = catchAsync(async (req, res) => {
     const { email, password } = req.body;
     const data = await userService.loginByEmail(email, password);
+
+    res.cookie(getTokenCookieName(), data.token, getTokenCookieOptions());
+
     res.status(200).json({
       success: true,
       message: "Login successful",
       data,
+    });
+  });
+
+  logout = catchAsync(async (req, res) => {
+    res.clearCookie(getTokenCookieName(), getTokenCookieClearOptions());
+
+    res.status(200).json({
+      success: true,
+      message: "Logout successful",
     });
   });
 }

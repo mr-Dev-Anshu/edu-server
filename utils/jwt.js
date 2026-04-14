@@ -1,12 +1,19 @@
 import jwt from "jsonwebtoken";
 import { AppError } from "./AppError.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
-const JWT_EXPIRY = process.env.JWT_EXPIRY || "7d";
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRY = process.env.JWT_EXPIRY;
+
+if (!JWT_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error("JWT_SECRET must be set in production environment");
+}
 
 export class JwtHelper {
   static generateToken(payload) {
     try {
+      if (!JWT_SECRET) {
+        throw new Error("JWT_SECRET is not configured");
+      }
       const token = jwt.sign(payload, JWT_SECRET, {
         expiresIn: JWT_EXPIRY,
       });

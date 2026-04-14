@@ -5,7 +5,7 @@ import { withTenant } from "../utils/model-helper.js";
 const Role = sequelize.define(
   "Role",
   withTenant({
-    id: { 
+    id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
@@ -15,9 +15,8 @@ const Role = sequelize.define(
       allowNull: false,
     },
     slug: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.ENUM("portal", "staff", "platform", "admin"), 
       allowNull: false,
-      ENUM:["portal", "staff", "platform", "admin"]
     },
     description: {
       type: DataTypes.TEXT,
@@ -46,11 +45,11 @@ const Role = sequelize.define(
     //   { unique: true, fields: ["tenant_id", "slug"] },
     //   { fields: ["tenant_id"] },
     // ],
-  }
+  },
 );
 
 /**
- *ARCHITECTURAL OVERRIDE 
+ *ARCHITECTURAL OVERRIDE
  * Roles can be Global (System Roles) or Tenant-Specific.
  */
 Role.getAttributes().tenantId.allowNull = true;

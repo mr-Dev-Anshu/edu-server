@@ -2,6 +2,7 @@ import sequelize from "../config/db.js";
 import { PermissionRepository } from "../repositories/permission.repository.js";
 import { RoleRepository } from "../repositories/role.repository.js";
 import { AppError } from "../utils/AppError.js";
+import { RolePermission } from "../models/index.js"; 
 
 const roleRepo = new RoleRepository();
 const permissionRepo = new PermissionRepository();

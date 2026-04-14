@@ -111,6 +111,17 @@ export class UserRepository extends BaseRepository {
         association: "roles",
         attributes: ["id", "name", "slug"],
         through: { attributes: [] },
+        include: [
+          {
+            association: "permissions",
+            attributes: ["id", "name", "action", "resource", "module", "description"],
+            through: { attributes: [] },
+          },
+        ],
+      },
+      {
+        association: "organization",
+        attributes: ["id", "name", "organizationType", "officialEmail", "subdomain", "settings"],
       },
     ];
 

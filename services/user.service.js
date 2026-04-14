@@ -207,6 +207,14 @@ export class UserService {
   }
 
   formatUserResponse(user) {
+    // Format roles with permissions
+    const formattedRoles = (user.roles || []).map(role => ({
+      id: role.id,
+      name: role.name,
+      slug: role.slug,
+      permissions: role.permissions || [],
+    }));
+
     return {
       id: user.id,
       email: user.email,
@@ -220,7 +228,15 @@ export class UserService {
       preferences: user.preferences,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      roles: user.roles || [],
+      roles: formattedRoles,
+      tenant: user.organization ? {
+        id: user.organization.id,
+        name: user.organization.name,
+        organizationType: user.organization.organizationType,
+        officialEmail: user.organization.officialEmail,
+        subdomain: user.organization.subdomain,
+        settings: user.organization.settings,
+      } : null,
     };
   }
 }

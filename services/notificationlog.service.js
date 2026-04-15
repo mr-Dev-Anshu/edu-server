@@ -2,7 +2,6 @@ import { NotificationLogRepository } from "../repositories/notificationlog.repos
 import { BaseService } from "./base.service.js";
 
 const notificationLogRepo = new NotificationLogRepository();
-
 export class NotificationLogService extends BaseService {
   constructor() {
     super(notificationLogRepo);

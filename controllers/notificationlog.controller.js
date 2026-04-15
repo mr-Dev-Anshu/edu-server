@@ -1,6 +1,7 @@
 import { NotificationLogService } from "../services/notificationlog.service.js";
 import { BaseController } from "./base.controller.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import { AppError } from "../utils/AppError.js";
 
 const notificationLogService = new NotificationLogService();
 
@@ -10,34 +11,43 @@ export class NotificationLogController extends BaseController {
   }
 
   getByRecipient = catchAsync(async (req, res) => {
+    const { recipientId } = req.params;
+    if (!recipientId) throw new AppError("recipientId param is required", 400);
+
     const data = await notificationLogService.getByRecipient(
-      req.params.recipientId,
+      recipientId,
       req.tenantId
     );
     res.status(200).json({ success: true, results: data.length, data });
   });
 
   getByStatus = catchAsync(async (req, res) => {
+    const { status } = req.params;
+    if (!status) throw new AppError("status param is required", 400);
+
     const data = await notificationLogService.getByStatus(
-      req.params.status,
+      status,
       req.tenantId
     );
     res.status(200).json({ success: true, results: data.length, data });
   });
 
   getByChannel = catchAsync(async (req, res) => {
+    const { channel } = req.params;
+    if (!channel) throw new AppError("channel param is required", 400);
+
     const data = await notificationLogService.getByChannel(
-      req.params.channel,
+      channel,
       req.tenantId
     );
     res.status(200).json({ success: true, results: data.length, data });
   });
 
   markAsSent = catchAsync(async (req, res) => {
-    const data = await notificationLogService.markAsSent(
-      req.params.id,
-      req.tenantId
-    );
+    const { id } = req.params;
+    if (!id) throw new AppError("id param is required", 400);
+
+    const data = await notificationLogService.markAsSent(id, req.tenantId);
     res.status(200).json({ success: true, data });
   });
 }

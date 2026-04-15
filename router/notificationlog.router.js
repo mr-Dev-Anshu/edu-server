@@ -1,15 +1,22 @@
 import { Router } from "express";
 import { NotificationLogController } from "../controllers/notificationlog.controller.js";
+import {
+  createNotificationLogValidator,
+  getByStatusValidator,
+  getByChannelValidator,
+  getByRecipientValidator,
+  markAsSentValidator,
+} from "../middlewares/validators/notificationlog.validator.js";
 
 const router = Router();
 const ctrl = new NotificationLogController();
 
 router.get("/", ctrl.getAll);
-router.get("/recipient/:recipientId", ctrl.getByRecipient);
-router.get("/status/:status", ctrl.getByStatus);
-router.get("/channel/:channel", ctrl.getByChannel);
+router.get("/recipient/:recipientId", getByRecipientValidator, ctrl.getByRecipient);
+router.get("/status/:status", getByStatusValidator, ctrl.getByStatus);
+router.get("/channel/:channel", getByChannelValidator, ctrl.getByChannel);
 router.get("/:id", ctrl.getOne);
-router.post("/", ctrl.create);
-router.patch("/:id", ctrl.markAsSent);
+router.post("/", createNotificationLogValidator, ctrl.create);
+router.patch("/:id", markAsSentValidator, ctrl.markAsSent);
 
 export default router;

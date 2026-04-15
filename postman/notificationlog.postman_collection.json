@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "Notification Log Module",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api/v1/notificationlog" },
+    { "key": "tenantId", "value": "" },
+    { "key": "logId", "value": "" },
+    { "key": "recipientId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Create Notification Log",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/notification-logs",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"channel\": \"sms\",\n  \"recipientId\": \"{{recipientId}}\",\n  \"status\": \"queued\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2. Get All Notification Logs",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/notification-logs",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ]
+      }
+    },
+    {
+      "name": "3. Get One Notification Log",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/notification-logs/{{logId}}",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ]
+      }
+    },
+    {
+      "name": "4. Get By Recipient",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/notification-logs/recipient/{{recipientId}}",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ]
+      }
+    },
+    {
+      "name": "5. Get By Status - queued",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/notification-logs/status/queued",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ]
+      }
+    },
+    {
+      "name": "6. Get By Channel - sms",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/notification-logs/channel/sms",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ]
+      }
+    },
+    {
+      "name": "7. Mark As Sent",
+      "request": {
+        "method": "PATCH",
+        "url": "{{baseUrl}}/notification-logs/{{logId}}",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ]
+      }
+    }
+  ]
+}

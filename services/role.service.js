@@ -2,7 +2,7 @@ import sequelize from "../config/db.js";
 import { PermissionRepository } from "../repositories/permission.repository.js";
 import { RoleRepository } from "../repositories/role.repository.js";
 import { AppError } from "../utils/AppError.js";
-import { RolePermission } from "../models/index.js"; 
+import { RolePermission } from "../models/index.js";
 
 const roleRepo = new RoleRepository();
 const permissionRepo = new PermissionRepository();
@@ -26,7 +26,9 @@ export class RoleService {
       throw new AppError("Role slug already exists for this tenant scope", 400);
     }
 
-    const permissions = permissionIds.length ? await permissionRepo.findByIds(permissionIds) : [];
+    const permissions = permissionIds.length
+      ? await permissionRepo.findByIds(permissionIds)
+      : [];
     if (permissions.length !== permissionIds.length) {
       throw new AppError("One or more permissionIds are invalid", 400);
     }
@@ -45,7 +47,7 @@ export class RoleService {
           customFields: payload.customFields || {},
           metadata: payload.metadata || {},
         },
-        { transaction }
+        { transaction },
       );
 
       await roleRepo.attachPermissions(role.id, permissionIds, { transaction });
@@ -64,18 +66,81 @@ export class RoleService {
     const roles = await roleRepo.findAll(tenantId, filter, [
       {
         association: "permissions",
-        attributes: ["id", "name", "action", "resource", "module", "description"],
+        attributes: [
+          "id",
+          "name",
+          "action",
+          "resource",
+          "module",
+          "description",
+        ],
         through: { attributes: [] },
       },
     ]);
-    return roles.map((role) => this.formatRoleResponse(role, role.permissions || []));
+    return roles.map((role) =>
+      this.formatRoleResponse(role, role.permissions || []),
+    );
+  }
+
+  //assign permission
+  // In role.service.js - Add this method to your RoleService class
+
+  async assignPermissionsToRole(roleId, tenantId, permissionIds) {
+    const role = await roleRepo.findById(roleId, tenantId);
+
+    if (role.isSystem) {
+      throw new AppError("Cannot modify permissions for system roles", 400);
+    }
+
+    // Validate permission IDs
+    const uniquePermissionIds = [...new Set(permissionIds || [])];
+    if (!uniquePermissionIds.length) {
+      throw new AppError("At least one permission ID is required", 400);
+    }
+
+    const permissions = await permissionRepo.findByIds(uniquePermissionIds);
+    if (permissions.length !== uniquePermissionIds.length) {
+      throw new AppError("One or more permissionIds are invalid", 400);
+    }
+
+    const transaction = await sequelize.transaction();
+
+    try {
+      // Remove existing permissions
+      await RolePermission.destroy({
+        where: { roleId },
+        transaction,
+      });
+
+      // Attach new permissions
+      await roleRepo.attachPermissions(roleId, uniquePermissionIds, {
+        transaction,
+      });
+
+      await transaction.commit();
+
+      // Return updated role with permissions
+      return this.getRoleById(roleId, tenantId);
+    } catch (error) {
+      if (!transaction.finished) {
+        await transaction.rollback();
+      }
+      throw error;
+    }
   }
 
   async getRoleById(roleId, tenantId) {
     const role = await roleRepo.findById(roleId, tenantId, [
       {
         association: "permissions",
-        attributes: ["id", "name", "action", "resource", "module", "description"],
+        attributes: [
+          "id",
+          "name",
+          "action",
+          "resource",
+          "module",
+          "description",
+        ],
         through: { attributes: [] },
       },
     ]);
@@ -86,7 +151,14 @@ export class RoleService {
     const role = await roleRepo.findById(roleId, tenantId, [
       {
         association: "permissions",
-        attributes: ["id", "name", "action", "resource", "module", "description"],
+        attributes: [
+          "id",
+          "name",
+          "action",
+          "resource",
+          "module",
+          "description",
+        ],
         through: { attributes: [] },
       },
     ]);
@@ -100,7 +172,10 @@ export class RoleService {
       const slug = normalizeSlug(payload.slug);
       const existingRole = await roleRepo.findBySlug(slug, tenantId);
       if (existingRole && existingRole.id !== roleId) {
-        throw new AppError("Role slug already exists for this tenant scope", 400);
+        throw new AppError(
+          "Role slug already exists for this tenant scope",
+          400,
+        );
       }
       payload.slug = slug;
     }
@@ -140,14 +215,13 @@ export class RoleService {
     const transaction = await sequelize.transaction();
     try {
       // Remove existing permissions
-      await RolePermission.destroy(
-        { where: { roleId } },
-        { transaction }
-      );
+      await RolePermission.destroy({ where: { roleId } }, { transaction });
 
       // Attach new permissions if any
       if (uniquePermissionIds.length) {
-        await roleRepo.attachPermissions(roleId, uniquePermissionIds, { transaction });
+        await roleRepo.attachPermissions(roleId, uniquePermissionIds, {
+          transaction,
+        });
       }
 
       await transaction.commit();

@@ -12,6 +12,9 @@ router.route("/").post(createRoleValidator, ctrl.create);
 // Get all roles
 router.route("/").get(requireTenantId, ctrl.getAll);
 
+// POST :roleId/permissions - Assign permissions to a role
+router.post("/:id/assign-permissions", requireTenantId, ctrl.assignPermission);
+
 // Get role by ID
 router.route("/:id").get(requireTenantId, ctrl.getById);
 

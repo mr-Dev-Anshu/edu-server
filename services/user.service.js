@@ -211,7 +211,7 @@ export class UserService {
     const formattedRoles = (user.roles || []).map(role => ({
       id: role.id,
       name: role.name,
-      slug: role.slug,
+      roleType: role.roleType,
       permissions: role.permissions || [],
     }));
 

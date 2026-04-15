@@ -7,10 +7,10 @@ export class RoleRepository extends BaseRepository {
     super(Role);
   }
 
-  async findBySlug(slug, tenantId = null) {
+  async findByRoleType(roleType, tenantId = null) {
     return await this.model.findOne({
       where: {
-        slug,
+        roleType,
         tenantId,
       },
     });

@@ -14,7 +14,7 @@ export class UserRoleRepository extends BaseRepository {
       include: [
         {
           association: "role",
-          attributes: ["id", "name", "slug", "description"],
+          attributes: ["id", "name", "roleType", "description"],
         },
         {
           association: "assignedBy",

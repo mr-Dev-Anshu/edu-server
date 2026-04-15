@@ -31,7 +31,7 @@ export const identifyUser = async (req, res, next) => {
       req.user.permissions = ['*']; 
     } else {
       const roleWithPermissions = await Role.findOne({
-        where: { slug: req.user.userType, tenantId: tenant.id },
+        where: { roleType: req.user.userType, tenantId: tenant.id },
         include: [{ model: Permission, as: 'permissions', attributes: ['name'] }]
       });
       req.user.permissions = roleWithPermissions?.permissions?.map(p => p.name) || [];

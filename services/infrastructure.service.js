@@ -115,8 +115,11 @@ export class TimetableService {
 
     async getTimetableDetails(id, tenantId) {
         const timetable = await timetableRepo.findWithSlots(id, tenantId);
-        const slots = timetable.slots ?? [];
-        return formatTimetableListResponse(timetable, slots);
+        const slots = (timetable.slots ?? []).map(formatSlotResponse);
+        return {
+            ...formatTimetableListResponse(timetable),
+            slots,
+        };
     }
 
     async createTimetable(body, tenantId) {
@@ -170,14 +173,16 @@ export class TimetableService {
 
         await timetableRepo.update(id, tenantId, updates);
         const updated = await timetableRepo.findWithSlots(id, tenantId);
-        return formatTimetableListResponse(updated, updated.slots ?? []);
+        return {
+            ...formatTimetableListResponse(updated),
+            slots: (updated.slots ?? []).map(formatSlotResponse),
+        };
     }
 
     async deleteTimetable(id, tenantId) {
-        // Cascade delete slots inside a transaction before soft-deleting the timetable
+        const timetable = await timetableRepo.findById(id, tenantId); // 404 throws here cleanly
         await withTransaction(async (t) => {
             await slotRepo.deleteByTimetable(id, tenantId, t);
-            const timetable = await timetableRepo.findById(id, tenantId, { transaction: t });
             await timetable.destroy({ transaction: t });
         });
         return { message: "Timetable and all its slots deleted successfully" };

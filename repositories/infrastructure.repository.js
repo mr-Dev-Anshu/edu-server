@@ -94,9 +94,23 @@ export class TimetableSlotRepository extends BaseRepository {
 
     // Collision check: same teacher already booked in this period
     async findTeacherConflict(tenantId, teacherId, dayOfWeek, periodNumber, excludeId = null) {
+        // Only check published timetables
         const where = { tenantId, teacherId, dayOfWeek, periodNumber };
-        if (excludeId) where.id = { [Op.ne]: excludeId };
-        return await TimetableSlot.findOne({ where });
+
+        if (excludeId) {
+            where.id = { [Op.ne]: excludeId };
+        }
+
+        return await TimetableSlot.findOne({
+            where,
+            include: [
+                {
+                    model: Timetable,
+                    where: { status: 'published' }, // 👈 key fix
+                    attributes: [],
+                },
+            ],
+        });
     }
 
     // Collision check: same room already booked in this period

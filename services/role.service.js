@@ -37,14 +37,6 @@ export class RoleService {
     const tenantId = payload.tenantId?.trim() || null;
     const permissionIds = [...new Set(payload.permissionIds || [])];
 
-    // const existingRole = await roleRepo.findByRoleType(roleType, tenantId);
-    // if (existingRole) {
-    //   throw new AppError(
-    //     "Role type already exists for this tenant scope",
-    //     400,
-    //   );
-    // }
-
     const permissions = permissionIds.length
       ? await permissionRepo.findByIds(permissionIds)
       : [];
@@ -190,16 +182,6 @@ export class RoleService {
       payload.roleType !== undefined
         ? normalizeRoleType(payload.roleType, { required: true })
         : null;
-
-    // if (nextRoleType && nextRoleType !== role.roleType) {
-    //   const existingRole = await roleRepo.findByRoleType(nextRoleType, tenantId);
-    //   if (existingRole && existingRole.id !== roleId) {
-    //     throw new AppError(
-    //       "Role type already exists for this tenant scope",
-    //       400,
-    //     );
-    //   }
-    // }
 
     const updateData = {
       name: payload.name?.trim() || role.name,

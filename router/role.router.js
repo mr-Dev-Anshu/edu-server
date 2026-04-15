@@ -8,7 +8,7 @@ const router = express.Router();
 const ctrl = new RoleController();
 
 // Create new role
-router.route("/").post( identifyUser ,  createRoleValidator, ctrl.create);
+router.route("/").post( identifyUser , checkPermission("create:roles")  ,  createRoleValidator, ctrl.create);
 
 // Get all roles
 router.route("/").get(requireTenantId, ctrl.getAll);

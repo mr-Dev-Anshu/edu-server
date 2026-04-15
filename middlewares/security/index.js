@@ -1,5 +1,7 @@
 import { Permission, Role, Tenant } from "../../models/index.js";
 import jwt from 'jsonwebtoken'
+
+
 export const identifyUser = async (req, res, next) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
@@ -27,11 +29,13 @@ export const identifyUser = async (req, res, next) => {
       }
     }
 
+    
+
     if (isSuperAdmin) {
       req.user.permissions = ['*']; 
     } else {
       const roleWithPermissions = await Role.findOne({
-        where: { roleType: req.user.userType, tenantId: tenant.id },
+        where: { id: req.user.roleId, tenantId: tenant.id },
         include: [{ model: Permission, as: 'permissions', attributes: ['name'] }]
       });
       req.user.permissions = roleWithPermissions?.permissions?.map(p => p.name) || [];
@@ -54,6 +58,8 @@ export const checkPermission = (requiredPermission) => {
     if (req.user.permissions.includes('*')) {
       return next();
     }
+    console.log(req.user.permissions) 
+    console.log(requiredPermission)
     if (!req.user.permissions.includes(requiredPermission)) {
       return res.status(403).json({ 
         message: `Forbidden: You do not have the '${requiredPermission}' permission` 

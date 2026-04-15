@@ -10,7 +10,6 @@ const academicYearRepo = new AcademicYearRepository();
 const studentRepo = new StudentRepository();
 
 export class StudentSectionEnrollmentService {
-
   // Enroll Student
   async enrollStudent(tenantId, payload) {
     const {
@@ -44,7 +43,7 @@ export class StudentSectionEnrollmentService {
     const existing = await enrollmentRepo.findByStudentAndYear(
       studentId,
       academicYearId,
-      tenantId
+      tenantId,
     );
 
     if (existing) {
@@ -52,12 +51,14 @@ export class StudentSectionEnrollmentService {
     }
 
     // OPTIONAL (PRO): Capacity check
-    const enrolledCount = await enrollmentRepo.countBySection(sectionId, tenantId);
+    const enrolledCount = await enrollmentRepo.countBySection(
+      sectionId,
+      tenantId,
+    );
     if (enrolledCount >= section.capacity) {
       throw new AppError("Section capacity full", 400);
     }
 
-    // OPTIONAL (PRO): Auto roll number
     let finalRoll = rollNumber;
     if (finalRoll === undefined || finalRoll === null) {
       finalRoll = enrolledCount + 1;
@@ -90,7 +91,7 @@ export class StudentSectionEnrollmentService {
       tenantId,
       filters,
       page,
-      limit
+      limit,
     );
   }
 
@@ -107,8 +108,14 @@ export class StudentSectionEnrollmentService {
     const existing = await enrollmentRepo.findById(id, tenantId);
 
     // If changing section → check capacity and academic year consistency
-    if (updateData.sectionId !== undefined && updateData.sectionId !== existing.sectionId) {
-      const section = await sectionRepo.findById(updateData.sectionId, tenantId);
+    if (
+      updateData.sectionId !== undefined &&
+      updateData.sectionId !== existing.sectionId
+    ) {
+      const section = await sectionRepo.findById(
+        updateData.sectionId,
+        tenantId,
+      );
       if (section.academicYearId !== existing.academicYearId) {
         throw new AppError(
           "Cannot move enrollment to a section from a different academic year",
@@ -118,7 +125,7 @@ export class StudentSectionEnrollmentService {
 
       const enrolledCount = await enrollmentRepo.countBySection(
         updateData.sectionId,
-        tenantId
+        tenantId,
       );
 
       if (enrolledCount >= section.capacity) {
@@ -127,10 +134,18 @@ export class StudentSectionEnrollmentService {
     }
 
     const updated = await enrollmentRepo.update(id, tenantId, {
-      ...(updateData.sectionId !== undefined && { sectionId: updateData.sectionId }),
-      ...(updateData.rollNumber !== undefined && { rollNumber: updateData.rollNumber }),
-      ...(updateData.enrollmentStatus !== undefined && { enrollmentStatus: updateData.enrollmentStatus }),
-      ...(updateData.isCurrent !== undefined && { isCurrent: updateData.isCurrent }),
+      ...(updateData.sectionId !== undefined && {
+        sectionId: updateData.sectionId,
+      }),
+      ...(updateData.rollNumber !== undefined && {
+        rollNumber: updateData.rollNumber,
+      }),
+      ...(updateData.enrollmentStatus !== undefined && {
+        enrollmentStatus: updateData.enrollmentStatus,
+      }),
+      ...(updateData.isCurrent !== undefined && {
+        isCurrent: updateData.isCurrent,
+      }),
     });
 
     return this.formatResponse(updated);

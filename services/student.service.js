@@ -161,7 +161,7 @@ export class StudentService {
       createdAt: student.createdAt,
       updatedAt: student.updatedAt,
       user: student.user || undefined,
-      enrollments: student.StudentSectionEnrollments || undefined,
+      enrollments: student.enrollments || undefined,
     };
   }
 }

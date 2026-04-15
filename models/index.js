@@ -103,7 +103,7 @@ Section.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYea
 AcademicYear.hasMany(Section, { foreignKey: "academicYearId", as: "sections"});
 
 // Student Enrollment (History)
-Student.hasMany(StudentSectionEnrollment, { foreignKey: "studentId" });
+Student.hasMany(StudentSectionEnrollment, { foreignKey: "studentId", as: "enrollments"});
 StudentSectionEnrollment.belongsTo(Student, { foreignKey: "studentId", as: "student"});
 StudentSectionEnrollment.belongsTo(Section, { foreignKey: "sectionId", as: "section"});
 StudentSectionEnrollment.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear"});

@@ -16,13 +16,13 @@ router.use(requireTenantId);
 router.post("/", createAcademicYearValidator, ctrl.create);
 
 // Get all academic years
-router.get("/", requireTenantId, ctrl.getAll);
+router.get("/", ctrl.getAll);
 
 // Get current academic year
-router.get("/current", requireTenantId, ctrl.getCurrent);
+router.get("/current", ctrl.getCurrent);
 
 // Get specific academic year by ID
-router.get("/:id", requireTenantId, ctrl.getOne);
+router.get("/:id", ctrl.getOne);
 
 // Update academic year
 router.patch("/:id", updateAcademicYearValidator, ctrl.update);

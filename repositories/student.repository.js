@@ -77,6 +77,7 @@ export class StudentRepository extends BaseRepository {
         },
         {
           model: StudentSectionEnrollment,
+          as: "enrollments",
           attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent", "createdAt"],
         },
       ],

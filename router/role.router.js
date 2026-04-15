@@ -2,12 +2,13 @@ import express from "express";
 import { RoleController } from "../controllers/role.controller.js";
 import { createRoleValidator } from "../middlewares/validators/role.validator.js";
 import { requireTenantId } from "../middlewares/tenant.middleware.js";
+import { checkPermission, identifyUser } from "../middlewares/security/index.js";
 
 const router = express.Router();
 const ctrl = new RoleController();
 
 // Create new role
-router.route("/").post(createRoleValidator, ctrl.create);
+router.route("/").post( identifyUser ,  createRoleValidator, ctrl.create);
 
 // Get all roles
 router.route("/").get(requireTenantId, ctrl.getAll);

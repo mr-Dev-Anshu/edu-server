@@ -8,12 +8,13 @@ import {
   updateRoleExpiryValidator,
 } from "../middlewares/validators/user-role.validator.js";
 import { requireTenantId } from "../middlewares/tenant.middleware.js";
+import { identifyUser } from "../middlewares/security/index.js";
 
 const router = express.Router();
 const ctrl = new UserRoleController();
 
 // ✅ Static and specific routes FIRST
-router.route("/assign").post(requireTenantId, assignRoleValidator, ctrl.assignRole);
+router.route("/assign").post(identifyUser, assignRoleValidator, ctrl.assignRole);
 router.route("/assign-multiple").post(requireTenantId, assignMultipleRolesValidator, ctrl.assignMultipleRoles);
 router.route("/revoke").post(requireTenantId, revokeRoleValidator, ctrl.revokeRole);
 router.route("/revoke-multiple").post(requireTenantId, revokeMultipleRolesValidator, ctrl.revokeMultipleRoles);

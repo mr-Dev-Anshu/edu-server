@@ -11,6 +11,7 @@ import userRouter from './router/user.router.js';
 import userRoleRouter from './router/user-role.router.js';
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import { tenantIdMiddleware } from './middlewares/tenant.middleware.js'
+import cookieParser from 'cookie-parser';
 
 
 const app = express();
@@ -38,7 +39,7 @@ const corsOptions = {
 
 app.use(helmet()); 
 app.use(cors(corsOptions));
-
+app.use(cookieParser());
 // 2. Utility Middleware
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));

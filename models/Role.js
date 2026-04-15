@@ -17,11 +17,12 @@ const Role = sequelize.define(
     slug: {
       type: DataTypes.ENUM("portal", "staff", "platform", "admin"), 
       allowNull: false,
+      unique: false, 
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: true,
-    },
+    },  
     isSystem: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

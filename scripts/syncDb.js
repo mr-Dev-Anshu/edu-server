@@ -4,7 +4,7 @@ import '../models/index.js';
 const sync = async () => {
   try {
     console.log("🔄 Force syncing database...");
-    await sequelize.sync({ alter: false });
+    await sequelize.sync({ alter: true });
     console.log("✅ Database structure updated.");
     process.exit(0);
   } catch (err) {

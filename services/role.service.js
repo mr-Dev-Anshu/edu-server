@@ -21,10 +21,10 @@ export class RoleService {
     const tenantId = payload.tenantId?.trim() || null;
     const permissionIds = [...new Set(payload.permissionIds || [])];
 
-    const existingRole = await roleRepo.findBySlug(slug, tenantId);
-    if (existingRole) {
-      throw new AppError("Role slug already exists for this tenant scope", 400);
-    }
+    // const existingRole = await roleRepo.findBySlug(slug, tenantId);
+    // if (existingRole) {
+    //   throw new AppError("Role slug already exists for this tenant scope", 400);
+    // }
 
     const permissions = permissionIds.length ? await permissionRepo.findByIds(permissionIds) : [];
     if (permissions.length !== permissionIds.length) {
@@ -99,9 +99,9 @@ export class RoleService {
     if (payload.slug && payload.slug !== role.slug) {
       const slug = normalizeSlug(payload.slug);
       const existingRole = await roleRepo.findBySlug(slug, tenantId);
-      if (existingRole && existingRole.id !== roleId) {
-        throw new AppError("Role slug already exists for this tenant scope", 400);
-      }
+      // if (existingRole && existingRole.id !== roleId) {
+      //   throw new AppError("Role slug already exists for this tenant scope", 400);
+      // }
       payload.slug = slug;
     }
 

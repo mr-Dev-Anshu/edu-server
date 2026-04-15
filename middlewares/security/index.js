@@ -1,4 +1,4 @@
-import { Permission, Role, Tenant } from "../../models/index";
+import { Permission, Role, Tenant } from "../../models/index.js";
 import jwt from 'jsonwebtoken'
 export const identifyUser = async (req, res, next) => {
   try {
@@ -8,8 +8,8 @@ export const identifyUser = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; 
 
-    const tenant_id = req.headers['x-tenant-id'];
-    
+    const tenant_id = decoded.tenantId;
+     console.log("this is tenantId --> "  , tenant_id , "and " , decoded)
     let tenant = null;
     if (tenant_id) {
       tenant = await Tenant.findOne({ where: { id:tenant_id, status: 'active' } });
@@ -31,7 +31,7 @@ export const identifyUser = async (req, res, next) => {
       req.user.permissions = ['*']; 
     } else {
       const roleWithPermissions = await Role.findOne({
-        where: { name: req.user.role, tenantId: tenant.id },
+        where: { slug: req.user.userType, tenantId: tenant.id },
         include: [{ model: Permission, as: 'permissions', attributes: ['name'] }]
       });
       req.user.permissions = roleWithPermissions?.permissions?.map(p => p.name) || [];
@@ -39,6 +39,7 @@ export const identifyUser = async (req, res, next) => {
 
     next();
   } catch (err) {
+    console.log(err)
     return res.status(401).json({ message: "Session invalid" });
   }
 };

@@ -9,6 +9,7 @@ import {
   loginValidator,
 } from "../middlewares/validators/user.validator.js";
 import { requireTenantId } from "../middlewares/tenant.middleware.js";
+import { identifyUser } from "../middlewares/security/index.js";
 
 const router = express.Router();
 const ctrl = new UserController();
@@ -17,7 +18,7 @@ const ctrl = new UserController();
 router.route("/").get(requireTenantId, ctrl.getAll);
 router.route("/").post(createUserValidator, ctrl.create);
 router.route("/login").post(loginValidator, ctrl.login);
-router.route("/logout").post(ctrl.logout);
+router.route("/logout").post( identifyUser ,  ctrl.logout);
 router.route("/active").get(requireTenantId, ctrl.getActive);
 router.route("/type/:userType").get(requireTenantId, ctrl.getByType);
 

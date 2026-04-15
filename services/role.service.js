@@ -3,27 +3,46 @@ import { PermissionRepository } from "../repositories/permission.repository.js";
 import { RoleRepository } from "../repositories/role.repository.js";
 import { AppError } from "../utils/AppError.js";
 import { RolePermission } from "../models/index.js";
+import { ROLE_TYPES } from "../utils/role-type.js";
 
 const roleRepo = new RoleRepository();
 const permissionRepo = new PermissionRepository();
 
-const normalizeSlug = (value) =>
-  String(value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 100);
+const ROLE_TYPE_SET = new Set(ROLE_TYPES);
+
+const normalizeRoleType = (value, { required = false } = {}) => {
+  const normalizedValue =
+    typeof value === "string" ? value.trim().toLowerCase() : "";
+
+  if (!normalizedValue) {
+    if (required) {
+      throw new AppError("roleType is required", 400);
+    }
+    return null;
+  }
+
+  if (!ROLE_TYPE_SET.has(normalizedValue)) {
+    throw new AppError(
+      `roleType must be one of: ${ROLE_TYPES.join(", ")}`,
+      400,
+    );
+  }
+
+  return normalizedValue;
+};
 
 export class RoleService {
   async createRole(payload) {
-    const slug = normalizeSlug(payload.slug || payload.name);
+    const roleType = normalizeRoleType(payload.roleType, { required: true });
     const tenantId = payload.tenantId?.trim() || null;
     const permissionIds = [...new Set(payload.permissionIds || [])];
 
-    const existingRole = await roleRepo.findBySlug(slug, tenantId);
+    const existingRole = await roleRepo.findByRoleType(roleType, tenantId);
     if (existingRole) {
-      throw new AppError("Role slug already exists for this tenant scope", 400);
+      throw new AppError(
+        "Role type already exists for this tenant scope",
+        400,
+      );
     }
 
     const permissions = permissionIds.length
@@ -39,7 +58,7 @@ export class RoleService {
       const role = await roleRepo.create(
         {
           name: payload.name.trim(),
-          slug,
+          roleType,
           description: payload.description?.trim() || null,
           isSystem: payload.isSystem ?? false,
           hierarchyLevel: payload.hierarchyLevel ?? 10,
@@ -167,17 +186,19 @@ export class RoleService {
 
   async updateRole(roleId, tenantId, payload) {
     const role = await roleRepo.findById(roleId, tenantId);
+    const nextRoleType =
+      payload.roleType !== undefined
+        ? normalizeRoleType(payload.roleType, { required: true })
+        : null;
 
-    if (payload.slug && payload.slug !== role.slug) {
-      const slug = normalizeSlug(payload.slug);
-      const existingRole = await roleRepo.findBySlug(slug, tenantId);
+    if (nextRoleType && nextRoleType !== role.roleType) {
+      const existingRole = await roleRepo.findByRoleType(nextRoleType, tenantId);
       if (existingRole && existingRole.id !== roleId) {
         throw new AppError(
-          "Role slug already exists for this tenant scope",
+          "Role type already exists for this tenant scope",
           400,
         );
       }
-      payload.slug = slug;
     }
 
     const updateData = {
@@ -188,8 +209,8 @@ export class RoleService {
       metadata: payload.metadata || role.metadata,
     };
 
-    if (payload.slug) {
-      updateData.slug = payload.slug;
+    if (nextRoleType) {
+      updateData.roleType = nextRoleType;
     }
 
     await roleRepo.update(roleId, tenantId, updateData);
@@ -239,7 +260,7 @@ export class RoleService {
       id: role.id,
       tenantId: role.tenantId,
       name: role.name,
-      slug: role.slug,
+      roleType: role.roleType,
       description: role.description,
       isSystem: role.isSystem,
       hierarchyLevel: role.hierarchyLevel,

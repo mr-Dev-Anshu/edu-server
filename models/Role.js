@@ -1,4 +1,4 @@
-import { DataTypes, ENUM } from "sequelize";
+import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 import { withTenant } from "../utils/model-helper.js";
 
@@ -14,8 +14,8 @@ const Role = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: false,
     },
-    slug: {
-      type: DataTypes.ENUM("portal", "staff", "platform", "admin"), 
+    roleType: {
+      type: DataTypes.ENUM(["portal", "staff", "platform", "admin"]),
       allowNull: false,
     },
     description: {
@@ -42,7 +42,7 @@ const Role = sequelize.define(
     underscored: true,
     tableName: "roles",
     // indexes: [
-    //   { unique: true, fields: ["tenant_id", "slug"] },
+    //   { unique: true, fields: ["tenant_id", "role_type"] },
     //   { fields: ["tenant_id"] },
     // ],
   },

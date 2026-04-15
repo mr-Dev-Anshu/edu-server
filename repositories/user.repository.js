@@ -36,7 +36,7 @@ export class UserRepository extends BaseRepository {
     const defaultInclude = [
       {
         association: "roles",
-        attributes: ["id", "name", "slug"],
+        attributes: ["id", "name", "roleType"],
         through: { attributes: [] },
       },
     ];
@@ -52,7 +52,7 @@ export class UserRepository extends BaseRepository {
     const defaultInclude = [
       {
         association: "roles",
-        attributes: ["id", "name", "slug"],
+        attributes: ["id", "name", "roleType"],
         through: { attributes: [] },
       },
     ];
@@ -109,7 +109,7 @@ export class UserRepository extends BaseRepository {
     const defaultInclude = [
       {
         association: "roles",
-        attributes: ["id", "name", "slug"],
+        attributes: ["id", "name", "roleType"],
         through: { attributes: [] },
         include: [
           {

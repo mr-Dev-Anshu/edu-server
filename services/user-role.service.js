@@ -107,7 +107,7 @@ export class UserRoleService {
       include: [
         {
           association: "role",
-          attributes: ["id", "name", "slug", "description"],
+          attributes: ["id", "name", "roleType", "description"],
         },
         {
           association: "user",

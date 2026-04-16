@@ -1,31 +1,31 @@
 import express from "express";
 import { RoleController } from "../controllers/role.controller.js";
 import { createRoleValidator } from "../middlewares/validators/role.validator.js";
-import { requireTenantId } from "../middlewares/tenant.middleware.js";
 import { checkPermission, identifyUser } from "../middlewares/security/index.js";
 
 const router = express.Router();
 const ctrl = new RoleController();
 
 // Create new role
-router.route("/").post( identifyUser , checkPermission("create:roles")  ,  createRoleValidator, ctrl.create);
+router.route("/")
+  .post(identifyUser, checkPermission("create:roles"), createRoleValidator, ctrl.create)
+  .get(identifyUser, ctrl.getAll);  // No permission needed for GET
 
-// Get all roles
-router.route("/").get(requireTenantId, ctrl.getAll);
-
-// POST :roleId/permissions - Assign permissions to a role
-router.post("/:id/assign-permissions", requireTenantId, ctrl.assignPermission);
+// Assign permissions to a role
+router.post("/:id/assign-permissions", 
+  identifyUser, 
+  checkPermission("update:roles"), 
+  ctrl.assignPermission
+);
 
 // Get role by ID
-router.route("/:id").get(requireTenantId, ctrl.getById);
-
-// Update role
-router.route("/:id").put(requireTenantId, ctrl.update);
+router.route("/:id")
+  .get(identifyUser, ctrl.getById)  
+  .put(identifyUser, checkPermission("update:roles"), ctrl.update)  
 
 // Get permissions by role
-router.route("/:id/permissions").get(requireTenantId, ctrl.getPermissions);
-
-// Update role permissions
-router.route("/:id/permissions").put(requireTenantId, ctrl.updatePermissions);
+router.route("/:id/permissions")
+  .get(identifyUser, ctrl.getPermissions)  
+  .put(identifyUser, checkPermission("update:roles"), ctrl.updatePermissions);
 
 export default router;

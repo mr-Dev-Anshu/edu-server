@@ -131,37 +131,6 @@ export class UserService {
     return this.formatUserResponse(user);
   }
 
-  async assignRolesWithUsers(userId, tenantId, roles) {
-    // const user = await userRepo.findById(userId, tenantId);
-
-    const transaction = await sequelize.transaction();
-
-    try {
-      for (const role of roles) {
-        await userRoleRepo.assignRoleToUser(
-          userId,
-          role.roleId,
-          role.academicYearId || null,
-          null,
-          { transaction },
-        );
-      }
-      await transaction.commit();
-
-      return await userRepo.findByIdWithAssociations(userId, tenantId);
-    } catch (error) {
-      if (!transaction.finished) {
-        await transaction.rollback();
-      }
-      throw error;
-    }
-  }
-
-  async removeRolesFromUser(userId, tenantId, roleIds) {
-    await userRepo.findById(userId, tenantId);
-    await userRoleRepo.bulkRevokeRoles(userId, roleIds);
-  }
-
   async loginByEmail(email, password) {
     const trimmedEmail = email?.toLowerCase().trim();
     

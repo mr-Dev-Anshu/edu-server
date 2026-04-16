@@ -10,7 +10,6 @@ import tenantRouter from './router/tenant.router.js';
 import userRouter from './router/user.router.js';
 import userRoleRouter from './router/user-role.router.js';
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
-import { tenantIdMiddleware } from './middlewares/tenant.middleware.js'
 import cookieParser from 'cookie-parser';
 
 
@@ -49,8 +48,6 @@ app.use('/uploads', express.static(uploadsRoot));
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', timestamp: new Date().toISOString() });
 });
-
-app.use(tenantIdMiddleware);
 
 app.use('/api/v1/tenants', tenantRouter);
 app.use('/api/v1/roles', roleRouter);

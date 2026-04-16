@@ -75,29 +75,6 @@ export class UserController {
     });
   });
 
-  assignRoles = catchAsync(async (req, res) => {
-    const { roles } = req.body;
-    const data = await userService.assignRolesWithUsers(
-      req.params.id,
-      req.tenantId,
-      roles
-    );
-    res.status(200).json({
-      success: true,
-      message: "Roles assigned successfully",
-      data,
-    });
-  });
-
-  removeRoles = catchAsync(async (req, res) => {
-    const { roleIds } = req.body;
-    await userService.removeRolesFromUser(req.params.id, req.tenantId, roleIds);
-    res.status(200).json({
-      success: true,
-      message: "Roles removed successfully",
-    });
-  });
-
   login = catchAsync(async (req, res) => {
     const { email, password } = req.body;
     const data = await userService.loginByEmail(email, password);

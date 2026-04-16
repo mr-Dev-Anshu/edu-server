@@ -64,9 +64,9 @@ export const createRoleValidator = createValidator((req) => {
   }
 
   if (req.tenantId) {
-    ensureUuid(req.tenantId, "x-tenant-id header");
+    ensureUuid(req.tenantId, "tenantId");
   } else if (body.isSystem !== true) {
-    throw new AppError("x-tenant-id header is required for tenant-specific roles", 400);
+    throw new AppError("Tenant context is required for tenant-specific roles", 400);
   }
 
   if (body.permissionIds !== undefined) {

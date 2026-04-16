@@ -81,9 +81,9 @@ export const createUserValidator = createValidator((req) => {
   ensurePlainObject(body.preferences, "preferences");
 
   if (req.tenantId) {
-    ensureUuid(req.tenantId, "x-tenant-id header");
+    ensureUuid(req.tenantId, "tenantId");
   } else if (body.userType !== "super_admin") {
-    throw new AppError("x-tenant-id header is required for tenant-scoped users", 400);
+    throw new AppError("Tenant context is required for tenant-scoped users", 400);
   }
 });
 

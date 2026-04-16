@@ -79,9 +79,9 @@ export const assignRoleValidator = createValidator((req) => {
   ensureOptionalUuid(body.assignedById, "assignedById");
 
   if (!req.tenantId) {
-    throw new AppError("x-tenant-id header is required", 400);
+    throw new AppError("Tenant context is required", 400);
   }
-  ensureUuid(req.tenantId, "x-tenant-id header");
+  ensureUuid(req.tenantId, "tenantId");
 });
 
 export const assignMultipleRolesValidator = createValidator((req) => {
@@ -101,9 +101,9 @@ export const assignMultipleRolesValidator = createValidator((req) => {
   ensureOptionalUuid(body.assignedById, "assignedById");
 
   if (!req.tenantId) {
-    throw new AppError("x-tenant-id header is required", 400);
+    throw new AppError("Tenant context is required", 400);
   }
-  ensureUuid(req.tenantId, "x-tenant-id header");
+  ensureUuid(req.tenantId, "tenantId");
 });
 
 export const revokeRoleValidator = createValidator((req) => {
@@ -122,9 +122,9 @@ export const revokeRoleValidator = createValidator((req) => {
   ensureOptionalUuid(body.academicYearId, "academicYearId");
 
   if (!req.tenantId) {
-    throw new AppError("x-tenant-id header is required", 400);
+    throw new AppError("Tenant context is required", 400);
   }
-  ensureUuid(req.tenantId, "x-tenant-id header");
+  ensureUuid(req.tenantId, "tenantId");
 });
 
 export const revokeMultipleRolesValidator = createValidator((req) => {
@@ -141,9 +141,9 @@ export const revokeMultipleRolesValidator = createValidator((req) => {
   ensureNonEmptyArray(body.roleIds, "roleIds", ensureUuid);
 
   if (!req.tenantId) {
-    throw new AppError("x-tenant-id header is required", 400);
+    throw new AppError("Tenant context is required", 400);
   }
-  ensureUuid(req.tenantId, "x-tenant-id header");
+  ensureUuid(req.tenantId, "tenantId");
 });
 
 export const updateRoleExpiryValidator = createValidator((req) => {

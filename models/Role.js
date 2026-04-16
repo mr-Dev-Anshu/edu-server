@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
-import { withTenant } from "../utils/model-helper.js";
+import { withTenant } from "./withTenant.js";
 
 const Role = sequelize.define(
   "Role",
@@ -42,10 +42,6 @@ const Role = sequelize.define(
     paranoid: true,
     underscored: true,
     tableName: "roles",
-    // indexes: [
-    //   { unique: true, fields: ["tenant_id", "role_type"] },
-    //   { fields: ["tenant_id"] },
-    // ],
   },
 );
 

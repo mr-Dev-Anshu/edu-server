@@ -1,8 +1,2 @@
-const SALT_ROUND = 10;
-const TOKEN_COOKIE_NAME = "cookie";
-
-
-export default {
-    SALT_ROUND,
-    TOKEN_COOKIE_NAME
-}
+export const SALT_ROUNDS = 10;
+export const TOKEN_COOKIE_NAME = "cookie";

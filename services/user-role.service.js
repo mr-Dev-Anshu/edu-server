@@ -19,6 +19,14 @@ export class UserRoleService {
     // Validate user exists
     await userRepo.findById(userId, tenantId);
 
+    // Revoke any existing roles - Only one role per user
+    const existingRoles = await userRoleRepo.findByUserId(userId);
+    if (existingRoles.length > 0) {
+      for (const existingRole of existingRoles) {
+        await userRoleRepo.revokeRoleFromUser(userId, existingRole.roleId, existingRole.academicYearId);
+      }
+    }
+
     const userRole = await userRoleRepo.assignRoleToUser(
       userId,
       roleId,
@@ -29,43 +37,44 @@ export class UserRoleService {
     return this.formatUserRoleResponse(userRole);
   }
 
-  async assignMultipleRolesToUser(payload) {
-    const {
-      userId,
-      roleIds,
-      tenantId,
-      academicYearId = null,
-      assignedById = null,
-    } = payload;
-
-    // Validate user exists
-    await userRepo.findById(userId, tenantId);
-
-    if (!Array.isArray(roleIds) || roleIds.length === 0) {
-      throw new AppError("roleIds must be a non-empty array", 400);
-    }
-
-    const transaction = await sequelize.transaction();
-
-    try {
-      // In the service — pass transaction
-      const userRoles = await userRoleRepo.bulkAssignRoles(
-        userId,
-        roleIds,
-        academicYearId,
-        assignedById,
-        { transaction }, // ✅
-      );
-
-      await transaction.commit();
-      return userRoles.map((ur) => this.formatUserRoleResponse(ur));
-    } catch (error) {
-      if (!transaction.finished) {
-        await transaction.rollback();
-      }
-      throw error;
-    }
-  }
+  // ❌ DEPRECATED: Users can only have one role
+  // async assignMultipleRolesToUser(payload) {
+  //   const {
+  //     userId,
+  //     roleIds,
+  //     tenantId,
+  //     academicYearId = null,
+  //     assignedById = null,
+  //   } = payload;
+  //
+  //   // Validate user exists
+  //   await userRepo.findById(userId, tenantId);
+  //
+  //   if (!Array.isArray(roleIds) || roleIds.length === 0) {
+  //     throw new AppError("roleIds must be a non-empty array", 400);
+  //   }
+  //
+  //   const transaction = await sequelize.transaction();
+  //
+  //   try {
+  //     // In the service — pass transaction
+  //     const userRoles = await userRoleRepo.bulkAssignRoles(
+  //       userId,
+  //       roleIds,
+  //       academicYearId,
+  //       assignedById,
+  //       { transaction }, // ✅
+  //     );
+  //
+  //     await transaction.commit();
+  //     return userRoles.map((ur) => this.formatUserRoleResponse(ur));
+  //   } catch (error) {
+  //     if (!transaction.finished) {
+  //       await transaction.rollback();
+  //     }
+  //     throw error;
+  //   }
+  // }
 
   async revokeRoleFromUser(payload) {
     const { userId, roleId, tenantId, academicYearId = null } = payload;
@@ -76,18 +85,19 @@ export class UserRoleService {
     await userRoleRepo.revokeRoleFromUser(userId, roleId, academicYearId);
   }
 
-  async revokeMultipleRolesFromUser(payload) {
-    const { userId, roleIds, tenantId } = payload;
-
-    // Validate user exists
-    await userRepo.findById(userId, tenantId);
-
-    if (!Array.isArray(roleIds) || roleIds.length === 0) {
-      throw new AppError("roleIds must be a non-empty array", 400);
-    }
-
-    await userRoleRepo.bulkRevokeRoles(userId, roleIds);
-  }
+  // ❌ DEPRECATED: Users can only have one role
+  // async revokeMultipleRolesFromUser(payload) {
+  //   const { userId, roleIds, tenantId } = payload;
+  //
+  //   // Validate user exists
+  //   await userRepo.findById(userId, tenantId);
+  //
+  //   if (!Array.isArray(roleIds) || roleIds.length === 0) {
+  //     throw new AppError("roleIds must be a non-empty array", 400);
+  //   }
+  //
+  //   await userRoleRepo.bulkRevokeRoles(userId, roleIds);
+  // }
 
   async getUserRoles(userId, tenantId, filter = {}) {
     // Validate user exists

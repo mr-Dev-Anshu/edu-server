@@ -16,17 +16,18 @@ export class UserRoleController {
     });
   });
 
-  assignMultipleRoles = catchAsync(async (req, res) => {
-    const data = await userRoleService.assignMultipleRolesToUser({
-      ...req.body,
-      tenantId: req.tenantId,
-    });
-    res.status(201).json({
-      success: true,
-      message: "Roles assigned successfully",
-      data,
-    });
-  });
+  // ❌ DEPRECATED: Users can only have one role
+  // assignMultipleRoles = catchAsync(async (req, res) => {
+  //   const data = await userRoleService.assignMultipleRolesToUser({
+  //     ...req.body,
+  //     tenantId: req.tenantId,
+  //   });
+  //   res.status(201).json({
+  //     success: true,
+  //     message: "Roles assigned successfully",
+  //     data,
+  //   });
+  // });
 
   revokeRole = catchAsync(async (req, res) => {
     await userRoleService.revokeRoleFromUser({ ...req.body, tenantId: req.tenantId });
@@ -36,16 +37,17 @@ export class UserRoleController {
     });
   });
 
-  revokeMultipleRoles = catchAsync(async (req, res) => {
-    await userRoleService.revokeMultipleRolesFromUser({
-      ...req.body,
-      tenantId: req.tenantId,
-    });
-    res.status(200).json({
-      success: true,
-      message: "Roles revoked successfully",
-    });
-  });
+  // ❌ DEPRECATED: Users can only have one role
+  // revokeMultipleRoles = catchAsync(async (req, res) => {
+  //   await userRoleService.revokeMultipleRolesFromUser({
+  //     ...req.body,
+  //     tenantId: req.tenantId,
+  //   });
+  //   res.status(200).json({
+  //     success: true,
+  //     message: "Roles revoked successfully",
+  //   });
+  // });
 
   getUserRoles = catchAsync(async (req, res) => {
     const { userId } = req.params;

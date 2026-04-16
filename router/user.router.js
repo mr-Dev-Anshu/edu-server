@@ -15,7 +15,7 @@ const ctrl = new UserController();
 
 // ✅ Static routes FIRST
 router.route("/").get(identifyUser, checkPermission("read:user"),ctrl.getAll);
-router.route("/").post(createUserValidator, checkPermission("create:user"), ctrl.create);
+router.route("/").post(identifyUser, createUserValidator, checkPermission("create:user"), ctrl.create);
 router.route("/login").post(loginValidator, ctrl.login);
 router.route("/logout").post( identifyUser ,  ctrl.logout);
 router.route("/active").get(identifyUser, ctrl.getActive);

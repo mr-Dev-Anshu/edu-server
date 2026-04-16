@@ -1,0 +1,234 @@
+{
+  "info": {
+    "_postman_id": "5fdc5f67-eebb-4dcc-8c78-assign-permissions-routes",
+    "name": "Edu Server Assign Permissions Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing POST /api/v1/roles/:id/assign-permissions."
+  },
+  "item": [
+    {
+      "name": "Create Permission - Assign Permissions Primary",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('assignPermissionPrimaryId', json.data.id);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"create:assign_permissions_students\",\n  \"action\": \"create\",\n  \"resource\": \"assign_permissions_students\",\n  \"module\": \"rbac\",\n  \"description\": \"Primary permission used while testing assign-permissions route\"\n}"
+        },
+        "url": {
+          "raw": "{{permissionBaseUrl}}",
+          "host": [
+            "{{permissionBaseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Permission - Assign Permissions Secondary",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('assignPermissionSecondaryId', json.data.id);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"read:assign_permissions_students\",\n  \"action\": \"read\",\n  \"resource\": \"assign_permissions_students\",\n  \"module\": \"rbac\",\n  \"description\": \"Secondary permission used while testing assign-permissions route\"\n}"
+        },
+        "url": {
+          "raw": "{{permissionBaseUrl}}",
+          "host": [
+            "{{permissionBaseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Role - Assign Permissions Target",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('assignPermissionRoleId', json.data.id);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Assign Permissions Test Role\",\n  \"slug\": \"assign-permissions-test-role\",\n  \"description\": \"Role created specifically for assign-permissions route testing\",\n  \"hierarchyLevel\": 5,\n  \"permissionIds\": [\n    \"{{assignPermissionPrimaryId}}\"\n  ],\n  \"customFields\": {\n    \"source\": \"postman\"\n  },\n  \"metadata\": {\n    \"route\": \"assign-permissions\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{roleBaseUrl}}",
+          "host": [
+            "{{roleBaseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Assign Permissions To Role",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const json = pm.response.json();",
+              "pm.test('Route returns success true', function () {",
+              "  pm.expect(json.success).to.eql(true);",
+              "});",
+              "",
+              "pm.test('Route returns updated permissions', function () {",
+              "  pm.expect(json.data.permissions).to.be.an('array');",
+              "  pm.expect(json.data.permissions.length).to.eql(2);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"permissionIds\": [\n    \"{{assignPermissionPrimaryId}}\",\n    \"{{assignPermissionSecondaryId}}\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{roleBaseUrl}}/{{assignPermissionRoleId}}/assign-permissions",
+          "host": [
+            "{{roleBaseUrl}}"
+          ],
+          "path": [
+            "{{assignPermissionRoleId}}",
+            "assign-permissions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Role Permissions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{roleBaseUrl}}/{{assignPermissionRoleId}}/permissions",
+          "host": [
+            "{{roleBaseUrl}}"
+          ],
+          "path": [
+            "{{assignPermissionRoleId}}",
+            "permissions"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "permissionBaseUrl",
+      "value": "http://localhost:5000/api/v1/permissions"
+    },
+    {
+      "key": "roleBaseUrl",
+      "value": "http://localhost:5000/api/v1/roles"
+    },
+    {
+      "key": "tenantId",
+      "value": "c43e1e2a-9aad-4f59-9a72-776514d361f1"
+    },
+    {
+      "key": "assignPermissionPrimaryId",
+      "value": ""
+    },
+    {
+      "key": "assignPermissionSecondaryId",
+      "value": ""
+    },
+    {
+      "key": "assignPermissionRoleId",
+      "value": ""
+    }
+  ]
+}

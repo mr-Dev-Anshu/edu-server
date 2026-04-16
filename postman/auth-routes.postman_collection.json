@@ -1,0 +1,550 @@
+{
+  "info": {
+    "_postman_id": "f3fe4277-69f2-4e7d-91df-auth-routes",
+    "name": "Edu Server Authentication Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing authentication, login, and JWT-based routes"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "1. Create Test Org Admin User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('orgAdminUserId', json.data.id);",
+                  "    pm.environment.set('orgAdminEmail', json.data.email);",
+                  "  }",
+                  "} else {",
+                  "  console.log('Response Status:', pm.response.code);",
+                  "  console.log('Response:', pm.response.text());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"orgadmin@testschool.com\",\n  \"password\": \"OrgAdmin@123\",\n  \"firstName\": \"Organization\",\n  \"lastName\": \"Admin\",\n  \"userType\": \"org_admin\",\n  \"phone\": \"+91-9876543210\",\n  \"status\": \"active\",\n  \"emailVerified\": true,\n  \"preferences\": {\n    \"language\": \"en\",\n    \"theme\": \"system\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create Test Staff User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('staffUserId', json.data.id);",
+                  "    pm.environment.set('staffEmail', json.data.email);",
+                  "  }",
+                  "} else {",
+                  "  console.log('Response Status:', pm.response.code);",
+                  "  console.log('Response:', pm.response.text());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@testschool.com\",\n  \"password\": \"Staff@123456\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Staff\",\n  \"userType\": \"staff\",\n  \"phone\": \"+91-9876543211\",\n  \"status\": \"active\",\n  \"emailVerified\": true,\n  \"preferences\": {\n    \"language\": \"en\",\n    \"theme\": \"light\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create Test Teacher User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('teacherUserId', json.data.id);",
+                  "    pm.environment.set('teacherEmail', json.data.email);",
+                  "  }",
+                  "} else {",
+                  "  console.log('Response Status:', pm.response.code);",
+                  "  console.log('Response:', pm.response.text());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"teacher@testschool.com\",\n  \"password\": \"Teacher@123\",\n  \"firstName\": \"Sarah\",\n  \"lastName\": \"Teacher\",\n  \"userType\": \"teacher\",\n  \"phone\": \"+91-9876543212\",\n  \"status\": \"active\",\n  \"emailVerified\": true,\n  \"preferences\": {\n    \"language\": \"en\",\n    \"theme\": \"dark\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Create Test Student User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('studentUserId', json.data.id);",
+                  "    pm.environment.set('studentEmail', json.data.email);",
+                  "  }",
+                  "} else {",
+                  "  console.log('Response Status:', pm.response.code);",
+                  "  console.log('Response:', pm.response.text());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@testschool.com\",\n  \"password\": \"Student@123\",\n  \"firstName\": \"Mike\",\n  \"lastName\": \"Student\",\n  \"userType\": \"student\",\n  \"phone\": \"+91-9876543213\",\n  \"status\": \"active\",\n  \"emailVerified\": true,\n  \"preferences\": {\n    \"language\": \"en\",\n    \"theme\": \"system\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Login - Org Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.token) {",
+                  "    pm.environment.set('orgAdminToken', json.data.token);",
+                  "    pm.environment.set('loggedInUserId', json.data.id);",
+                  "    pm.environment.set('loggedInUserType', json.data.userType);",
+                  "    console.log('✓ Login successful for:', json.data.email);",
+                  "    console.log('✓ Token stored:', json.data.token.substring(0, 20) + '...');",
+                  "  }",
+                  "} else {",
+                  "  console.log('✗ Login failed:', pm.response.text());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"orgadmin@testschool.com\",\n  \"password\": \"OrgAdmin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/login",
+              "host": [
+                "{{userBaseUrl}}",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Login - Staff User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.token) {",
+                  "    pm.environment.set('staffToken', json.data.token);",
+                  "    console.log('✓ Login successful for:', json.data.email);",
+                  "  }",
+                  "} else {",
+                  "  console.log('✗ Login failed:', pm.response.text());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@testschool.com\",\n  \"password\": \"Staff@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/login",
+              "host": [
+                "{{userBaseUrl}}",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Login - Teacher User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.token) {",
+                  "    pm.environment.set('teacherToken', json.data.token);",
+                  "    console.log('✓ Login successful for:', json.data.email);",
+                  "  }",
+                  "} else {",
+                  "  console.log('✗ Login failed:', pm.response.text());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"teacher@testschool.com\",\n  \"password\": \"Teacher@123\"\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/login",
+              "host": [
+                "{{userBaseUrl}}",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Login - Student User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.token) {",
+                  "    pm.environment.set('studentToken', json.data.token);",
+                  "    console.log('✓ Login successful for:', json.data.email);",
+                  "  }",
+                  "} else {",
+                  "  console.log('✗ Login failed:', pm.response.text());",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@testschool.com\",\n  \"password\": \"Student@123\"\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/login",
+              "host": [
+                "{{userBaseUrl}}",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. Login - Invalid Credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"orgadmin@testschool.com\",\n  \"password\": \"WrongPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/login",
+              "host": [
+                "{{userBaseUrl}}",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. Login - User Not Found",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nonexistent@testschool.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{userBaseUrl}}/login",
+              "host": [
+                "{{userBaseUrl}}",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Protected Routes (Using JWT)",
+      "item": [
+        {
+          "name": "Get Current User Profile (Auth Required)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{orgAdminToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{userBaseUrl}}/{{loggedInUserId}}",
+              "host": [
+                "{{userBaseUrl}}",
+                "{{loggedInUserId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users (Org Admin with Token)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{orgAdminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userBaseUrl}}",
+              "host": [
+                "{{userBaseUrl}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Users (Org Admin with Token)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{orgAdminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userBaseUrl}}/active",
+              "host": [
+                "{{userBaseUrl}}",
+                "active"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users by Type - Teachers (with Token)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{orgAdminToken}}",
+                "type": "text"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{userBaseUrl}}/type/teacher",
+              "host": [
+                "{{userBaseUrl}}",
+                "type",
+                "teacher"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Test Data Reference",
+      "item": [
+        {
+          "name": "Test Users Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "https://httpbin.org/uuid",
+              "protocol": "https",
+              "host": [
+                "httpbin",
+                "org"
+              ],
+              "path": [
+                "uuid"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

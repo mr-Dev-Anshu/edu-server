@@ -37,15 +37,6 @@ export class PermissionService {
       description: payload.description?.trim() || null,
     });
 
-    return this.formatPermissionResponse(permission);
-  }
-
-  async getAllPermissions(filter = {}) {
-    const permissions = await permissionRepo.findAll(null, filter);
-    return permissions.map((permission) => this.formatPermissionResponse(permission));
-  }
-
-  formatPermissionResponse(permission) {
     return {
       id: permission.id,
       name: permission.name,

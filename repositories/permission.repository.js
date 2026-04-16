@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Permission } from "../models/index.js";
+import { Permission } from "../models/Permission.js";
 import { BaseRepository } from "./base.repository.js";
 
 export class PermissionRepository extends BaseRepository {

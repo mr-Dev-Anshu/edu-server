@@ -1,7 +1,7 @@
 import { Op, QueryTypes } from "sequelize";
 import sequelize from "../config/db.js";
 import Tenant from "../models/Tenant.js";
-import { Plan } from "../models/index.js";
+import Plan from "../models/Plan.js";
 import Subscription from "../models/Subscription.js";
 import TenantProvisioningStep from "../models/TenantProvisioningStep.js";
 import { AppError } from "../utils/AppError.js";

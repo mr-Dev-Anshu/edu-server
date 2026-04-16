@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { AppError } from "./AppError.js";
 
-const SALT_ROUNDS = 10;
+import { SALT_ROUNDS } from "../config/constants.js";
 
 export class BcryptHelper {
   static async hashPassword(password) {

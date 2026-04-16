@@ -1,5 +1,4 @@
-const TOKEN_COOKIE_NAME = "token";
-
+import { TOKEN_COOKIE_NAME } from "../config/constants.js";
 const parseDurationToMs = (duration) => {
   if (!duration || typeof duration !== "string") {
     return undefined;
@@ -27,7 +26,7 @@ const parseDurationToMs = (duration) => {
 export const getTokenCookieName = () => TOKEN_COOKIE_NAME;
 
 export const getTokenCookieOptions = () => {
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = process.env.NODE_ENV === "development";
   const maxAge = parseDurationToMs(process.env.JWT_EXPIRY);
 
   const options = {

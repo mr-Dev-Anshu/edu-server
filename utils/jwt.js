@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
 import { AppError } from "./AppError.js";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRY = process.env.JWT_EXPIRY;
+let JWT_SECRET = process.env.JWT_SECRET;
+let JWT_EXPIRY = process.env.JWT_EXPIRY;
 
-if (!JWT_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error("JWT_SECRET must be set in production environment");
+if (!JWT_SECRET && process.env.NODE_ENV === "development") {
+  throw new Error("JWT_SECRET must be set in development environment");
 }
 
 export class JwtHelper {

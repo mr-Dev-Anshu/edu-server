@@ -4,27 +4,24 @@ import {
   createSectionValidator,
   updateSectionValidator,
 } from "../../middlewares/validators/Academic/section.validator.js";
-import { requireTenantId, tenantIdMiddleware } from "../../middlewares/tenant.middleware.js";
+import { identifyUser, checkPermission } from "../../middlewares/security/index.js";
 
 const router = express.Router();
 const ctrl = new SectionController();
 
-router.use(tenantIdMiddleware);
-router.use(requireTenantId);
-
 // Create Section
-router.post("/", createSectionValidator, ctrl.create);
+router.post("/", identifyUser, checkPermission("create:sections"), createSectionValidator, ctrl.create);
 
 // Get All Sections (pagination + filters)
-router.get("/", ctrl.getAll);
+router.get("/", identifyUser, ctrl.getAll);
 
 // Get Section by ID
-router.get("/:id", ctrl.getOne);
+router.get("/:id", identifyUser, ctrl.getOne);
 
 // Update Section
-router.patch("/:id", updateSectionValidator, ctrl.update);
+router.patch("/:id", identifyUser, checkPermission("update:sections"), updateSectionValidator, ctrl.update);
 
 // Delete Section
-router.delete("/:id", ctrl.delete);
+router.delete("/:id", identifyUser, checkPermission("delete:sections"), ctrl.delete);
 
 export default router;

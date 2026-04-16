@@ -9,16 +9,6 @@ const createValidator = (validateFn) => (req, res, next) => {
   }
 };
 
-export const tenantValidator = createValidator((req) => {
-  const tenantId = req.tenantId;
-
-  if (!tenantId) {
-    throw new AppError("tenant_id is required", 400);
-  }
-
-  ensureUUID(tenantId, "tenant_id");
-});
-
 export const staffIdValidator = createValidator((req) => {
   const { id } = req.params;
 

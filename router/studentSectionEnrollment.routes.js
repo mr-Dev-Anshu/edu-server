@@ -4,27 +4,24 @@ import {
   createEnrollmentValidator,
   updateEnrollmentValidator,
 } from "../middlewares/validators/studentSectionEnrollment.validator.js";
-import { requireTenantId, tenantIdMiddleware } from "../middlewares/tenant.middleware.js";
+import { identifyUser, checkPermission } from "../middlewares/security/index.js";
 
 const router = express.Router();
 const ctrl = new StudentSectionEnrollmentController();
 
-router.use(tenantIdMiddleware);
-router.use(requireTenantId);
-
 // Enroll Student
-router.post("/", createEnrollmentValidator, ctrl.create);
+router.post("/", identifyUser, checkPermission("create:enrollments"), createEnrollmentValidator, ctrl.create);
 
 // Get All
-router.get("/", ctrl.getAll);
+router.get("/", identifyUser, ctrl.getAll);
 
 // Get One
-router.get("/:id", ctrl.getOne);
+router.get("/:id", identifyUser, ctrl.getOne);
 
 // Update (transfer)
-router.patch("/:id", updateEnrollmentValidator, ctrl.update);
+router.patch("/:id", identifyUser, checkPermission("update:enrollments"), updateEnrollmentValidator, ctrl.update);
 
 // Delete
-router.delete("/:id", ctrl.delete);
+router.delete("/:id", identifyUser, checkPermission("delete:enrollments"), ctrl.delete);
 
 export default router;

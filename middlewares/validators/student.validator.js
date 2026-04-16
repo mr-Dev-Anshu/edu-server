@@ -69,6 +69,11 @@ const ensureRequiredEnum = (value, fieldName, allowedValues) => {
   ensureEnum(value, fieldName, allowedValues);
 };
 
+const ensureOptionalEnum = (value, fieldName, allowedValues) => {
+  if (value === undefined || value === null) return;
+  ensureEnum(value, fieldName, allowedValues);
+};
+
 const ensureNoTenantId = (body) => {
   if (body.tenantId !== undefined || body.tenant_id !== undefined) {
     throw new AppError("tenantId may not be provided in request body", 400);
@@ -182,8 +187,3 @@ export const updateStudentValidator = createValidator((req) => {
   ensureOptionalString(req.body.city, "city", { min: 1, max: 100 });
   ensureOptionalString(req.body.pincode, "pincode", { min: 1, max: 20 });
 });
-
-function ensureOptionalEnum(value, fieldName, allowedValues) {
-  if (value === undefined || value === null) return;
-  ensureEnum(value, fieldName, allowedValues);
-}

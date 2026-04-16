@@ -4,39 +4,36 @@ import {
   createAcademicYearValidator,
   updateAcademicYearValidator,
 } from "../../middlewares/validators/Academic/academicYear.validator.js";
-import { requireTenantId, tenantIdMiddleware } from "../../middlewares/tenant.middleware.js";
+import { identifyUser, checkPermission } from "../../middlewares/security/index.js";
 
 const router = express.Router();
 const ctrl = new AcademicYearController();
 
-router.use(tenantIdMiddleware);
-router.use(requireTenantId);
-
 // Create academic year
-router.post("/", createAcademicYearValidator, ctrl.create);
+router.post("/", identifyUser, checkPermission("create:academicyears"), createAcademicYearValidator, ctrl.create);
 
 // Get all academic years
-router.get("/", ctrl.getAll);
+router.get("/", identifyUser, ctrl.getAll);
 
 // Get current academic year
-router.get("/current", ctrl.getCurrent);
+router.get("/current", identifyUser, ctrl.getCurrent);
 
 // Get specific academic year by ID
-router.get("/:id", ctrl.getOne);
+router.get("/:id", identifyUser, ctrl.getOne);
 
 // Update academic year
-router.patch("/:id", updateAcademicYearValidator, ctrl.update);
+router.patch("/:id", identifyUser, checkPermission("update:academicyears"), updateAcademicYearValidator, ctrl.update);
 
 // Delete academic year
-router.delete("/:id", ctrl.delete);
+router.delete("/:id", identifyUser, checkPermission("delete:academicyears"), ctrl.delete);
 
 // Set academic year as current
-router.post("/:id/set-current", ctrl.setCurrent);
+router.post("/:id/set-current", identifyUser, checkPermission("update:academicyears"), ctrl.setCurrent);
 
 // Lock academic year
-router.post("/:id/lock", ctrl.lock);
+router.post("/:id/lock", identifyUser, checkPermission("update:academicyears"), ctrl.lock);
 
 // Unlock academic year
-router.post("/:id/unlock", ctrl.unlock);
+router.post("/:id/unlock", identifyUser, checkPermission("update:academicyears"), ctrl.unlock);
 
 export default router;

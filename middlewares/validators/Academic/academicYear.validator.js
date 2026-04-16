@@ -35,16 +35,6 @@ const ensureBoolean = (value, fieldName) => {
   }
 };
 
-export const tenantIdValidator = createValidator((req) => {
-  const tenantId = req.tenantId;
-
-  if (!tenantId) {
-    throw new AppError("tenant_id is required", 400);
-  }
-
-  ensureUUID(tenantId, "tenantId");
-});
-
 export const createAcademicYearValidator = createValidator((req) => {
   const { body } = req;
 

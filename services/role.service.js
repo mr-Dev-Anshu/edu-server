@@ -4,6 +4,7 @@ import { RoleRepository } from "../repositories/role.repository.js";
 import { AppError } from "../utils/AppError.js";
 import { RolePermission } from "../models/index.js";
 import { ROLE_TYPES } from "../utils/role-type.js";
+import { ADMIN_PERMISSIONS, ROLE_MASTER_CONFIG } from "../config/masterPermission.js";
 
 const roleRepo = new RoleRepository();
 const permissionRepo = new PermissionRepository();
@@ -32,25 +33,38 @@ const normalizeRoleType = (value, { required = false } = {}) => {
 };
 
 export class RoleService {
-  async createRole(payload) {
+ // src/services/role.service.js
+
+async createRole(payload, options = {}) {
     const roleType = normalizeRoleType(payload.roleType, { required: true });
     const tenantId = payload.tenantId?.trim() || null;
     const permissionIds = [...new Set(payload.permissionIds || [])];
 
+    // Permissions check (Ye DB call hai, transaction se bahar bhi chalega)
     const permissions = permissionIds.length
       ? await permissionRepo.findByIds(permissionIds)
       : [];
+      
     if (permissions.length !== permissionIds.length) {
       throw new AppError("One or more permissionIds are invalid", 400);
     }
 
-    const transaction = await sequelize.transaction();
+    // 🔥 LOGIC: Agar options mein transaction hai toh wahi use karo, 
+    // nahi toh nayi transaction create karo.
+    let transaction = options.transaction;
+    let localTransaction = false;
+
+    if (!transaction) {
+      transaction = await sequelize.transaction();
+      localTransaction = true; // Taaki humein pata ho commit kab karna hai
+    }
 
     try {
       const role = await roleRepo.create(
         {
           name: payload.name.trim(),
           roleType,
+          slug: payload.slug,
           description: payload.description?.trim() || null,
           isSystem: payload.isSystem ?? false,
           hierarchyLevel: payload.hierarchyLevel ?? 10,
@@ -58,18 +72,23 @@ export class RoleService {
           customFields: payload.customFields || {},
           metadata: payload.metadata || {},
         },
-        { transaction },
+        { transaction }, 
       );
 
       await roleRepo.attachPermissions(role.id, permissionIds, { transaction });
-      await transaction.commit();
+
+      // 🔥 Sirf tabhi commit karo agar transaction isi function ne banayi thi
+      if (localTransaction) {
+        await transaction.commit();
+      }
 
       return this.formatRoleResponse(role, permissions);
     } catch (error) {
-      if (!transaction.finished) {
+      // 🔥 Rollback sirf local transaction ko karo
+      if (localTransaction && !transaction.finished) {
         await transaction.rollback();
       }
-      throw error;
+      throw error; // Error upar pass karo taaki registerTenant bhi rollback ho sake
     }
   }
 
@@ -92,6 +111,34 @@ export class RoleService {
       this.formatRoleResponse(role, role.permissions || []),
     );
   }
+
+  async provisionDefaultTenantRoles(tenantId, transaction) {
+    
+    const adminRole =  await this.createRole({
+    name: "Administrator",
+    roleType: "admin",
+    slug: null,
+    hierarchyLevel: 1,
+    isSystem: true,
+    tenantId,
+    permissionIds: ADMIN_PERMISSIONS, 
+  }, { transaction });
+
+
+
+  for (const [slug, config] of Object.entries(ROLE_MASTER_CONFIG)) {
+    await this.createRole({
+      name: config.name,
+      roleType: config.roleType,
+      slug: slug,
+      hierarchyLevel: config.hierarchyLevel,
+      isSystem: true,
+      tenantId,
+      permissionIds: config.permissions,
+    }, { transaction });
+  }
+  return adminRole ; 
+}
 
   //assign permission
   // In role.service.js - Add this method to your RoleService class
@@ -243,6 +290,7 @@ export class RoleService {
       tenantId: role.tenantId,
       name: role.name,
       roleType: role.roleType,
+      slug:role.slug,
       description: role.description,
       isSystem: role.isSystem,
       hierarchyLevel: role.hierarchyLevel,

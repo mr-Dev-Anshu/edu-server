@@ -1,7 +1,8 @@
 import { AppError } from "../../utils/AppError.js";
+import { ROLE_TYPES } from "../../utils/role-type.js";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const ROLE_TYPE_SET = new Set(ROLE_TYPES);
 
 const createValidator = (validateFn) => (req, res, next) => {
   try {
@@ -38,13 +39,17 @@ const ensureUuid = (value, fieldName) => {
 
 export const createRoleValidator = createValidator((req) => {
   const { body } = req;
+  const normalizedRoleType = body.roleType?.trim().toLowerCase();
 
   ensureString(body.name, "name", { min: 2, max: 100 });
-  ensureOptionalString(body.slug, "slug", { min: 2, max: 100 });
+  ensureString(body.roleType, "roleType", { min: 4, max: 20 });
   ensureOptionalString(body.description, "description", { min: 3, max: 1000 });
 
-  if (body.slug !== undefined && !SLUG_REGEX.test(body.slug.trim().toLowerCase())) {
-    throw new AppError("slug must contain only lowercase letters, numbers, and hyphens", 400);
+  if (!ROLE_TYPE_SET.has(normalizedRoleType)) {
+    throw new AppError(
+      `roleType must be one of: ${ROLE_TYPES.join(", ")}`,
+      400,
+    );
   }
 
   if (body.isSystem !== undefined && typeof body.isSystem !== "boolean") {
@@ -58,10 +63,10 @@ export const createRoleValidator = createValidator((req) => {
     throw new AppError("hierarchyLevel must be an integer between 0 and 100", 400);
   }
 
-  if (body.tenantId !== undefined) {
-    ensureUuid(body.tenantId, "tenantId");
+  if (req.tenantId) {
+    ensureUuid(req.tenantId, "tenantId");
   } else if (body.isSystem !== true) {
-    throw new AppError("tenantId is required for tenant-specific roles", 400);
+    throw new AppError("Tenant context is required for tenant-specific roles", 400);
   }
 
   if (body.permissionIds !== undefined) {

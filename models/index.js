@@ -80,6 +80,14 @@ Tenant.hasMany(User, { foreignKey: "tenantId", as: "members" });
 User.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
 // ==========================================
+// USER-ROLE JUNCTION TABLE ASSOCIATIONS
+// ==========================================
+UserRole.belongsTo(User, { foreignKey: "userId", as: "user" });
+UserRole.belongsTo(Role, { foreignKey: "roleId", as: "role" });
+UserRole.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
+UserRole.belongsTo(User, { foreignKey: "assignedById", as: "assignedBy" });
+
+// ==========================================
 // 3. STUDENT & STAFF PROFILE LINKS
 // ==========================================
 User.hasOne(Student, { foreignKey: "userId", as: "studentProfile" });

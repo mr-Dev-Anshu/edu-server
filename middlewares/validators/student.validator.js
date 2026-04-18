@@ -94,7 +94,8 @@ const STATUSES = ["active", "inactive", "transferred_out", "passed_out", "droppe
 export const createStudentValidator = createValidator((req) => {
   ensureNoTenantId(req.body);
 
-  ensureUuid(req.body.userId, "userId");
+  ensureString(req.body.email, "email", { min: 5, max: 100 });
+  ensureString(req.body.password, "password", { min: 6, max: 50 });
   ensureString(req.body.admissionNumber, "admissionNumber", { min: 1, max: 50 });
   ensureOptionalString(req.body.rollNumber, "rollNumber", { min: 1, max: 30 });
   ensureString(req.body.firstName, "firstName", { min: 1, max: 100 });
@@ -129,6 +130,8 @@ export const createStudentValidator = createValidator((req) => {
 export const updateStudentValidator = createValidator((req) => {
   ensureNoTenantId(req.body);
   ensureDisallowedField(req.body.userId, "userId");
+
+  
 
   if (req.body.admissionNumber !== undefined) {
     ensureString(req.body.admissionNumber, "admissionNumber", { min: 1, max: 50 });

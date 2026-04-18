@@ -5,7 +5,10 @@ const staffService = new StaffService();
 
 export class StaffController {
   create = catchAsync(async (req, res) => {
-    const data = await staffService.createStaff(req.tenantId, req.body);
+const data = await staffService.createStaff(req.tenantId, {
+      ...req.body,
+      requestedBy: req.user.id 
+    });
     res.status(201).json({ success: true, data });
   });
 

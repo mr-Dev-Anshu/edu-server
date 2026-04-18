@@ -1,31 +1,93 @@
+import sequelize from "../config/db.js";
 import { StudentRepository } from "../repositories/student.repository.js";
 import { AppError } from "../utils/AppError.js";
+import { RoleService } from "./role.service.js";
+import { UserRoleService } from "./user-role.service.js";
+import { UserService } from "./user.service.js";
 
 const studentRepo = new StudentRepository();
+const userService = new UserService();
+const userRoleService = new UserRoleService();
+const roleService = new RoleService();
 
 export class StudentService {
   async createStudent(tenantId, payload) {
-    const { userId, admissionNumber } = payload;
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      admissionNumber,
+      requestedBy,
+    } = payload;
 
-    const existingUser = await studentRepo.findByUserId(userId, tenantId);
-    if (existingUser) {
-      throw new AppError("A student profile already exists for this user", 400);
-    }
-
+    // 1. Admission Number check (Before transaction)
     const existingAdmission = await studentRepo.findByAdmissionNumber(
       admissionNumber,
       tenantId,
     );
     if (existingAdmission) {
-      throw new AppError("Admission number already exists for this tenant", 400);
+      throw new AppError("Admission number already exists", 400);
     }
 
-    const student = await studentRepo.create({
-      tenantId,
-      ...payload,
-    });
+    const transaction = await sequelize.transaction();
 
-    return this.formatStudentResponse(student);
+    try {
+      // 2. Create User Account
+      const user = await userService.createUser(
+        {
+          email,
+          password,
+          firstName,
+          lastName,
+          tenantId,
+          status: "active",
+          emailVerified: true,
+        },
+        { transaction },
+      );
+
+      // 3. Resolve 'student' Role
+      const roles = await roleService.getAllRoles(tenantId, {
+        slug: "student",
+      });
+      const studentRole = roles[0];
+
+      if (!studentRole) {
+        throw new AppError(
+          "Student (Portal) role not found for this tenant",
+          404,
+        );
+      }
+
+      // 4. Assign Role (Isse user ko 'portal' type permissions mil jayengi)
+      await userRoleService.assignRoleToUser(
+        {
+          userId: user.id,
+          roleId: studentRole.id,
+          tenantId,
+          assignedById: requestedBy,
+        },
+        { transaction },
+      );
+
+      // 5. Create Student Profile
+      const student = await studentRepo.create(
+        {
+          ...payload,
+          tenantId,
+          userId: user.id,
+          admissionNumber: admissionNumber.trim(),
+        },
+        { transaction },
+      );
+
+      await transaction.commit();
+      return this.formatStudentResponse(student);
+    } catch (error) {
+      if (!transaction.finished) await transaction.rollback();
+      throw error;
+    }
   }
 
   async getAllStudents(tenantId, query) {
@@ -61,7 +123,10 @@ export class StudentService {
         tenantId,
       );
       if (existingAdmission && existingAdmission.id !== id) {
-        throw new AppError("Admission number already exists for this tenant", 400);
+        throw new AppError(
+          "Admission number already exists for this tenant",
+          400,
+        );
       }
     }
 
@@ -69,25 +134,59 @@ export class StudentService {
       ...(updateData.admissionNumber !== undefined
         ? { admissionNumber: updateData.admissionNumber }
         : {}),
-      ...(updateData.rollNumber !== undefined ? { rollNumber: updateData.rollNumber } : {}),
-      ...(updateData.firstName !== undefined ? { firstName: updateData.firstName } : {}),
-      ...(updateData.middleName !== undefined ? { middleName: updateData.middleName } : {}),
-      ...(updateData.lastName !== undefined ? { lastName: updateData.lastName } : {}),
-      ...(updateData.dateOfBirth !== undefined ? { dateOfBirth: updateData.dateOfBirth } : {}),
+      ...(updateData.rollNumber !== undefined
+        ? { rollNumber: updateData.rollNumber }
+        : {}),
+      ...(updateData.firstName !== undefined
+        ? { firstName: updateData.firstName }
+        : {}),
+      ...(updateData.middleName !== undefined
+        ? { middleName: updateData.middleName }
+        : {}),
+      ...(updateData.lastName !== undefined
+        ? { lastName: updateData.lastName }
+        : {}),
+      ...(updateData.dateOfBirth !== undefined
+        ? { dateOfBirth: updateData.dateOfBirth }
+        : {}),
       ...(updateData.gender !== undefined ? { gender: updateData.gender } : {}),
-      ...(updateData.bloodGroup !== undefined ? { bloodGroup: updateData.bloodGroup } : {}),
-      ...(updateData.nationality !== undefined ? { nationality: updateData.nationality } : {}),
-      ...(updateData.religion !== undefined ? { religion: updateData.religion } : {}),
+      ...(updateData.bloodGroup !== undefined
+        ? { bloodGroup: updateData.bloodGroup }
+        : {}),
+      ...(updateData.nationality !== undefined
+        ? { nationality: updateData.nationality }
+        : {}),
+      ...(updateData.religion !== undefined
+        ? { religion: updateData.religion }
+        : {}),
       ...(updateData.caste !== undefined ? { caste: updateData.caste } : {}),
-      ...(updateData.category !== undefined ? { category: updateData.category } : {}),
-      ...(updateData.aadharNumber !== undefined ? { aadharNumber: updateData.aadharNumber } : {}),
-      ...(updateData.photoUrl !== undefined ? { photoUrl: updateData.photoUrl } : {}),
-      ...(updateData.enrollmentDate !== undefined ? { enrollmentDate: updateData.enrollmentDate } : {}),
-      ...(updateData.previousSchool !== undefined ? { previousSchool: updateData.previousSchool } : {}),
-      ...(updateData.previousClass !== undefined ? { previousClass: updateData.previousClass } : {}),
-      ...(updateData.tcNumber !== undefined ? { tcNumber: updateData.tcNumber } : {}),
-      ...(updateData.siblingId !== undefined ? { siblingId: updateData.siblingId } : {}),
-      ...(updateData.isStaffWard !== undefined ? { isStaffWard: updateData.isStaffWard } : {}),
+      ...(updateData.category !== undefined
+        ? { category: updateData.category }
+        : {}),
+      ...(updateData.aadharNumber !== undefined
+        ? { aadharNumber: updateData.aadharNumber }
+        : {}),
+      ...(updateData.photoUrl !== undefined
+        ? { photoUrl: updateData.photoUrl }
+        : {}),
+      ...(updateData.enrollmentDate !== undefined
+        ? { enrollmentDate: updateData.enrollmentDate }
+        : {}),
+      ...(updateData.previousSchool !== undefined
+        ? { previousSchool: updateData.previousSchool }
+        : {}),
+      ...(updateData.previousClass !== undefined
+        ? { previousClass: updateData.previousClass }
+        : {}),
+      ...(updateData.tcNumber !== undefined
+        ? { tcNumber: updateData.tcNumber }
+        : {}),
+      ...(updateData.siblingId !== undefined
+        ? { siblingId: updateData.siblingId }
+        : {}),
+      ...(updateData.isStaffWard !== undefined
+        ? { isStaffWard: updateData.isStaffWard }
+        : {}),
       ...(updateData.status !== undefined ? { status: updateData.status } : {}),
       ...(updateData.transportRequired !== undefined
         ? { transportRequired: updateData.transportRequired }
@@ -104,9 +203,13 @@ export class StudentService {
       ...(updateData.emergencyContactPhone !== undefined
         ? { emergencyContactPhone: updateData.emergencyContactPhone }
         : {}),
-      ...(updateData.address !== undefined ? { address: updateData.address } : {}),
+      ...(updateData.address !== undefined
+        ? { address: updateData.address }
+        : {}),
       ...(updateData.city !== undefined ? { city: updateData.city } : {}),
-      ...(updateData.pincode !== undefined ? { pincode: updateData.pincode } : {}),
+      ...(updateData.pincode !== undefined
+        ? { pincode: updateData.pincode }
+        : {}),
     });
 
     return this.formatStudentResponse(updated);

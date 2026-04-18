@@ -78,7 +78,7 @@ export const createRoleValidator = createValidator((req) => {
       ensureUuid(permissionId, "permissionIds");
     }
   }
-
+  ensureOptionalString(body.slug , 'slug')
   ensurePlainObject(body.customFields, "customFields");
   ensurePlainObject(body.metadata, "metadata");
 });

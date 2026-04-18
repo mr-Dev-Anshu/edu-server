@@ -20,7 +20,7 @@ export const Staff = sequelize.define(
       allowNull: false,
     },
     staffType: {
-      type: DataTypes.ENUM("teaching", "non_teaching", "contractual", "visiting"),
+      type: DataTypes.ENUM("Teacher", "Librarian", "AdmissionHead", "Other"),
       allowNull: false,
     },
     designation: { type: DataTypes.STRING(150), allowNull: true },

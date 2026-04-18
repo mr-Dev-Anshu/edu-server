@@ -9,35 +9,59 @@ const userRepo = new UserRepository();
 const userRoleRepo = new UserRoleRepository();
 
 export class UserService {
-  async createUser(payload) {
+ async createUser(payload, options = {}) {
     const email = payload.email?.toLowerCase().trim();
 
-    // Check if email already exists
+    // 1. Check if email already exists
     const existingUser = await userRepo.findByEmail(email, payload.tenantId);
     if (existingUser) {
       throw new AppError("Email already exists", 409);
     }
 
-    // Hash password with bcrypt
+    // 2. Hash password with bcrypt
     const hashedPassword = await BcryptHelper.hashPassword(payload.password);
 
-    const userData = {
-      email,
-      password: hashedPassword,
-      cognitoSub: payload.cognitoSub || null,
-      firstName: payload.firstName?.trim(),
-      lastName: payload.lastName?.trim(),
-      phone: payload.phone?.trim() || null,
-      userType: payload.userType,
-      status: payload.status || "pending_verification",
-      emailVerified: payload.emailVerified || false,
-      preferences: payload.preferences || { language: "en", theme: "system" },
-      tenantId: payload.tenantId,
-    };
+    // 🔥 TRANSACTION LOGIC: Use passed transaction or create a new one
+    let transaction = options.transaction;
+    let localTransaction = false;
 
-    const user = await userRepo.create(userData);
-    return this.formatUserResponse(user);
-  }
+    if (!transaction) {
+      transaction = await sequelize.transaction();
+      localTransaction = true;
+    }
+
+    try {
+      const userData = {
+        email,
+        password: hashedPassword,
+        cognitoSub: payload.cognitoSub || null,
+        firstName: payload.firstName?.trim(),
+        lastName: payload.lastName?.trim(),
+        phone: payload.phone?.trim() || null,
+        userType: payload.userType,
+        status: payload.status || "pending_verification",
+        emailVerified: payload.emailVerified || false,
+        preferences: payload.preferences || { language: "en", theme: "system" },
+        tenantId: payload.tenantId,
+      };
+
+      // 🔥 Pass the transaction to repository
+      const user = await userRepo.create(userData, { transaction });
+
+      // Only commit if this function started the transaction
+      if (localTransaction) {
+        await transaction.commit();
+      }
+
+      return this.formatUserResponse(user);
+    } catch (error) {
+      // Only rollback if this function started the transaction
+      if (localTransaction && !transaction.finished) {
+        await transaction.rollback();
+      }
+      throw error;
+    }
+}
 
   async getAllUsers(tenantId, filter = {}) {
     const users = await userRepo.findAllWithAssociations(tenantId, filter);

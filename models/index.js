@@ -20,24 +20,9 @@ import { Guardian } from "./Guardian.js";
 import { UserRole } from "./UserRole.js";
 import { RolePermission } from "./RolePermission.js";
 import StudentGuardianMap from "./StudentGaurdianMap.js";
-// import UserRole from './UserRole.js';
-// import RolePermission from './RolePermission.js';
-
-// // --- Academic (Sub-folder) ---
-// import AcademicYear from './Academic/AcademicYear.js';
-// import Class from './Academic/Class.js';
-// import Section from './Academic/Section.js';
 import Subject from './Academic/Subject.js';
 
-// // --- Users & Relationships ---
-// import Student from './Students.js';
-// import Staff from './Staff.js';
-// import Guardian from './Guardian.js';
-// import StudentSectionEnrollment from './StudentSectionEnro.js'; // Note: matches your screenshot
-// import StudentGuardianMap from './StudentGaurdianMa.js'; // Note: matches your screenshot
-// import TeacherSubjectAssignment from './TeacherSubjectAssi.js'; // Note: matches your screenshot
-
-// // --- Infrastructure ---
+// --- Infrastructure ---
 import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
 
 // ==========================================

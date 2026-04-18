@@ -10,7 +10,6 @@ export const identifyUser = async (req, res, next) => {
     req.user = decoded;
 
     const tenant_id = decoded.tenantId;
-    console.log("this is tenantId --> ", tenant_id, "and ", decoded);
     let tenant = null;
     if (tenant_id) {
       tenant = await Tenant.findOne({
@@ -46,7 +45,6 @@ export const identifyUser = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.log(err);
     return res.status(401).json({ message: "Session invalid" });
   }
 };
@@ -61,8 +59,6 @@ export const checkPermission = (requiredPermission) => {
     if (req.user.permissions.includes("*")) {
       return next();
     }
-    console.log(req.user.permissions);
-    console.log(requiredPermission);
     if (!req.user.permissions.includes(requiredPermission)) {
       return res.status(403).json({
         message: `Forbidden: You do not have the '${requiredPermission}' permission`,

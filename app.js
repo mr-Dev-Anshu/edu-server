@@ -33,7 +33,7 @@ const corsOptions = {
     : true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id']
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 app.use(helmet()); 

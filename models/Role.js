@@ -42,10 +42,6 @@ const Role = sequelize.define(
     paranoid: true,
     underscored: true,
     tableName: "roles",
-    // indexes: [
-    //   { unique: true, fields: ["tenant_id", "role_type"] },
-    //   { fields: ["tenant_id"] },
-    // ],
   },
 );
 

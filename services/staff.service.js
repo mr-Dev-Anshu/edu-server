@@ -42,7 +42,6 @@ export class StaffService {
         password,
         firstName,
         lastName,
-        userType: "staff",
         tenantId,
         status: "active",
         emailVerified: true

@@ -21,7 +21,7 @@ const ensureString = (value, fieldName, { min = 1, max = 255 } = {}) => {
 };
 
 const ensureUUID = (value, fieldName) => {
-  if (typeof value !== "string" || !value.match(/^[0-9a-fA-F-]{36}$/)) {
+  if (typeof value !== "string" || !value.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)) {
     throw new AppError(`${fieldName} must be a valid UUID`, 400);
   }
 };

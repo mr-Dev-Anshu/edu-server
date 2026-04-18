@@ -38,7 +38,6 @@ export class UserService {
         firstName: payload.firstName?.trim(),
         lastName: payload.lastName?.trim(),
         phone: payload.phone?.trim() || null,
-        userType: payload.userType,
         status: payload.status || "pending_verification",
         emailVerified: payload.emailVerified || false,
         preferences: payload.preferences || { language: "en", theme: "system" },

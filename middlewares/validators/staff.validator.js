@@ -67,7 +67,7 @@ export const createStaffValidator = createValidator((req) => {
 
   // 2. Staff Professional Details (Sync with PascalCase Model)
   ensureString(body.employeeCode, "employeeCode", { min: 3, max: 50 });
-  ensureEnum(body.staffType, "staffType", ["Teacher", "Librarian", "AdmissionHead", "Other"]);
+  ensureEnum(body.staffType, "staffType", ["Teacher", "Librarian", "AdmissionHead", "Accountant", "Other"]);
   
   ensureOptionalString(body.designation, "designation", { min: 2, max: 150 });
   ensureOptionalString(body.department, "department", { min: 2, max: 150 });
@@ -104,7 +104,7 @@ export const updateStaffValidator = createValidator((req) => {
   const { body } = req;
 
   if (body.employeeCode) ensureString(body.employeeCode, "employeeCode", { min: 3, max: 50 });
-  if (body.staffType) ensureEnum(body.staffType, "staffType", ["Teacher", "Librarian", "AdmissionHead", "Other"]);
+  if (body.staffType) ensureEnum(body.staffType, "staffType", ["Teacher", "Librarian", "AdmissionHead", "Accountant", "Other"]);
   if (body.joiningDate) ensureDate(body.joiningDate, "joiningDate");
   if (body.employmentStatus) {
     ensureEnum(body.employmentStatus, "employmentStatus", [

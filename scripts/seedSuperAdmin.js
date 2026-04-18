@@ -135,7 +135,6 @@ const seedSuperAdmin = async () => {
           password: hashedPassword,
           firstName: 'Super',
           lastName: 'Admin',
-          userType: 'super_admin',
           status: 'active',
           tenantId: tenant.id,
           phone: '+1-000-000-0000',

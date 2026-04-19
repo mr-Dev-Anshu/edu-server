@@ -1,4 +1,4 @@
-import { TOKEN_COOKIE_NAME } from "../config/constants.js";
+import { TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from "../config/constants.js";
 const parseDurationToMs = (duration) => {
   if (!duration || typeof duration !== "string") {
     return undefined;
@@ -25,6 +25,8 @@ const parseDurationToMs = (duration) => {
 
 export const getTokenCookieName = () => TOKEN_COOKIE_NAME;
 
+export const getRefreshTokenCookieName = () => REFRESH_TOKEN_COOKIE_NAME;
+
 export const getTokenCookieOptions = () => {
   const isProduction = process.env.NODE_ENV === "production";
   const maxAge = parseDurationToMs(process.env.JWT_EXPIRY);
@@ -43,8 +45,38 @@ export const getTokenCookieOptions = () => {
   return options;
 };
 
+export const getRefreshTokenCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === "production";
+  const maxAge = parseDurationToMs(process.env.JWT_REFRESH_EXPIRY);
+
+  const options = {
+    httpOnly: true,
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
+    path: "/",
+  };
+
+  if (maxAge) {
+    options.maxAge = maxAge;
+  }
+
+  return options;
+};
+
 export const getTokenCookieClearOptions = () => {
   const { httpOnly, sameSite, secure, path } = getTokenCookieOptions();
+
+  return {
+    httpOnly,
+    sameSite,
+    secure,
+    path,
+    maxAge: 0,
+  };
+};
+
+export const getRefreshTokenCookieClearOptions = () => {
+  const { httpOnly, sameSite, secure, path } = getRefreshTokenCookieOptions();
 
   return {
     httpOnly,

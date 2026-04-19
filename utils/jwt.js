@@ -2,10 +2,11 @@ import jwt from "jsonwebtoken";
 import { AppError } from "./AppError.js";
 
 let JWT_SECRET = process.env.JWT_SECRET;
-let JWT_EXPIRY = process.env.JWT_EXPIRY;
+let JWT_EXPIRY = process.env.JWT_EXPIRY || "1h"; // Default 1 hour
+let JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || "7d"; // Default 7 days
 
-if (!JWT_SECRET && process.env.NODE_ENV === "development") {
-  throw new Error("JWT_SECRET must be set in development environment");
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET must be set");
 }
 
 export class JwtHelper {
@@ -20,6 +21,20 @@ export class JwtHelper {
       return token;
     } catch (error) {
       throw new AppError("Error generating JWT token", 500);
+    }
+  }
+
+  static generateRefreshToken(payload) {
+    try {
+      if (!JWT_SECRET) {
+        throw new Error("JWT_SECRET is not configured");
+      }
+      const refreshToken = jwt.sign(payload, JWT_SECRET, {
+        expiresIn: JWT_REFRESH_EXPIRY,
+      });
+      return refreshToken;
+    } catch (error) {
+      throw new AppError("Error generating JWT refresh token", 500);
     }
   }
 

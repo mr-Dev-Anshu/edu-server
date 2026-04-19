@@ -54,6 +54,10 @@ const User = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    refreshToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     preferences: {
       type: DataTypes.JSONB,
       defaultValue: {

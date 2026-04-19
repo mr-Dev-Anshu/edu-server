@@ -17,6 +17,7 @@ const ctrl = new UserController();
 router.route("/").get(identifyUser, checkPermission("read:user"),ctrl.getAll);
 router.route("/").post(identifyUser, createUserValidator, checkPermission("create:user"), ctrl.create);
 router.route("/login").post(loginValidator, ctrl.login);
+router.route("/refresh").post(ctrl.refreshToken);
 router.route("/logout").post( identifyUser ,  ctrl.logout);
 router.route("/active").get(identifyUser, ctrl.getActive);
 router.route("/type/:userType").get(identifyUser, ctrl.getByType);

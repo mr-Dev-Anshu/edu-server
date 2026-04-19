@@ -140,4 +140,10 @@ export class UserRepository extends BaseRepository {
     if (!user) throw new AppError("User not found", 404);
     return await user.update({ lastLoginAt: new Date() });
   }
+
+  async updateRefreshTokenGlobal(id, refreshToken) {
+    const user = await this.model.findByPk(id);
+    if (!user) throw new AppError("User not found", 404);
+    return await user.update({ refreshToken });
+  }
 }

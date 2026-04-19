@@ -94,9 +94,7 @@ export class UserController {
 
   logout = catchAsync(async (req, res) => {
     // Clear refresh token in DB
-    if (req.user && req.user.id) {
-      await userService.clearRefreshToken(req.user.id);
-    }
+    await userService.clearRefreshToken(req.user.id);
 
     res.clearCookie(getTokenCookieName(), getTokenCookieClearOptions());
     res.clearCookie(getRefreshTokenCookieName(), getRefreshTokenCookieClearOptions());
@@ -108,7 +106,7 @@ export class UserController {
   });
 
   refreshToken = catchAsync(async (req, res) => {
-    const refreshToken = req.cookies.refreshToken;
+    const refreshToken = req.cookies[getRefreshTokenCookieName()];
     if (!refreshToken) {
       return res.status(401).json({ message: "Refresh token required" });
     }

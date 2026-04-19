@@ -244,7 +244,7 @@ export class UserService {
 
   async refreshAccessToken(refreshToken) {
     try {
-      const decoded = JwtHelper.verifyToken(refreshToken);
+      const decoded = JwtHelper.verifyRefreshToken(refreshToken);
       const user = await userRepo.findByIdGlobal(decoded.id);
       if (!user || user.refreshToken !== refreshToken) {
         throw new AppError("Invalid refresh token", 401);
@@ -254,7 +254,6 @@ export class UserService {
         id: user.id,
         email: user.email,
         roleId: user.roles && user.roles[0] ? user.roles[0].id : null,
-        userType: user.userType,
         tenantId: user.tenantId,
       });
 

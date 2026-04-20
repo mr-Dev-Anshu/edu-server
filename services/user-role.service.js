@@ -1,4 +1,3 @@
-import sequelize from "../config/db.js";
 import { UserRoleRepository } from "../repositories/user-role.repository.js";
 import { UserRepository } from "../repositories/user.repository.js";
 import { AppError } from "../utils/AppError.js";
@@ -23,7 +22,11 @@ export class UserRoleService {
     const existingRoles = await userRoleRepo.findByUserId(userId);
     if (existingRoles.length > 0) {
       for (const existingRole of existingRoles) {
-        await userRoleRepo.revokeRoleFromUser(userId, existingRole.roleId, existingRole.academicYearId);
+        await userRoleRepo.revokeRoleFromUser(
+          userId,
+          existingRole.roleId,
+          existingRole.academicYearId,
+        );
       }
     }
 

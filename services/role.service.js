@@ -115,8 +115,8 @@ async createRole(payload, options = {}) {
   async provisionDefaultTenantRoles(tenantId, transaction) {
     
     const adminRole =  await this.createRole({
-    name: "Administrator",
-    roleType: "admin",
+    name: "Platform Admin",
+    roleType: "platform",
     slug: null,
     hierarchyLevel: 1,
     isSystem: true,

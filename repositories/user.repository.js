@@ -1,6 +1,6 @@
 import { User } from "../models/index.js";
-import { BaseRepository } from "./base.repository.js";
 import { AppError } from "../utils/AppError.js";
+import { BaseRepository } from "./base.repository.js";
 
 export class UserRepository extends BaseRepository {
   constructor() {
@@ -10,7 +10,7 @@ export class UserRepository extends BaseRepository {
   async findByEmail(email, tenantId = null) {
     const where = { email: email.toLowerCase().trim() };
     if (tenantId) where.tenantId = tenantId;
-    
+
     return await this.model.scope("withPassword").findOne({ where });
   }
 
@@ -83,7 +83,12 @@ export class UserRepository extends BaseRepository {
   }
 
   async updateStatus(id, tenantId, status) {
-    const validStatuses = ["active", "inactive", "suspended", "pending_verification"];
+    const validStatuses = [
+      "active",
+      "inactive",
+      "suspended",
+      "pending_verification",
+    ];
     if (!validStatuses.includes(status)) {
       throw new AppError("Invalid user status", 400);
     }
@@ -114,14 +119,28 @@ export class UserRepository extends BaseRepository {
         include: [
           {
             association: "permissions",
-            attributes: ["id", "name", "action", "resource", "module", "description"],
+            attributes: [
+              "id",
+              "name",
+              "action",
+              "resource",
+              "module",
+              "description",
+            ],
             through: { attributes: [] },
           },
         ],
       },
       {
         association: "organization",
-        attributes: ["id", "name", "organizationType", "officialEmail", "subdomain", "settings"],
+        attributes: [
+          "id",
+          "name",
+          "organizationType",
+          "officialEmail",
+          "subdomain",
+          "settings",
+        ],
       },
     ];
 

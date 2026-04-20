@@ -9,7 +9,7 @@ export class PlanController {
     create = catchAsync(async (req, res, next) => {
         const data = await planService.createPlan({
             ...req.body,
-            createdBy: req.userId,
+            // createdBy: req.userId,
         });
 
         res.status(201).json({ success: true, data });

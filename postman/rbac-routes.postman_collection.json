@@ -147,11 +147,15 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"name\": \"Teacher\",\n  \"slug\": \"teacher\",\n  \"description\": \"Teacher role for ABC Public School\",\n  \"hierarchyLevel\": 5,\n  \"permissionIds\": [\n    \"{{createStudentsPermissionId}}\",\n    \"{{readStudentsPermissionId}}\",\n    \"{{updateStudentsPermissionId}}\"\n  ],\n  \"customFields\": {\n    \"campus\": \"Main Campus\",\n    \"department\": \"Academics\"\n  },\n  \"metadata\": {\n    \"schoolName\": \"ABC Public School\",\n    \"createdFrom\": \"postman\"\n  }\n}"
+          "raw": "{\n  \"name\": \"Teacher\",\n  \"slug\": \"teacher\",\n  \"description\": \"Teacher role for ABC Public School\",\n  \"hierarchyLevel\": 5,\n  \"permissionIds\": [\n    \"{{createStudentsPermissionId}}\",\n    \"{{readStudentsPermissionId}}\",\n    \"{{updateStudentsPermissionId}}\"\n  ],\n  \"customFields\": {\n    \"campus\": \"Main Campus\",\n    \"department\": \"Academics\"\n  },\n  \"metadata\": {\n    \"schoolName\": \"ABC Public School\",\n    \"createdFrom\": \"postman\"\n  }\n}"
         },
         "url": {
           "raw": "{{roleBaseUrl}}",
@@ -186,11 +190,15 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
           }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"name\": \"Academic Coordinator\",\n  \"slug\": \"academic-coordinator\",\n  \"description\": \"Academic coordination role for ABC Public School\",\n  \"hierarchyLevel\": 4,\n  \"permissionIds\": [\n    \"{{readStudentsPermissionId}}\",\n    \"{{updateStudentsPermissionId}}\"\n  ],\n  \"customFields\": {\n    \"campus\": \"Main Campus\",\n    \"department\": \"Coordination\"\n  },\n  \"metadata\": {\n    \"schoolName\": \"ABC Public School\",\n    \"createdFrom\": \"postman\"\n  }\n}"
+          "raw": "{\n  \"name\": \"Academic Coordinator\",\n  \"slug\": \"academic-coordinator\",\n  \"description\": \"Academic coordination role for ABC Public School\",\n  \"hierarchyLevel\": 4,\n  \"permissionIds\": [\n    \"{{readStudentsPermissionId}}\",\n    \"{{updateStudentsPermissionId}}\"\n  ],\n  \"customFields\": {\n    \"campus\": \"Main Campus\",\n    \"department\": \"Coordination\"\n  },\n  \"metadata\": {\n    \"schoolName\": \"ABC Public School\",\n    \"createdFrom\": \"postman\"\n  }\n}"
         },
         "url": {
           "raw": "{{roleBaseUrl}}",
@@ -213,7 +221,7 @@
     },
     {
       "key": "tenantId",
-      "value": ""
+      "value": "c43e1e2a-9aad-4f59-9a72-776514d361f1"
     },
     {
       "key": "createStudentsPermissionId",

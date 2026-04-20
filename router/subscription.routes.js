@@ -1,7 +1,6 @@
 import { Router } from 'express';
-// import { authenticate } from '../middlewares/authenticate.js';
-// import { isSuperAdmin } from '../middlewares/isSuperAdmin.js';
-import { tenantIdMiddleware, requireTenantId } from '../middlewares/tenant.middleware.js';
+// import { authenticate } from '../middlewares/auth.middleware.js';
+// import { isSuperAdmin } from '../middlewares/auth.middleware.js';
 
 import {
     createSubscriptionValidator,
@@ -18,8 +17,6 @@ const router = Router();
 // router.use(authenticate, isSuperAdmin);
 
 router.post('/',
-    tenantIdMiddleware,
-    requireTenantId,
     createSubscriptionValidator,
     subscriptionController.create
 );

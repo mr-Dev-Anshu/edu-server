@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import { BaseRepository } from './base.repository.js';
 import { AppError } from '../utils/AppError.js';
-import { Plan } from '../models/index.js';
+import { Plan, Subscription } from '../models/index.js';
 
 export class PlanRepository extends BaseRepository {
     constructor() {
@@ -18,12 +18,12 @@ export class PlanRepository extends BaseRepository {
     // ─── Find Plan by Name ─────────────────────────
     async findByName(name) {
         return await this.model.findOne({
-            where: sequelize.where(
-                sequelize.fn('LOWER', sequelize.col('name')),
-                name.toLowerCase()
-            )
+            where: {
+                name: { [Op.iLike]: name.trim() }
+            }
         });
     }
+
     // ─── Override: findAll — explicit where, ORDER BY createdAt DESC ──────────
     async findAll(options = {}) {
         const where = {};
@@ -38,7 +38,7 @@ export class PlanRepository extends BaseRepository {
 
         return await this.model.findAll({
             where,
-            order: [['created_at', 'DESC']],
+            order: [['createdAt', 'DESC']],
         });
     }
 
@@ -49,7 +49,7 @@ export class PlanRepository extends BaseRepository {
 
     // ─── Custom: active subscription count for a plan ────────────────────────
     async getActiveSubscriptionCount(planId) {
-        return await this.model.count({
+        return await Subscription.count({
             where: {
                 planId,
                 status: { [Op.in]: ['active', 'trialing', 'past_due'] },

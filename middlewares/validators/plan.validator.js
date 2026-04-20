@@ -156,3 +156,15 @@ export const updatePlanValidator = createValidator((req) => {
     ensureCurrency(currency);
     ensureFeatures(features);
 });
+
+// ─────────────────────────────────────────────
+// Common parameter validations
+// ─────────────────────────────────────────────
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const validatePlanId = createValidator((req) => {
+    if (!req.params.id || typeof req.params.id !== 'string' || !UUID_REGEX.test(req.params.id.trim())) {
+        throw new AppError('params.id must be a valid UUID', 422);
+    }
+});

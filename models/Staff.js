@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
-import { withTenant } from "../utils/model-helper.js";
+import { withTenant } from "./withTenant.js";
 
 export const Staff = sequelize.define(
   "Staff",

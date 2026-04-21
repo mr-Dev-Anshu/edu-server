@@ -4,6 +4,9 @@ import {
   getTokenCookieClearOptions,
   getTokenCookieName,
   getTokenCookieOptions,
+  getRefreshTokenCookieName,
+  getRefreshTokenCookieOptions,
+  getRefreshTokenCookieClearOptions,
 } from "../utils/cookie.js";
 
 const userService = new UserService();
@@ -80,6 +83,7 @@ export class UserController {
     const data = await userService.loginByEmail(email, password);
 
     res.cookie(getTokenCookieName(), data.token, getTokenCookieOptions());
+    res.cookie(getRefreshTokenCookieName(), data.refreshToken, getRefreshTokenCookieOptions());
 
     res.status(200).json({
       success: true,
@@ -89,11 +93,32 @@ export class UserController {
   });
 
   logout = catchAsync(async (req, res) => {
+    // Clear refresh token in DB
+    await userService.clearRefreshToken(req.user.id);
+
     res.clearCookie(getTokenCookieName(), getTokenCookieClearOptions());
+    res.clearCookie(getRefreshTokenCookieName(), getRefreshTokenCookieClearOptions());
 
     res.status(200).json({
       success: true,
       message: "Logout successful",
+    });
+  });
+
+  refreshToken = catchAsync(async (req, res) => {
+    const refreshToken = req.cookies[getRefreshTokenCookieName()];
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Refresh token required" });
+    }
+
+    const data = await userService.refreshAccessToken(refreshToken);
+
+    res.cookie(getTokenCookieName(), data.token, getTokenCookieOptions());
+
+    res.status(200).json({
+      success: true,
+      message: "Token refreshed",
+      data,
     });
   });
 }

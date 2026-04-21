@@ -193,9 +193,18 @@ export class UserService {
       tenantId: userWithAssociations.tenantId,
     });
 
+    // Generate refresh token
+    const refreshToken = JwtHelper.generateRefreshToken({
+      id: userWithAssociations.id,
+    });
+
+    // Store refresh token in DB
+    await userRepo.updateRefreshTokenGlobal(user.id, refreshToken);
+
     return {
       ...userResponse,
       token,
+      refreshToken, // optional, since it's in cookie
     };
   }
 
@@ -231,5 +240,30 @@ export class UserService {
         settings: user.organization.settings,
       } : null,
     };
+  }
+
+  async refreshAccessToken(refreshToken) {
+    try {
+      const decoded = JwtHelper.verifyRefreshToken(refreshToken);
+      const user = await userRepo.findByIdGlobal(decoded.id);
+      if (!user || user.refreshToken !== refreshToken) {
+        throw new AppError("Invalid refresh token", 401);
+      }
+
+      const token = JwtHelper.generateToken({
+        id: user.id,
+        email: user.email,
+        roleId: user.roles && user.roles[0] ? user.roles[0].id : null,
+        tenantId: user.tenantId,
+      });
+
+      return { token };
+    } catch (error) {
+      throw new AppError("Invalid refresh token", 401);
+    }
+  }
+
+  async clearRefreshToken(userId) {
+    await userRepo.updateRefreshTokenGlobal(userId, null);
   }
 }

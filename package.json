@@ -12,6 +12,7 @@
     "migrate:role-type": "node scripts/migrateRoleSlugToRoleType.js",
     "migrate:role-type-non-unique": "node scripts/dropRoleTypeUniqueIndex.js",
     "seed": "npx sequelize-cli db:seed:all",
+    "seed:super-admin": "node scripts/seedSuperAdmin.js",
     "format": "prettier --write .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

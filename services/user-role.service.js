@@ -7,7 +7,7 @@ const userRoleRepo = new UserRoleRepository();
 const userRepo = new UserRepository();
 
 export class UserRoleService {
-  async assignRoleToUser(payload) {
+ async assignRoleToUser(payload, options = {}) {
     const {
       userId,
       roleId,
@@ -16,25 +16,54 @@ export class UserRoleService {
       assignedById = null,
     } = payload;
 
-    // Validate user exists
-    await userRepo.findById(userId, tenantId);
+    // 🔥 TRANSACTION LOGIC
+    let transaction = options.transaction;
+    let localTransaction = false;
 
-    // Revoke any existing roles - Only one role per user
-    const existingRoles = await userRoleRepo.findByUserId(userId);
-    if (existingRoles.length > 0) {
-      for (const existingRole of existingRoles) {
-        await userRoleRepo.revokeRoleFromUser(userId, existingRole.roleId, existingRole.academicYearId);
-      }
+    if (!transaction) {
+      transaction = await sequelize.transaction();
+      localTransaction = true;
     }
 
-    const userRole = await userRoleRepo.assignRoleToUser(
-      userId,
-      roleId,
-      academicYearId,
-      assignedById,
-    );
+    try {
+      // 1. Validate user exists (Transaction ke andar check karna better hai)
+      await userRepo.findById(userId, tenantId, { transaction });
 
-    return this.formatUserRoleResponse(userRole);
+      // 2. Revoke any existing roles
+      const existingRoles = await userRoleRepo.findByUserId(userId, { transaction });
+      if (existingRoles.length > 0) {
+        for (const existingRole of existingRoles) {
+          // 🔥 Har revoke operation mein transaction pass karo
+          await userRoleRepo.revokeRoleFromUser(
+            userId, 
+            existingRole.roleId, 
+            existingRole.academicYearId,
+            { transaction }
+          );
+        }
+      }
+
+      // 3. Attach New Role
+      // 🔥 Repository method mein options pass karna zaroori hai
+      const userRole = await userRoleRepo.assignRoleToUser(
+        userId,
+        roleId,
+        academicYearId,
+        assignedById,
+        { transaction } 
+      );
+
+      if (localTransaction) {
+        await transaction.commit();
+      }
+
+      return this.formatUserRoleResponse(userRole);
+    } catch (error) {
+      if (localTransaction && !transaction.finished) {
+        await transaction.rollback();
+      }
+      throw error;
+    }
   }
 
   // ❌ DEPRECATED: Users can only have one role

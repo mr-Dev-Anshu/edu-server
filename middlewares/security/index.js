@@ -30,7 +30,9 @@ export const identifyUser = async (req, res, next) => {
         return res.status(403).json({ message: "Wrong request" });
       }
     }
-
+        console.log(req.user , 
+          "this is user data "
+        )
     if (isSuperAdmin) {
       req.user.permissions = ["*"];
     } else {
@@ -72,3 +74,5 @@ export const checkPermission = (requiredPermission) => {
     next();
   };
 };
+
+

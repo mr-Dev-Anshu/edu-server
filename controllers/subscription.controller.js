@@ -5,7 +5,7 @@ export class SubscriptionController {
     create = catchAsync(async (req, res, next) => {
         const data = await subscriptionService.createSubscription({
             ...req.body,
-            tenantId: req.tenantId,
+            tenantId: req.body.tenantId ?? req.tenantId,
         });
         res.status(201).json({ success: true, data });
     });

@@ -1,6 +1,5 @@
 import { Router } from 'express';
-// import { authenticate } from '../middlewares/auth.middleware.js';
-// import { isSuperAdmin } from '../middlewares/auth.middleware.js';
+import { identifyUser, checkPermission } from '../middlewares/security/index.js';
 
 import {
     createSubscriptionValidator,
@@ -14,44 +13,55 @@ import { subscriptionController } from '../controllers/subscription.controller.j
 
 const router = Router();
 
-// router.use(authenticate, isSuperAdmin);
-
 router.post('/',
+    identifyUser,
+    checkPermission('create:subscription'),
     createSubscriptionValidator,
     subscriptionController.create
 );
 
 router.get('/',
+    identifyUser,
+    checkPermission('read:subscription'),
     validateListFilters,
     subscriptionController.getAll
 );
 
 // Static segment must come before /:id to avoid route collision
 router.get('/tenant/:tenantId',
+    identifyUser,
     validateTenantId,
     validateListFilters,
     subscriptionController.getByTenant
 );
 
 router.get('/:id',
+    identifyUser,
+    checkPermission('read:subscription'),
     validateSubscriptionId,
     subscriptionController.getOne
 );
 
 // ✅ specific first
 router.patch('/:id/upgrade',
+    identifyUser,
+    checkPermission('update:subscription'),
     validateSubscriptionId,
     upgradeValidator,
     subscriptionController.upgrade
 );
 
 router.patch('/:id/status',
+    identifyUser,
+    checkPermission('update:subscription'),
     validateSubscriptionId,
     subscriptionController.toggleStatus
 );
 
 // ✅ generic last
 router.patch('/:id',
+    identifyUser,
+    checkPermission('update:subscription'),
     validateSubscriptionId,
     updateSubscriptionValidator,
     subscriptionController.update

@@ -10,9 +10,10 @@ export class ClassRepository extends BaseRepository {
   }
 
   // Find class by name (for duplicate check)
-  async findByName(name, tenantId) {
+  async findByName(name, tenantId, options = {}) {
     return await this.model.findOne({
       where: { name, tenantId },
+      ...options,
     });
   }
 

@@ -51,4 +51,10 @@ export class ClassController extends BaseController {
     const data = await classService.getClassesWithSections(req.tenantId);
     res.status(200).json({ success: true, data });
   });
+
+  // Bulk Create Classes with Sections
+  bulkCreate = catchAsync(async (req, res) => {
+    const data = await classService.bulkCreateClassesWithSections(req.tenantId, req.body);
+    res.status(201).json({ success: true, data });
+  });
 }

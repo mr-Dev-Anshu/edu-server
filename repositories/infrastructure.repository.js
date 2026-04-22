@@ -114,12 +114,21 @@ export class TimetableSlotRepository extends BaseRepository {
     }
 
     // Collision check: same room already booked in this period
-    async findRoomConflict(tenantId, roomId, dayOfWeek, periodNumber, excludeId = null) {
-        if (!roomId) return null;
-        const where = { tenantId, roomId, dayOfWeek, periodNumber };
-        if (excludeId) where.id = { [Op.ne]: excludeId };
-        return await TimetableSlot.findOne({ where });
-    }
+  async findRoomConflict(tenantId, roomId, dayOfWeek, periodNumber, excludeId = null) {
+    if (!roomId) return null;
+    const where = { tenantId, roomId, dayOfWeek, periodNumber };
+    if (excludeId) where.id = { [Op.ne]: excludeId };
+    return await TimetableSlot.findOne({
+        where,
+        include: [
+            {
+                model: Timetable,
+                where: { status: "published" },  // ← match teacher conflict logic
+                attributes: [],
+            },
+        ],
+    });
+}
 
     // async bulkCreate(slots, transaction) {
     //     return await TimetableSlot.bulkCreate(slots, {

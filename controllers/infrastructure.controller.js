@@ -37,7 +37,7 @@ export class RoomController {
 
     delete = catchAsync(async (req, res) => {
         const data = await roomService.deleteRoom(req.params.id, req.tenantId);
-        res.status(200).json({ success: true, data });
+        res.status(204).json({ success: true, data });
     });
 }
 
@@ -75,16 +75,15 @@ export class TimetableController {
 
     delete = catchAsync(async (req, res) => {
         const data = await timetableService.deleteTimetable(req.params.id, req.tenantId);
-        res.status(200).json({ success: true, data });
+        res.status(204).json({ success: true, data });
     });
 }
 
 // ─── TimetableSlot Controller ──────────────────────────────────────────────────
 
 export class TimetableSlotController {
-    getAll = catchAsync(async (req, res, next) => {
+    getAll = catchAsync(async (req, res) => {
         const { timetableId } = req.params;
-        if (!timetableId) return next(new AppError("timetableId is required", 400));
         const data = await slotService.listSlots(timetableId, req.tenantId);
         res.status(200).json({ success: true, results: data.length, data });
     });
@@ -106,7 +105,7 @@ export class TimetableSlotController {
 
     delete = catchAsync(async (req, res) => {
         const data = await slotService.deleteSlot(req.params.id, req.tenantId);
-        res.status(200).json({ success: true, data });
+        res.status(204).json({ success: true, data });
     });
 }
 

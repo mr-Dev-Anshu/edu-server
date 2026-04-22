@@ -256,6 +256,15 @@ export class TimetableSlotService {
     async updateSlot(id, tenantId, body) {
         const existing = await slotRepo.findById(id, tenantId);
 
+        const finalStartTime = body.startTime ?? existing.startTime;
+        const finalEndTime   = body.endTime   ?? existing.endTime;
+
+        const [sh, sm] = finalStartTime.split(":").map(Number);
+        const [eh, em] = finalEndTime.split(":").map(Number);
+        if (eh * 60 + em <= sh * 60 + sm) {
+            throw new AppError("endTime must be after startTime", 400);
+        }
+
         const teacherId = body.teacherId ?? existing.teacherId;
         const roomId = body.roomId !== undefined ? body.roomId : existing.roomId;
         const dayOfWeek = body.dayOfWeek ?? existing.dayOfWeek;

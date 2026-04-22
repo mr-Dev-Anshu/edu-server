@@ -237,4 +237,6 @@ export const updateTimetableSlotValidator = createValidator((req) => {
     if (startTime !== undefined && endTime !== undefined) {
         ensureEndAfterStart(startTime, endTime);
     }
+
+    
 });

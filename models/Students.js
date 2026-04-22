@@ -14,7 +14,8 @@ export const Student = sequelize.define(
     
     userId: {
       type: DataTypes.UUID,
-      allowNull: true, 
+      allowNull: false,
+      unique: true,
       references: { model: "users", key: "id" },
     },
     admissionNumber: {
@@ -147,5 +148,9 @@ export const Student = sequelize.define(
     paranoid: true,
     underscored: true,
     tableName: "students",
+    // indexes: [
+    //   { unique: true, fields: ["tenant_id", "admission_number"] },
+    //   { unique: true, fields: ["tenant_id", "user_id"] },
+    // ],
   }
 );

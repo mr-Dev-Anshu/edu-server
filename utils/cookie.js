@@ -26,7 +26,7 @@ const parseDurationToMs = (duration) => {
 export const getTokenCookieName = () => TOKEN_COOKIE_NAME;
 
 export const getTokenCookieOptions = () => {
-  const isProduction = process.env.NODE_ENV === "development";
+  const isProduction = process.env.NODE_ENV === "production";
   const maxAge = parseDurationToMs(process.env.JWT_EXPIRY);
 
   const options = {
@@ -51,6 +51,7 @@ export const getTokenCookieClearOptions = () => {
     sameSite,
     secure,
     path,
+    maxAge: 0,
   };
 };
 

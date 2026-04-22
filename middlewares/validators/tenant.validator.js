@@ -120,6 +120,12 @@ export const createTenantValidator = createValidator((req) => {
     throw new AppError("billingCycle must be monthly or yearly", 400);
   }
 
+  if (body.durationMonths !== undefined) {
+    if (!Number.isInteger(body.durationMonths) || body.durationMonths < 1) {
+      throw new AppError("durationMonths must be a positive integer (minimum 1)", 400);
+    }
+  }
+
   if (body.trialDays !== undefined && (!Number.isInteger(body.trialDays) || body.trialDays < 1 || body.trialDays > 90)) {
     throw new AppError("trialDays must be an integer between 1 and 90", 400);
   }

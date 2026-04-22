@@ -3,8 +3,14 @@ import path from "path";
 import sequelize from "../config/db.js";
 import { TenantRepository } from "../repositories/tenant.repository.js";
 import { AppError } from "../utils/AppError.js";
+import { RoleService } from "./role.service.js";
+import { UserService } from "./user.service.js";
+import { UserRoleService } from "./user-role.service.js";
 
 const tenantRepo = new TenantRepository();
+const roleService = new RoleService();
+const userService = new UserService();
+const userRoleService = new UserRoleService() ; 
 const PROVISIONING_STEPS = ["schema_created", "seeded", "dns_provisioned"];
 const ALLOWED_IMAGE_MIME_TYPES = {
   "image/png": "png",
@@ -52,87 +58,120 @@ const mergeObjects = (currentValue, nextValue) => {
 };
 
 export class TenantService {
-  async registerTenant(data) {
+ async registerTenant(data) {
+    // 1. Initial Validations
     const planIdentifier = data.plan ?? data.planId ?? data.planSlug;
     const plan = await tenantRepo.findPlan(planIdentifier);
-
-    if (!plan) {
-      throw new AppError("Selected plan was not found", 404);
-    }
+    if (!plan) throw new AppError("Selected plan was not found", 404);
+    if (!plan.isActive) throw new AppError("This plan is no longer available for new subscriptions", 422);
 
     const normalizedEmail = data.officialEmail.trim().toLowerCase();
     const emailOwner = await tenantRepo.findByOfficialEmail(normalizedEmail);
-    if (emailOwner) {
-      throw new AppError("This official email is already registered", 400);
-    }
+    if (emailOwner) throw new AppError("This official email is already registered", 400);
+
+    // Password check (Admin user banane ke liye jaruri hai)
+    if (!data.password) throw new AppError("Admin password is required for tenant registration", 400);
 
     const subdomain = await this.generateUniqueSubdomain(data.subdomain || data.name);
-    const trialDays = data.trialDays ?? 14;
+
+    // ─── Dynamic Billing Calculation ───────────────────────────────────────
+    const billingCycle = data.billingCycle || "monthly";
+
+    // How many months is the tenant paying for? Default: 1
+    const durationMonths = parseInt(data.durationMonths ?? 1, 10);
+
+    // Price per single billing cycle (monthly or yearly)
+    const pricePerCycle =
+      billingCycle === "yearly"
+        ? parseFloat(plan.yearlyPrice)
+        : parseFloat(plan.monthlyPrice);
+
+    // How many full billing cycles does durationMonths cover?
+    // e.g. yearly + 24 months = 2 cycles | monthly + 3 months = 3 cycles
+    const durationCycles =
+      billingCycle === "yearly"
+        ? Math.ceil(durationMonths / 12)
+        : durationMonths;
+
+    // Total amount the tenant must pay
+    const amountPaid = parseFloat((pricePerCycle * durationCycles).toFixed(2));
+
+    // Subscription period dates based on actual paid duration
     const startDate = new Date();
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + trialDays);
+    endDate.setMonth(endDate.getMonth() + durationMonths);
+    // ────────────────────────────────────────────────────────────────────────
 
     const transaction = await sequelize.transaction();
     let tenant;
-
     try {
-      tenant = await tenantRepo.create(
-        {
-          name: data.name.trim(),
-          organizationType: data.organizationType || "school",
-          officialEmail: normalizedEmail,
-          subdomain,
-          registrationNumber: data.registrationNumber?.trim() || null,
-          settings: data.settings || undefined,
-          address: data.address || undefined,
-          contactInfo: data.contactInfo || undefined,
-          themeConfig: data.themeConfig || undefined,
-          brandingAssets: data.brandingAssets || undefined,
-          customFields: data.customFields || undefined,
-          metadata: mergeObjects(data.metadata, {
-            provisioning: {
-              status: "pending",
-            },
-          }),
-          status: "onboarding",
-        },
-        { transaction }
-      );
+      // 2. Create Tenant
+      tenant = await tenantRepo.create({
+        name: data.name.trim(),
+        organizationType: data.organizationType || "school",
+        officialEmail: normalizedEmail,
+        subdomain,
+        registrationNumber: data.registrationNumber?.trim() || null,
+        status: "onboarding",
+        metadata: mergeObjects(data.metadata, { provisioning: { status: "pending" } }),
+      }, { transaction });
 
-      await tenantRepo.createSubscription(
-        {
-          tenantId: tenant.id,
-          planId: plan.id,
-          status: "trialing",
-          billingCycle: data.billingCycle || "monthly",
-          startDate,
-          endDate,
-          nextBillingDate: endDate,
-          amountPaid: data.amountPaid ?? 0,
-        },
-        { transaction }
-      );
+      // 3. Create Subscription
+      await tenantRepo.createSubscription({
+        tenantId: tenant.id,
+        planId: plan.id,
+        status: "trialing",
+        billingCycle,
+        startDate,
+        endDate,
+        amountPaid,
+        nextBillingDate: endDate,
+      }, { transaction });
 
+      // 4. 🔥 Provision Default Roles & Permissions
+      // Yeh method roles create karke return karega (Humein Administrator role ID chahiye)
+      const adminRole = await roleService.provisionDefaultTenantRoles(tenant.id, transaction);
+       console.log(adminRole , "this is adminrole ")
+      if (!adminRole) throw new AppError("Failed to provision administrator role", 500);
+
+      // 5. 🔥 Create Admin User (Owner)
+      // Hum createUser service ko reuse kar rahe hain
+      const adminUser = await userService.createUser({
+        email: normalizedEmail,
+        password: data.password,
+        firstName: data.adminFirstName || "Admin",
+        lastName: data.adminLastName || tenant.name,
+        userType: "staff", 
+        status: "active",
+        emailVerified: true,
+        tenantId: tenant.id,
+      }, { transaction });
+
+      // 6. 🔥 Assign Admin Role to User
+      await userRoleService.assignRoleToUser({
+        userId: adminUser.id,
+        roleId: adminRole.id,
+        tenantId: tenant.id,
+        assignedById: adminUser.id, // Self-assigned as first user
+      }, { transaction });
+
+      // 7. Setup Provisioning Steps
       await tenantRepo.createProvisioningSteps(
         PROVISIONING_STEPS.map((stepKey) => ({
           tenantId: tenant.id,
-          stepKey,
-          status: "pending",
-          metadata: {},
+          stepKey, status: "pending",
         })),
         { transaction }
       );
 
       await transaction.commit();
     } catch (error) {
-      if (!transaction.finished) {
-        await transaction.rollback();
-      }
+      if (!transaction.finished) await transaction.rollback();
       throw error;
     }
 
+    // 8. Provisioning & Return
     let provisioningSucceeded = true;
-
     try {
       await this.runProvisioning(tenant.id);
     } catch (error) {
@@ -140,11 +179,7 @@ export class TenantService {
     }
 
     const tenantDetails = await this.getTenantDetails(tenant.id);
-
-    return {
-      ...tenantDetails,
-      _provisioningSucceeded: provisioningSucceeded,
-    };
+    return { ...tenantDetails, _provisioningSucceeded: provisioningSucceeded };
   }
 
   async listTenants(query) {

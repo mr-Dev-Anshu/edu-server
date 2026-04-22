@@ -1,0 +1,125 @@
+{
+  "info": {
+    "_postman_id": "class-routes-collection",
+    "name": "Edu Server Class CRUD Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing class management CRUD operations."
+  },
+  "item": [
+    {
+      "name": "Create Class",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('classId', json.data.id);",
+              "  }",
+              "  console.log('Class created successfully:', json.data);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Class 10\",\n  \"numericLevel\": 10,\n  \"description\": \"Science Stream\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/classes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "classes"]
+        }
+      }
+    },
+    {
+      "name": "Get All Classes",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/classes?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "classes"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Class by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/classes/{{classId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "classes", "{{classId}}"]
+        }
+      }
+    },
+    {
+      "name": "Update Class",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Class 10 Updated\",\n  \"numericLevel\": 10\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/classes/{{classId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "classes", "{{classId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Class",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/classes/{{classId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "classes", "{{classId}}"]
+        }
+      }
+    },
+    {
+      "name": "Get Classes with Sections",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/classes/with-sections/all",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "classes", "with-sections", "all"]
+        }
+      }
+    }
+  ]
+}

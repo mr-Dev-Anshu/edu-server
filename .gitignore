@@ -1,7 +1,14 @@
 /node_modules
 /.env
-<<<<<<< HEAD
 /storage/*
-=======
 .vscode
->>>>>>> f302cc42e8d5b1098d94f50428043468e2436920
+.code-review-graph
+.vscode
+.mcp.json
+.opencode.json
+.claude
+.windsurfrules
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.cursorrules

@@ -2,6 +2,7 @@ import { AppError } from '../../utils/AppError.js';
 import { createValidator } from '../../utils/createValidator.js';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Note: 'paused' is a valid DB state but is omitted here because it can only be set via the toggle endpoint.
 const ALLOWED_STATUSES = ['active', 'past_due', 'canceled', 'trialing', 'expired'];
 const ALLOWED_BILLING = ['monthly', 'yearly'];
 const MAX_LIMIT = 100;
@@ -30,7 +31,7 @@ function ensureOptionalEnum(value, fieldName, allowed) {
 }
 
 function ensureSlugOrUUID(value, fieldName) {
-    if (!value || typeof value !== 'string' || !UUID_REGEX.test(value.trim())) {
+    if (!value || typeof value !== 'string' || (!UUID_REGEX.test(value.trim()) && !/^[a-z0-9-]+$/.test(value.trim()))) {
         throw new AppError(`${fieldName} must be a valid plan ID or slug`, 422);
     }
 }

@@ -59,7 +59,7 @@ export class PlanService {
 
         const updateData = {
             ...(data.name && { name: data.name }),
-            ...(data.description && { description: data.description }),
+            ...(data.description !== undefined && { description: data.description }),
             ...(data.monthlyPrice !== undefined && { monthlyPrice: data.monthlyPrice }),
             ...(data.yearlyPrice !== undefined && { yearlyPrice: data.yearlyPrice }),
             ...(data.features && { features: data.features }),

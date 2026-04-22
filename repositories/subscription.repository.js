@@ -7,6 +7,10 @@ import Plan from '../models/Plan.js';
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export class SubscriptionRepository extends BaseRepository {
+    constructor() {
+        super(Subscription);
+    }
+
     async findById(id) {
         const record = await Subscription.findOne({ where: { id } });
         if (!record) throw new AppError('Subscription not found', 404);

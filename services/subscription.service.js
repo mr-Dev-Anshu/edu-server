@@ -10,7 +10,7 @@ function computePrice(plan, billingCycle) {
         : parseFloat(plan.monthlyPrice);
 }
 
-function calculateEndDate(startDate, billingCycle, plan) {
+function calculateEndDate(startDate, billingCycle) {
     const end = new Date(startDate);
 
     if (billingCycle === 'yearly') {
@@ -23,20 +23,7 @@ function calculateEndDate(startDate, billingCycle, plan) {
         return end;
     }
 
-    if (plan.durationMonths) {
-        end.setMonth(end.getMonth() + plan.durationMonths);
-        return end;
-    }
-
-    if (plan.durationDays) {
-        end.setDate(end.getDate() + plan.durationDays);
-        return end;
-    }
-
-    throw new AppError(
-        'Plan is misconfigured: durationDays or durationMonths must be set for custom billing cycles',
-        500
-    );
+    return end;
 }
 
 export function formatSubscriptionResponse({ subscription, plan }) {
@@ -76,8 +63,13 @@ export class SubscriptionService {
             throw new AppError('This plan is no longer available for new subscriptions', 422);
         }
 
+        const existingActive = await subscriptionRepo.findActiveByTenant(data.tenantId);
+        if (existingActive) {
+            throw new AppError('Tenant already has an active or trialing subscription', 409);
+        }
+
         const startDate = data.startDate ? new Date(data.startDate) : new Date();
-        const endDate = calculateEndDate(startDate, data.billingCycle, plan);
+        const endDate = calculateEndDate(startDate, data.billingCycle);
         const amountPaid = computePrice(plan, data.billingCycle);
 
         const subscription = await withTransaction(async (t) => {
@@ -105,6 +97,16 @@ export class SubscriptionService {
         return formatSubscriptionResponse({ subscription, plan });
     }
 
+    async _populatePlans(subscriptions) {
+        const planIds = [...new Set(subscriptions.map(s => s.planId))];
+        const plans = await Promise.all(planIds.map(id => subscriptionRepo.findPlan(id)));
+        const planMap = plans.reduce((acc, plan) => {
+            if (plan) acc[plan.id] = plan;
+            return acc;
+        }, {});
+        return subscriptions.map(s => formatSubscriptionResponse({ subscription: s, plan: planMap[s.planId] || null }));
+    }
+
     async listSubscriptions(filters = {}) {
         const where = {};
         const limit = parseInt(filters.limit ?? 20, 10);
@@ -115,7 +117,7 @@ export class SubscriptionService {
         if (filters.tenantId) where.tenantId = filters.tenantId;
 
         const subscriptions = await subscriptionRepo.findAll({ where, limit, offset });
-        return subscriptions.map((s) => formatSubscriptionResponse({ subscription: s, plan: null }));
+        return this._populatePlans(subscriptions);
     }
 
     async listByTenant(tenantId, filters = {}) {
@@ -127,7 +129,7 @@ export class SubscriptionService {
         if (filters.billingCycle) where.billingCycle = filters.billingCycle;
 
         const subscriptions = await subscriptionRepo.findByTenant(tenantId, { where, limit, offset });
-        return subscriptions.map((s) => formatSubscriptionResponse({ subscription: s, plan: null }));
+        return this._populatePlans(subscriptions);
     }
 
     async updateSubscription(id, data) {
@@ -156,7 +158,7 @@ export class SubscriptionService {
 
         const billingCycle = data.billingCycle ?? existing.billingCycle;
         const startDate = new Date();
-        const endDate = calculateEndDate(startDate, billingCycle, newPlan);
+        const endDate = calculateEndDate(startDate, billingCycle);
         const amountPaid = computePrice(newPlan, billingCycle);
 
         const newSubscription = await withTransaction(async (t) => {

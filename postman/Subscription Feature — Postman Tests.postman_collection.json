@@ -171,7 +171,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000/api/v1/super-admin/subscriptions"
+      "value": "http://localhost:3000/api/v1/subscriptions"
     },
     {
       "key": "tenantId",

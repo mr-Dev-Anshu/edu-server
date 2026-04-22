@@ -78,7 +78,8 @@ export class TenantService {
     const billingCycle = data.billingCycle || "monthly";
 
     // How many months is the tenant paying for? Default: 1
-    const durationMonths = parseInt(data.durationMonths ?? 1, 10);
+    const parsedDuration = parseInt(data.durationMonths, 10);
+    const durationMonths = (isNaN(parsedDuration) || parsedDuration < 1) ? 1 : parsedDuration;
 
     // Price per single billing cycle (monthly or yearly)
     const pricePerCycle =
@@ -131,7 +132,6 @@ export class TenantService {
       // 4. 🔥 Provision Default Roles & Permissions
       // Yeh method roles create karke return karega (Humein Administrator role ID chahiye)
       const adminRole = await roleService.provisionDefaultTenantRoles(tenant.id, transaction);
-       console.log(adminRole , "this is adminrole ")
       if (!adminRole) throw new AppError("Failed to provision administrator role", 500);
 
       // 5. 🔥 Create Admin User (Owner)
@@ -641,3 +641,4 @@ export class TenantService {
     };
   }
 }
+

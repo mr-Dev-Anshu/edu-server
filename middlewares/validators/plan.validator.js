@@ -1,4 +1,5 @@
 import { AppError } from '../../utils/AppError.js';
+import { createValidator } from '../../utils/createValidator.js';
 
 const RESERVED_SLUGS = ['free', 'trial', 'admin', 'test', 'demo', 'default'];
 const ALLOWED_CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED'];
@@ -7,19 +8,9 @@ const ALLOWED_CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED'];
 // Helpers
 // ─────────────────────────────────────────────
 
-function createValidator(validatorFn) {
-    return (req, res, next) => {
-        try {
-            validatorFn(req);
-            next();
-        } catch (error) {
-            if (error instanceof AppError) return next(error);  // ✅ status preserved
-            next(new AppError(error.message || 'Validation failed', 400));
-        }
-    };
-}
-
 function ensureString(value, field, min = 1, max = 100) {
+    // Note: If min=0, empty string (length 0) will pass `value.trim().length < min` because 0 < 0 is false.
+    // This is intentional and allows explicitly clearing optional fields like 'description'.
     if (typeof value !== 'string' || value.trim().length < min || value.trim().length > max) {
         throw new AppError(`${field} must be between ${min} and ${max} characters`, 400);
     }

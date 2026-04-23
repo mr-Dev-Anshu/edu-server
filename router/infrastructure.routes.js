@@ -20,33 +20,33 @@ const router = Router();
 
 router.get("/rooms",
     identifyUser,
-    checkPermission("read:room"),
+    checkPermission("read:infrastructure"),
     roomController.getAll
 );
 
 router.post("/rooms",
     identifyUser,
-    checkPermission("create:room"),
+    checkPermission("create:infrastructure"),
     createRoomValidator,
     roomController.create
 );
 
 router.get("/rooms/:id",
     identifyUser,
-    checkPermission("read:room"),
+    checkPermission("read:infrastructure"),
     roomController.getOne
 );
 
 router.patch("/rooms/:id",
     identifyUser,
-    checkPermission("update:room"),
+    checkPermission("update:infrastructure"),
     updateRoomValidator,
     roomController.update
 );
 
 router.delete("/rooms/:id",
     identifyUser,
-    checkPermission("delete:room"),
+    checkPermission("delete:infrastructure"),
     roomController.delete
 );
 
@@ -59,33 +59,33 @@ router.delete("/rooms/:id",
 
 router.get("/timetables",
     identifyUser,
-    checkPermission("read:timetable"),
+    checkPermission("read:infrastructure"),
     timetableController.getAll
 );
 
 router.post("/timetables",
     identifyUser,
-    checkPermission("create:timetable"),
+    checkPermission("create:infrastructure"),
     createTimetableValidator,
     timetableController.create
 );
 
 router.get("/timetables/:id",
     identifyUser,
-    checkPermission("read:timetable"),
+    checkPermission("read:infrastructure"),
     timetableController.getOne
 );
 
 router.patch("/timetables/:id",
     identifyUser,
-    checkPermission("update:timetable"),
+    checkPermission("update:infrastructure"),
     updateTimetableValidator,
     timetableController.update
 );
 
 router.delete("/timetables/:id",
     identifyUser,
-    checkPermission("delete:timetable"),
+    checkPermission("delete:infrastructure"),
     timetableController.delete
 );
 
@@ -98,33 +98,33 @@ router.delete("/timetables/:id",
 
 router.get("/timetables/:timetableId/slots",
     identifyUser,
-    checkPermission("read:timetable_slot"),
+    checkPermission("read:infrastructure"),
     timetableSlotController.getAll
 );
 
 router.post("/slots",
     identifyUser,
-    checkPermission("create:timetable_slot"),
+    checkPermission("create:infrastructure"),
     createTimetableSlotValidator,
     timetableSlotController.create
 );
 
 router.get("/slots/:id",
     identifyUser,
-    checkPermission("read:timetable_slot"),
+    checkPermission("read:infrastructure"),
     timetableSlotController.getOne
 );
 
 router.patch("/slots/:id",
     identifyUser,
-    checkPermission("update:timetable_slot"),
+    checkPermission("update:infrastructure"),
     updateTimetableSlotValidator,
     timetableSlotController.update
 );
 
 router.delete("/slots/:id",
     identifyUser,
-    checkPermission("delete:timetable_slot"),
+    checkPermission("delete:infrastructure"),
     timetableSlotController.delete
 );
 

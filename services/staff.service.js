@@ -4,6 +4,7 @@ import { RoleService } from "./role.service.js";
 import { AppError } from "../utils/AppError.js";
 import sequelize from "../config/db.js";
 import { UserRoleService } from "./user-role.service.js";
+import { BaseService } from "./base.service.js";
 
 const staffRepo = new StaffRepository();
 const userService = new UserService();
@@ -19,7 +20,11 @@ const STAFF_ROLE_MAP = {
   "Other": "other" 
 };
 
-export class StaffService {
+export class StaffService extends BaseService {
+  constructor() {
+    super(staffRepo);
+  }
+
   /**
    * CREATE STAFF: Comprehensive flow including User & Role assignment
    */
@@ -138,12 +143,16 @@ export class StaffService {
     return { message: "Staff record deleted successfully" };
   }
 
-  async searchStaff(tenantId, searchTerm) {
-    if (!searchTerm || searchTerm.trim().length < 2) {
-      throw new AppError("Search term must be at least 2 characters", 400);
-    }
-    const results = await staffRepo.searchStaff(tenantId, searchTerm);
-    return results.map((staff) => this.formatStaffResponse(staff));
+  async searchStaff(tenantId, query) {
+    return await this.search(tenantId, query, [
+      "employeeCode",
+      "designation",
+      "department",
+    ], {
+      filterableFields: ["staffType", "employmentStatus", "department"],
+      formatter: (staff) => this.formatStaffResponse(staff),
+      order: [["createdAt", "DESC"]],
+    });
   }
 
   formatStaffResponse(staff) {

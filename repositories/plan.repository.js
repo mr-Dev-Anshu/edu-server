@@ -10,9 +10,7 @@ export class PlanRepository extends BaseRepository {
 
     // ─── Override: findById without tenantId ─────────────────────────────────
     async findById(id) {
-        const plan = await this.model.findByPk(id);
-        if (!plan) throw new AppError('Plan not found', 404);
-        return plan;
+        return await this.model.findByPk(id);
     }
 
     // ─── Find Plan by Name ─────────────────────────

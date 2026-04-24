@@ -1,6 +1,6 @@
 import express from 'express';
 import { PlanController } from '../controllers/plan.controller.js';
-import { createPlanValidator, updatePlanValidator, validatePlanId } from '../middlewares/validators/plan.validator.js';
+import { createPlanValidator, updatePlanValidator, validatePlanId, updatePlanStatusValidator } from '../middlewares/validators/plan.validator.js';
 import { identifyUser, checkPermission } from '../middlewares/security/index.js';
 
 const router = express.Router();
@@ -19,7 +19,7 @@ router.post('/',
 router.patch('/:id/status',
     identifyUser,
     checkPermission('update:plan'),
-    validatePlanId,
+    updatePlanStatusValidator,
     ctrl.updateStatus
 );
 

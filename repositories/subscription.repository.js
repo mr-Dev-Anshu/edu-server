@@ -1,5 +1,4 @@
 import { Op } from 'sequelize';
-import { AppError } from '../utils/AppError.js';
 import { BaseRepository } from './base.repository.js';
 import { Subscription } from '../models/index.js';
 import Plan from '../models/Plan.js';
@@ -12,9 +11,7 @@ export class SubscriptionRepository extends BaseRepository {
     }
 
     async findById(id) {
-        const record = await Subscription.findOne({ where: { id } });
-        if (!record) throw new AppError('Subscription not found', 404);
-        return record;
+        return Subscription.findOne({ where: { id } });
     }
 
     async findAll(options = {}) {
@@ -55,8 +52,10 @@ export class SubscriptionRepository extends BaseRepository {
         return Plan.findOne({ where: { slug: normalized } });
     }
 
-    async create(data, options = {}) {
-        return Subscription.create(data, options);
+    async findPlansByIds(ids) {
+        return Plan.findAll({
+            where: { id: { [Op.in]: ids } },
+        });
     }
 
     async update(id, data, options = {}) {
@@ -71,16 +70,7 @@ export class SubscriptionRepository extends BaseRepository {
 
     async toggleStatus(id) {
         const record = await this.findById(id);
-
-        if (!['active', 'paused'].includes(record.status)) {
-            throw new AppError(
-                `Cannot toggle a subscription with status '${record.status}'`,
-                422
-            );
-        }
-
-        return record.update({
-            status: record.status === 'active' ? 'paused' : 'active',
-        });
+        if (!record) return null;
+        return record.update({ status: record.status === 'active' ? 'paused' : 'active' });
     }
 }

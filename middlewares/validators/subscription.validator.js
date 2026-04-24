@@ -92,8 +92,7 @@ export const updateSubscriptionValidator = createValidator((req) => {
 
 export const upgradeValidator = createValidator((req) => {
     rejectAmountPaid(req.body);
-
-    ensureString(req.body.newPlanId, 'newPlanId');
+    ensureSlugOrUUID(req.body.newPlanId, 'newPlanId');
     ensureEnum(req.body.billingCycle, 'billingCycle', ALLOWED_BILLING);
 });
 

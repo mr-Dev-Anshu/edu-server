@@ -76,6 +76,10 @@ function ensureFeatures(features) {
         throw new AppError('Features must be a valid object', 400);
     }
 
+    if (JSON.stringify(features).length > 2048){
+        throw new AppError('Features JSON object exceeds size limit of 2048 bytes', 400);
+    }
+
     if (features.maxStudents !== undefined) {
         if (!Number.isInteger(features.maxStudents) || features.maxStudents < 1) {
             throw new AppError('features.maxStudents must be a positive integer', 400);
@@ -146,6 +150,14 @@ export const updatePlanValidator = createValidator((req) => {
 
     ensureCurrency(currency);
     ensureFeatures(features);
+});
+
+export const updatePlanStatusValidator = createValidator((req) => {
+    const { isActive } = req.body;
+    if (typeof isActive === 'undefined')
+        throw new AppError('isActive field is required (true or false)', 422);
+    if (typeof isActive !== 'boolean')
+        throw new AppError('isActive must be a boolean (true or false)', 422);
 });
 
 // ─────────────────────────────────────────────

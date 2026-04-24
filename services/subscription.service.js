@@ -93,18 +93,21 @@ export class SubscriptionService {
 
     async getSubscription(id) {
         const subscription = await subscriptionRepo.findById(id);
+        if (!subscription) throw new AppError('Subscription not found', 404);
         const plan = await subscriptionRepo.findPlan(subscription.planId);
         return formatSubscriptionResponse({ subscription, plan });
     }
 
     async _populatePlans(subscriptions) {
         const planIds = [...new Set(subscriptions.map(s => s.planId))];
-        const plans = await Promise.all(planIds.map(id => subscriptionRepo.findPlan(id)));
+        const plans = await subscriptionRepo.findPlansByIds(planIds);
         const planMap = plans.reduce((acc, plan) => {
-            if (plan) acc[plan.id] = plan;
+            acc[plan.id] = plan;
             return acc;
         }, {});
-        return subscriptions.map(s => formatSubscriptionResponse({ subscription: s, plan: planMap[s.planId] || null }));
+        return subscriptions.map(s =>
+            formatSubscriptionResponse({ subscription: s, plan: planMap[s.planId] || null })
+        );
     }
 
     async listSubscriptions(filters = {}) {
@@ -133,6 +136,9 @@ export class SubscriptionService {
     }
 
     async updateSubscription(id, data) {
+        const existing = await subscriptionRepo.findById(id);
+        if (!existing) throw new AppError('Subscription not found', 404);
+
         const subscription = await subscriptionRepo.update(id, {
             ...(data.status !== undefined && { status: data.status }),
             ...(data.billingCycle !== undefined && { billingCycle: data.billingCycle }),
@@ -183,6 +189,13 @@ export class SubscriptionService {
     }
 
     async toggleStatus(id) {
+        const existing = await subscriptionRepo.findById(id);
+        if (!existing) throw new AppError('Subscription not found', 404);
+
+        if (!['active', 'paused'].includes(existing.status)) {
+            throw new AppError(`Cannot toggle a subscription with status '${existing.status}'`, 422);
+        }
+
         const updated = await subscriptionRepo.toggleStatus(id);
         const plan = await subscriptionRepo.findPlan(updated.planId);
         return formatSubscriptionResponse({ subscription: updated, plan });

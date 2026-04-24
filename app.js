@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import planRoutes from './router/plan.routes.js';
+import planRoutes from './router/plan.router.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import permissionRouter from './router/permission.router.js';
@@ -17,7 +17,7 @@ import sectionRouter from "./router/Academic/section.routes.js";
 import studentRouter from "./router/student.routes.js";
 import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
-import subscriptionRoutes from './router/subscription.routes.js';
+import subscriptionRoutes from './router/subscription.router.js';
 import cookieParser from 'cookie-parser';
 
 

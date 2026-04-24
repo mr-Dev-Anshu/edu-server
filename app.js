@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import permissionRouter from './router/permission.router.js';
 import roleRouter from './router/role.router.js';
 import tenantRouter from './router/tenant.router.js';
-import infrastructure from './router/infrastructure.routes.js'
+import infrastructure from './router/infrastructure.router.js'
 import userRouter from './router/user.router.js';
 import userRoleRouter from './router/user-role.router.js';
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';

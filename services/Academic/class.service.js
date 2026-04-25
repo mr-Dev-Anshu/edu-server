@@ -8,16 +8,17 @@ export class ClassService {
   // Create Class
   async createClass(tenantId, payload) {
     const { name, numericLevel, description } = payload;
+    const trimmedName = name.trim();
 
-    // Duplicate check
-    const existing = await classRepo.findByName(name, tenantId);
+    // Duplicate check - case-insensitive
+    const existing = await classRepo.findByName(trimmedName, tenantId);
     if (existing) {
       throw new AppError("Class name already exists for this tenant", 400);
     }
 
     const newClass = await classRepo.create({
       tenantId,
-      name: name.trim(),
+      name: trimmedName,
       numericLevel,
       description,
     });
@@ -46,9 +47,10 @@ export class ClassService {
   async updateClass(id, tenantId, updateData) {
     const existingClass = await classRepo.findById(id, tenantId);
 
-    // Name update → duplicate check
-    if (updateData.name && updateData.name !== existingClass.name) {
-      const duplicate = await classRepo.findByName(updateData.name, tenantId);
+    // Name update → duplicate check (case-insensitive)
+    if (updateData.name && updateData.name.trim() !== existingClass.name) {
+      const trimmedName = updateData.name.trim();
+      const duplicate = await classRepo.findByName(trimmedName, tenantId);
       if (duplicate) {
         throw new AppError("Class name already exists for this tenant", 400);
       }

@@ -39,6 +39,8 @@ import Subject from './Academic/Subject.js';
 
 // // --- Infrastructure ---
 import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
+import { Attendance } from "./Attendance.js";
+import { ExamGroup, ExamSchedule } from "./exams/Exams.js";
 
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
@@ -103,22 +105,39 @@ Tenant.hasMany(AcademicYear, { foreignKey: "tenantId" });
 AcademicYear.belongsTo(Tenant, { foreignKey: "tenantId" });
 
 // Class -> Section
-Class.hasMany(Section, { foreignKey: "classId", as: "sections" });
+Class.hasMany(Section, { foreignKey: "classId", as: "sections", cascade: true });
 Section.belongsTo(Class, { foreignKey: "classId", as: "class" });
 
 // Academic Year -> Section
 Section.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
-AcademicYear.hasMany(Section, { foreignKey: "academicYearId", as: "sections"});
+AcademicYear.hasMany(Section, { foreignKey: "academicYearId", as: "sections", cascade: true });
 
 // Student Enrollment (History)
-Student.hasMany(StudentSectionEnrollment, { foreignKey: "studentId", as: "enrollments"});
+Student.hasMany(StudentSectionEnrollment, { foreignKey: "studentId", as: "enrollments", cascade: true});
 StudentSectionEnrollment.belongsTo(Student, { foreignKey: "studentId", as: "student"});
 StudentSectionEnrollment.belongsTo(Section, { foreignKey: "sectionId", as: "section"});
 StudentSectionEnrollment.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear"});
 
+// Attendance - cascade delete when section is deleted
+Section.hasMany(Attendance, {foreignKey: "sectionId", as: "attendanceRecords", cascade: true});
+Attendance.belongsTo(Section, { foreignKey: "sectionId", as: "section" });
+Attendance.belongsTo(Student, { foreignKey: "studentId", as: "student" });
+Attendance.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
 
-// Teacher Assignments
-TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId" });
+// Timetable - cascade delete when section is deleted
+Section.hasMany(Timetable, {foreignKey: "sectionId", as: "timetables", cascade: true});
+Timetable.belongsTo(Section, { foreignKey: "sectionId", as: "section" });
+Timetable.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
+
+// ExamSchedule - cascade delete when section is deleted
+Section.hasMany(ExamSchedule, {foreignKey: "sectionId", as: "examSchedules", cascade: true});
+ExamSchedule.belongsTo(Section, { foreignKey: "sectionId", as: "section" });
+ExamSchedule.belongsTo(ExamGroup, { foreignKey: "examGroupId", as: "examGroup" });
+
+// Teacher Assignments - cascade delete when section is deleted
+Section.hasMany(TeacherSubjectAssignment, {foreignKey: "sectionId", as: "teacherAssignments",cascade: true});
+TeacherSubjectAssignment.belongsTo(Section, { foreignKey: "sectionId", as: "section" });
+TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId", as: "teacher" });
 
 // ==========================================
 // 5. FAMILY TREE (Guardians)
@@ -156,7 +175,10 @@ export {
   StudentSectionEnrollment,
   StudentGuardianMap,
   TeacherSubjectAssignment,
+  Attendance,
   Room,
   Timetable,
   TimetableSlot,
+  ExamGroup,
+  ExamSchedule,
 };

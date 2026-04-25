@@ -135,6 +135,7 @@ export const createTimetableValidator = createValidator((req) => {
     ensureUUID(academicYearId, "academicYearId");
 
     if (!name) throw new AppError("name is required", 400);
+    ensureString(name, "name");
     if (name.trim().length > 150)
         throw new AppError("name must not exceed 150 characters", 400);
 

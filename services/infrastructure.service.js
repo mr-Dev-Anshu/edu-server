@@ -108,13 +108,19 @@ export class RoomService {
 // ─── Timetable Service ─────────────────────────────────────────────────────────
 
 export class TimetableService {
-    async listTimetables(tenantId, filters = {}) {
+    async listTimetables(tenantId, rawFilters = {}) {
+        const filters = {};
+        if (typeof rawFilters.sectionId === "string") filters.sectionId = rawFilters.sectionId;
+        if (typeof rawFilters.academicYearId === "string") filters.academicYearId = rawFilters.academicYearId;
+        if (typeof rawFilters.status === "string") filters.status = rawFilters.status;
+
         const timetables = await timetableRepo.findAll(tenantId, filters);
         return timetables.map((t) => formatTimetableListResponse(t));
     }
 
     async getTimetableDetails(id, tenantId) {
         const timetable = await timetableRepo.findWithSlots(id, tenantId);
+        if (!timetable) throw new AppError("Timetable not found", 404);
         const slots = (timetable.slots ?? []).map(formatSlotResponse);
         return {
             ...formatTimetableListResponse(timetable),
@@ -183,7 +189,7 @@ export class TimetableService {
         const timetable = await timetableRepo.findById(id, tenantId); // 404 throws here cleanly
         await withTransaction(async (t) => {
             await slotRepo.deleteByTimetable(id, tenantId, t);
-            await timetable.destroy({ transaction: t });
+            await timetableRepo.delete(id, tenantId, { transaction: t });
         });
         return { message: "Timetable and all its slots deleted successfully" };
     }
@@ -257,7 +263,7 @@ export class TimetableSlotService {
         const existing = await slotRepo.findById(id, tenantId);
 
         const finalStartTime = body.startTime ?? existing.startTime;
-        const finalEndTime   = body.endTime   ?? existing.endTime;
+        const finalEndTime = body.endTime ?? existing.endTime;
 
         const [sh, sm] = finalStartTime.split(":").map(Number);
         const [eh, em] = finalEndTime.split(":").map(Number);

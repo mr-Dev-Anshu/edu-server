@@ -49,7 +49,7 @@ export class TimetableRepository extends BaseRepository {
             ],
         });
 
-        if (!record) throw new AppError("Timetable not found", 404);
+        if (!record) return null;
 
         return record;
     }

@@ -13,5 +13,5 @@ export const FeeHead = sequelize.define(
     name: { type: DataTypes.STRING, allowNull: false }, 
     description: { type: DataTypes.STRING },
   }),
-  { tableName: "fee_heads", underscored: true },
+  { tableName: "fee_heads", underscored: true, paranoid: true },
 );

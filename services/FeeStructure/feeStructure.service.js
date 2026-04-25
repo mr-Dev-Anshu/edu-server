@@ -35,18 +35,15 @@ export class FeeStructureService {
 
       // 2. Create FeeStructureItems if provided
       if (items && Array.isArray(items) && items.length > 0) {
-        for (const item of items) {
-          await feeStructureItemRepo.create(
-            {
-              tenantId,
-              feeStructureId: feeStructure.id,
-              feeHeadId: item.feeHeadId,
-              amountRaw: item.amountRaw,
-              isOptional: item.isOptional || false,
-            },
-            { transaction }
-          );
-        }
+        const itemPayload = items.map((item) => ({
+          tenantId,
+          feeStructureId: feeStructure.id,
+          feeHeadId: item.feeHeadId,
+          amountRaw: item.amountRaw,
+          isOptional: item.isOptional || false,
+        }));
+
+        await feeStructureItemRepo.bulkCreate(itemPayload, { transaction });
       }
 
       await transaction.commit();

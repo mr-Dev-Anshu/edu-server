@@ -6,6 +6,10 @@ export class FeeStructureItemRepository extends BaseRepository {
     super(FeeStructureItem);
   }
 
+  async bulkCreate(items, options = {}) {
+    return await this.model.bulkCreate(items, options);
+  }
+
   async findByFeeStructureId(feeStructureId, tenantId) {
     return await this.model.findAll({
       where: { feeStructureId, tenantId },

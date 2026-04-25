@@ -21,5 +21,5 @@ export const FeeStructure = sequelize.define(
     },
     name: { type: DataTypes.STRING, allowNull: false },
   }),
-  { tableName: "fee_structures", underscored: true },
+  { tableName: "fee_structures", underscored: true, paranoid: true },
 );

@@ -21,5 +21,5 @@ export const FeeStructureItem = sequelize.define(
     amountRaw: { type: DataTypes.BIGINT, allowNull: false },
     isOptional: { type: DataTypes.BOOLEAN, defaultValue: false },
   }),
-  { tableName: "fee_structure_items", underscored: true },
+  { tableName: "fee_structure_items", underscored: true, paranoid: true },
 );

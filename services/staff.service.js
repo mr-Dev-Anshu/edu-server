@@ -88,7 +88,16 @@ export class StaffService extends BaseService {
       }, { transaction });
 
       await transaction.commit();
-      return this.formatStaffResponse(staff);
+      
+      // Reload staff with associations for complete response
+      const completeStaff = await staffRepo.findById(staff.id, tenantId, {
+        include: [
+          { association: "user", attributes: ["id", "firstName", "lastName", "email", "phone", "status"] },
+          { association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }
+        ]
+      });
+      
+      return this.formatStaffResponse(completeStaff);
     } catch (error) {
       if (!transaction.finished) await transaction.rollback();
       throw error;
@@ -114,7 +123,10 @@ export class StaffService extends BaseService {
 
   async getStaffById(id, tenantId) {
     const staff = await staffRepo.findById(id, tenantId, {
-      include: ["user"] 
+      include: [
+        { association: "user", attributes: ["id", "firstName", "lastName", "email", "phone", "status"] },
+        { association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }
+      ]
     });
     return this.formatStaffResponse(staff);
   }
@@ -127,11 +139,19 @@ export class StaffService extends BaseService {
       if (existingStaff) throw new AppError("Employee code already exists", 400);
     }
 
-    const updatedStaff = await staffRepo.update(id, tenantId, {
+    await staffRepo.update(id, tenantId, {
       ...updateData,
       employeeCode: updateData.employeeCode?.trim() || staff.employeeCode,
       designation: updateData.designation?.trim() || staff.designation,
       department: updateData.department?.trim() || staff.department,
+    });
+
+    // Reload staff with associations for complete response
+    const updatedStaff = await staffRepo.findById(id, tenantId, {
+      include: [
+        { association: "user", attributes: ["id", "firstName", "lastName", "email", "phone", "status"] },
+        { association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }
+      ]
     });
 
     return this.formatStaffResponse(updatedStaff);
@@ -150,6 +170,10 @@ export class StaffService extends BaseService {
       "department",
     ], {
       filterableFields: ["staffType", "employmentStatus", "department"],
+      include: [
+        { association: "user", attributes: ["id", "firstName", "lastName", "email", "phone", "status"] },
+        { association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }
+      ],
       formatter: (staff) => this.formatStaffResponse(staff),
       order: [["createdAt", "DESC"]],
     });
@@ -158,8 +182,21 @@ export class StaffService extends BaseService {
   formatStaffResponse(staff) {
     return {
       id: staff.id,
-      tenantId: staff.tenantId,
-      userId: staff.userId,
+      tenant: staff.organization ? {
+        id: staff.organization.id,
+        name: staff.organization.name,
+        organizationType: staff.organization.organizationType,
+        officialEmail: staff.organization.officialEmail,
+        subdomain: staff.organization.subdomain
+      } : null,
+      user: staff.user ? {
+        id: staff.user.id,
+        firstName: staff.user.firstName,
+        lastName: staff.user.lastName,
+        email: staff.user.email,
+        phone: staff.user.phone,
+        status: staff.user.status
+      } : null,
       employeeCode: staff.employeeCode,
       staffType: staff.staffType,
       designation: staff.designation,
@@ -171,13 +208,7 @@ export class StaffService extends BaseService {
       ifscCode: staff.ifscCode,
       basicSalary: staff.basicSalary,
       createdAt: staff.createdAt,
-      updatedAt: staff.updatedAt,
-      // Include user profile if loaded via include
-      profile: staff.user ? {
-        firstName: staff.user.firstName,
-        lastName: staff.user.lastName,
-        email: staff.user.email
-      } : null
+      updatedAt: staff.updatedAt
     };
   }
 }

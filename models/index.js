@@ -94,6 +94,9 @@ Student.belongsTo(User, { foreignKey: "userId", as: "user" });
 
 User.hasOne(Staff, { foreignKey: "userId", as: "staffProfile" });
 Staff.belongsTo(User, { foreignKey: "userId", as: "user" });
+Staff.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+
+Student.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
 // ==========================================
 // 4. ACADEMIC & ENROLLMENT LOGIC

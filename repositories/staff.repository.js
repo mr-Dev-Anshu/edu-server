@@ -40,6 +40,12 @@ export class StaffRepository extends BaseRepository {
     const where = options.where || { tenantId, ...filters };
     const { where: _where, include, distinct, order, ...queryOptions } = options;
     
+    // Default includes for user and tenant details
+    const include = options.include || [
+      { association: "user", attributes: ["id", "firstName", "lastName", "email", "phone", "status"] },
+      { association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }
+    ];
+    
     const { count, rows } = await this.model.findAndCountAll({
       where,
       offset,

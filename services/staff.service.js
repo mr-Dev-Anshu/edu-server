@@ -5,6 +5,7 @@ import { AppError } from "../utils/AppError.js";
 import sequelize from "../config/db.js";
 import { UserRoleService } from "./user-role.service.js";
 import { BaseService } from "./base.service.js";
+import { Op } from "sequelize";
 
 const staffRepo = new StaffRepository();
 const userService = new UserService();
@@ -105,16 +106,104 @@ export class StaffService extends BaseService {
   }
 
   async getAllStaff(tenantId, query) {
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
+    const page = Number.parseInt(query.page, 10) > 0 ? Number.parseInt(query.page, 10) : 1;
+    const limit = Number.parseInt(query.limit, 10) > 0 ? Number.parseInt(query.limit, 10) : 10;
 
-    const filters = {};
-    if (query.staffType) filters.staffType = query.staffType;
-    if (query.employmentStatus) filters.employmentStatus = query.employmentStatus;
-    if (query.department) filters.department = query.department;
+    const where = { tenantId };
+    const andClauses = [];
 
-    // Pagination handles the formatting internally or we map it
-    const result = await staffRepo.findWithPagination(tenantId, filters, page, limit);
+    if (query.staffType) {
+      where.staffType = query.staffType;
+    }
+
+    const employmentStatus = query.employmentStatus || query.status;
+    if (employmentStatus) {
+      andClauses.push({
+        employmentStatus: String(employmentStatus).trim().toLowerCase(),
+      });
+    }
+
+    if (query.department) {
+      andClauses.push({
+        department: { [Op.iLike]: `%${String(query.department).trim()}%` },
+      });
+    }
+
+    const searchTerm = String(query.search || "").trim();
+    if (searchTerm) {
+      andClauses.push({
+        [Op.or]: [
+          { employeeCode: { [Op.iLike]: `%${searchTerm}%` } },
+          sequelize.where(sequelize.col("user.first_name"), {
+            [Op.iLike]: `%${searchTerm}%`,
+          }),
+          sequelize.where(sequelize.col("user.last_name"), {
+            [Op.iLike]: `%${searchTerm}%`,
+          }),
+          sequelize.where(sequelize.col("user.email"), {
+            [Op.iLike]: `%${searchTerm}%`,
+          }),
+          sequelize.where(
+            sequelize.fn(
+              "concat",
+              sequelize.col("user.first_name"),
+              " ",
+              sequelize.col("user.last_name"),
+            ),
+            {
+            [Op.iLike]: `%${searchTerm}%`,
+            },
+          ),
+        ],
+      });
+    }
+
+    if (andClauses.length) {
+      where[Op.and] = andClauses;
+    }
+
+    const sortableColumns = {
+      createdAt: sequelize.col("Staff.created_at"),
+      updatedAt: sequelize.col("Staff.updated_at"),
+      employeeCode: sequelize.fn("LOWER", sequelize.col("Staff.employee_code")),
+      department: sequelize.fn("LOWER", sequelize.col("Staff.department")),
+      staffType: sequelize.fn("LOWER", sequelize.col("Staff.staff_type")),
+      employmentStatus: sequelize.fn("LOWER", sequelize.col("Staff.employment_status")),
+      firstName: sequelize.fn("LOWER", sequelize.col("user.first_name")),
+      lastName: sequelize.fn("LOWER", sequelize.col("user.last_name")),
+      email: sequelize.fn("LOWER", sequelize.col("user.email")),
+    };
+
+    const sortAliases = {
+      createdat: "createdAt",
+      updatedat: "updatedAt",
+      employeecode: "employeeCode",
+      department: "department",
+      stafftype: "staffType",
+      employmentstatus: "employmentStatus",
+      firstname: "firstName",
+      lastname: "lastName",
+      email: "email",
+    };
+
+    const rawSortKey = String(query.sort || "createdAt").trim();
+    const normalizedSortKey = sortAliases[rawSortKey.toLowerCase()] || rawSortKey;
+    const sortCol = sortableColumns[normalizedSortKey] || sortableColumns.createdAt;
+    const orderDirection = String(query.order || "desc").toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    const result = await staffRepo.findWithPagination(tenantId, {}, page, limit, {
+      where,
+      include: [
+        {
+          association: "user",
+          attributes: ["id", "firstName", "lastName", "email"],
+          required: false,
+        },
+      ],
+      subQuery: false,
+      order: [[sortCol, orderDirection]],
+    });
+
     return {
       ...result,
       data: result.data.map(s => this.formatStaffResponse(s))

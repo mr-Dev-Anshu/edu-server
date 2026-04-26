@@ -38,7 +38,7 @@ export class StaffRepository extends BaseRepository {
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10, options = {}) {
     const offset = (page - 1) * limit;
     const where = options.where || { tenantId, ...filters };
-    const { where: _where, include, distinct, order, ...queryOptions } = options;
+    const { where: _where, distinct, order, ...queryOptions } = options;
     
     // Default includes for user and tenant details
     const include = options.include || [

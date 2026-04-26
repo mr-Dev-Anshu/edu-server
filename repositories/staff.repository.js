@@ -1,4 +1,3 @@
-import { Op } from "sequelize";
 import { Staff } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
@@ -56,17 +55,15 @@ export class StaffRepository extends BaseRepository {
     };
   }
 
-  async searchStaff(tenantId, searchTerm) {
-    return await this.model.findAll({
-      where: {
-        tenantId,
-        [Op.or]: [
-          { employeeCode: { [Op.iLike]: `%${searchTerm}%` } },
-          { designation: { [Op.iLike]: `%${searchTerm}%` } },
-          { department: { [Op.iLike]: `%${searchTerm}%` } },
-        ],
-      },
-      limit: 20,
+  async searchStaff(tenantId, searchTerm, page = 1, limit = 10) {
+    return await this.search(tenantId, searchTerm, [
+      "employeeCode",
+      "designation",
+      "department",
+    ], {
+      page,
+      limit,
+      order: [["createdAt", "DESC"]],
     });
   }
 }

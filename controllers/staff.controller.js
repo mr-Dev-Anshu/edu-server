@@ -33,8 +33,11 @@ const data = await staffService.createStaff(req.tenantId, {
   });
 
   search = catchAsync(async (req, res) => {
-    const { q } = req.query;
-    const data = await staffService.searchStaff(req.tenantId, q);
-    res.status(200).json({ success: true, results: data.length, data });
+    const result = await staffService.searchStaff(req.tenantId, req.query);
+    res.status(200).json({
+      success: true,
+      results: result.data.length,
+      ...result,
+    });
   });
 }

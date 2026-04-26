@@ -19,7 +19,7 @@ export class GuardianService extends BaseService {
   async createGuardian(tenantId, payload){
     const {
       email, password, firstName, lastName,
-      relation,phone,occupation,isPrimaryContact
+      relation,phone,occupation,isPrimaryContact, requestedBy
     } = payload
 
    const existingGuardian = await guardianRepo.findByPhone(
@@ -29,6 +29,8 @@ export class GuardianService extends BaseService {
     if (existingGuardian) {
       throw new AppError("Guardian already exists", 400);
     }
+    console.log(tenantId);
+    
 
     const transaction = await sequelize.transaction();
     try {
@@ -71,7 +73,6 @@ export class GuardianService extends BaseService {
           ...payload,
           tenantId,
           userId: user.id,
-          admissionNumber: admissionNumber.trim(),
         },
         { transaction },
       );
@@ -114,8 +115,8 @@ export class GuardianService extends BaseService {
       phone: guardian.phone,
       occupation: guardian.occupation,
       isPrimaryContact: guardian.isPrimaryContact,
-      createdAt: student.createdAt,
-      updatedAt: student.updatedAt,
+      createdAt: guardian.createdAt,
+      updatedAt: guardian.updatedAt,
     }
   }
 }

@@ -9,7 +9,10 @@ export class GuardianController extends BaseController {
     super(guardianService);
   }
    createGuardian = catchAsync(async (req, res) => {
-       const data = await guardianService.createGuardian(req.tenantId, req.body);
+       const data = await guardianService.createGuardian(req.tenantId, {
+      ...req.body,
+      requestedBy: req.user.id 
+    });;
        res.status(201).json({ success: true, data });
      });
   attachStudents = catchAsync(async (req, res) => {

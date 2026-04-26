@@ -1,0 +1,102 @@
+{
+  "info": {
+    "name": "Student Section Enrollment APIs",
+    "_postman_id": "e1b2c3d4-5678-90ab-cdef-1234567890ab",
+    "description": "APIs for managing student enrollments",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "tenantId", "value": "PUT_TENANT_ID_HERE" },
+    { "key": "studentId", "value": "PUT_STUDENT_ID_HERE" },
+    { "key": "sectionId", "value": "PUT_SECTION_ID_HERE" },
+    { "key": "academicYearId", "value": "PUT_ACADEMIC_YEAR_ID_HERE" },
+    { "key": "enrollmentId", "value": "PUT_ENROLLMENT_ID_HERE" }
+  ],
+  "item": [
+    {
+      "name": "Enroll Student",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"rollNumber\": \"1\",\n  \"enrollmentStatus\": \"regular\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/enrollments",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "enrollments"]
+        }
+      }
+    },
+    {
+      "name": "Get All Enrollments",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/enrollments?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "enrollments"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Enrollment By ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/enrollments/{{enrollmentId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "enrollments", "{{enrollmentId}}"]
+        }
+      }
+    },
+    {
+      "name": "Update Enrollment",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"rollNumber\": \"2\",\n  \"enrollmentStatus\": \"promoted\",\n  \"isCurrent\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/enrollments/{{enrollmentId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "enrollments", "{{enrollmentId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Enrollment",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "x-tenant-id", "value": "{{tenantId}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/enrollments/{{enrollmentId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "enrollments", "{{enrollmentId}}"]
+        }
+      }
+    }
+  ]
+}

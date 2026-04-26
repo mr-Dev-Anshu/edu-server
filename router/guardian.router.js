@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { GuardianController } from "../controllers/guardian.controller.js";
+import { identifyUser } from "../middlewares/security/index.js";
 
 const router = Router();
 const ctrl = new GuardianController();
 
-router.get("/", ctrl.getAll);
-router.get("/student/:studentId", ctrl.getByStudent);
-router.get("/:id", ctrl.getOne);
-router.post("/", ctrl.create);
-router.post("/:id/attach-students", ctrl.attachStudents);
+router.get("/",identifyUser, ctrl.getAll);
+router.get("/student/:studentId",identifyUser, ctrl.getByStudent);
+router.get("/:id",identifyUser, ctrl.getOne);
+router.post("/",identifyUser, ctrl.createGuardian);
+router.post("/:id/attach-students",identifyUser, ctrl.attachStudents);
 
 export default router;

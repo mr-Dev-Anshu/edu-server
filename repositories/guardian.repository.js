@@ -7,6 +7,12 @@ export class GuardianRepository extends BaseRepository {
     super(Guardian);
   }
 
+  async findByPhone(phone, tenantId) {
+    return await this.model.findOne({
+      where: { phone, tenantId },
+    });
+  }
+
   async attachStudents(
     studentIds,
     guardianId,

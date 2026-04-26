@@ -79,6 +79,14 @@ Tenant.hasMany(User, { foreignKey: "tenantId", as: "members" });
 User.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
 // ==========================================
+// USER-ROLE JUNCTION TABLE ASSOCIATIONS
+// ==========================================
+UserRole.belongsTo(User, { foreignKey: "userId", as: "user" });
+UserRole.belongsTo(Role, { foreignKey: "roleId", as: "role" });
+UserRole.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
+UserRole.belongsTo(User, { foreignKey: "assignedById", as: "assignedBy" });
+
+// ==========================================
 // 3. STUDENT & STAFF PROFILE LINKS
 // ==========================================
 User.hasOne(Student, { foreignKey: "userId", as: "studentProfile" });
@@ -98,9 +106,16 @@ AcademicYear.belongsTo(Tenant, { foreignKey: "tenantId" });
 Class.hasMany(Section, { foreignKey: "classId", as: "sections" });
 Section.belongsTo(Class, { foreignKey: "classId", as: "class" });
 
+// Academic Year -> Section
+Section.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
+AcademicYear.hasMany(Section, { foreignKey: "academicYearId", as: "sections"});
+
 // Student Enrollment (History)
-Student.hasMany(StudentSectionEnrollment, { foreignKey: "studentId" });
-StudentSectionEnrollment.belongsTo(Student, { foreignKey: "studentId" });
+Student.hasMany(StudentSectionEnrollment, { foreignKey: "studentId", as: "enrollments"});
+StudentSectionEnrollment.belongsTo(Student, { foreignKey: "studentId", as: "student"});
+StudentSectionEnrollment.belongsTo(Section, { foreignKey: "sectionId", as: "section"});
+StudentSectionEnrollment.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear"});
+
 
 // Teacher Assignments
 TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId" });

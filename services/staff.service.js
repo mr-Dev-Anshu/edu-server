@@ -153,19 +153,33 @@ export class StaffService extends BaseService {
       where[Op.and] = andClauses;
     }
 
-    const allowedSortFields = {
-      createdAt: ["createdAt"],
-      updatedAt: ["updatedAt"],
-      employeeCode: ["employeeCode"],
-      department: ["department"],
-      staffType: ["staffType"],
-      employmentStatus: ["employmentStatus"],
-      firstName: [{ model: staffRepo.model.sequelize.models.User, as: "user" }, "firstName"],
-      lastName: [{ model: staffRepo.model.sequelize.models.User, as: "user" }, "lastName"],
-      email: [{ model: staffRepo.model.sequelize.models.User, as: "user" }, "email"],
+    const sortableColumns = {
+      createdAt: sequelize.col("Staff.created_at"),
+      updatedAt: sequelize.col("Staff.updated_at"),
+      employeeCode: sequelize.fn("LOWER", sequelize.col("Staff.employee_code")),
+      department: sequelize.fn("LOWER", sequelize.col("Staff.department")),
+      staffType: sequelize.fn("LOWER", sequelize.col("Staff.staff_type")),
+      employmentStatus: sequelize.fn("LOWER", sequelize.col("Staff.employment_status")),
+      firstName: sequelize.fn("LOWER", sequelize.col("user.first_name")),
+      lastName: sequelize.fn("LOWER", sequelize.col("user.last_name")),
+      email: sequelize.fn("LOWER", sequelize.col("user.email")),
     };
 
-    const sort = allowedSortFields[query.sort] || allowedSortFields.createdAt;
+    const sortAliases = {
+      createdat: "createdAt",
+      updatedat: "updatedAt",
+      employeecode: "employeeCode",
+      department: "department",
+      stafftype: "staffType",
+      employmentstatus: "employmentStatus",
+      firstname: "firstName",
+      lastname: "lastName",
+      email: "email",
+    };
+
+    const rawSortKey = String(query.sort || "createdAt").trim();
+    const normalizedSortKey = sortAliases[rawSortKey.toLowerCase()] || rawSortKey;
+    const sortCol = sortableColumns[normalizedSortKey] || sortableColumns.createdAt;
     const orderDirection = String(query.order || "desc").toUpperCase() === "ASC" ? "ASC" : "DESC";
 
     const result = await staffRepo.findWithPagination(tenantId, {}, page, limit, {
@@ -178,7 +192,7 @@ export class StaffService extends BaseService {
         },
       ],
       subQuery: false,
-      order: [[...sort, orderDirection]],
+      order: [[sortCol, orderDirection]],
     });
 
     return {

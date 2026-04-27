@@ -35,15 +35,25 @@ export class StaffRepository extends BaseRepository {
     });
   }
 
-  async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
+  async findWithPagination(tenantId, filters = {}, page = 1, limit = 10, options = {}) {
     const offset = (page - 1) * limit;
-    const where = { tenantId, ...filters };
+    const where = options.where || { tenantId, ...filters };
+    const { where: _where, distinct, order, ...queryOptions } = options;
+    
+    // Default includes for user and tenant details
+    const include = options.include || [
+      { association: "user", attributes: ["id", "firstName", "lastName", "email", "phone", "status"] },
+      { association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }
+    ];
     
     const { count, rows } = await this.model.findAndCountAll({
       where,
       offset,
       limit,
-      order: [["createdAt", "DESC"]],
+      include,
+      distinct: distinct ?? Boolean(include),
+      order: order || [["createdAt", "DESC"]],
+      ...queryOptions,
     });
 
     return {

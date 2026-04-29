@@ -20,50 +20,18 @@ export const Staff = sequelize.define(
       allowNull: false,
     },
     staffType: {
-      type: DataTypes.ENUM("Teacher", "Librarian", "AdmissionHead", "Accountant", "Other"),
+      type: DataTypes.ENUM("teaching", "non_teaching", "contractual", "visiting"),
       allowNull: false,
     },
     designation: { type: DataTypes.STRING(150), allowNull: true },
     department: { type: DataTypes.STRING(150), allowNull: true },
     joiningDate: { type: DataTypes.DATEONLY, allowNull: false },
     employmentStatus: {
-      type: DataTypes.ENUM(
-        "probation",
-        "confirmed",
-        "notice_period",
-        "resigned",
-        "terminated",
-      ),
+      type: DataTypes.ENUM("probation", "confirmed", "notice_period", "resigned", "terminated"),
       defaultValue: "probation",
     },
     panNumber: { type: DataTypes.STRING(255), allowNull: true },
-    bankName: {
-      type: DataTypes.STRING(150),
-      allowNull: true,
-    },
-    bankBranch: {
-      type: DataTypes.STRING(150),
-      allowNull: true,
-    },
-    bankAccountNumber: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-    },
-    ifscCode: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
-      validate: {
-        is: /^[A-Z]{4}0[A-Z0-9]{6}$/,
-      },
-    },
-    accountHolderName: {
-      type: DataTypes.STRING(150),
-      allowNull: true,
-    },
-    basicSalary: {
-      type: DataTypes.DECIMAL(12, 2),
-      defaultValue: 0.0,
-    },
+    bankAccountNumber: { type: DataTypes.STRING(255), allowNull: true },
   }),
   {
     timestamps: true,
@@ -74,5 +42,5 @@ export const Staff = sequelize.define(
     //   { unique: true, fields: ["tenant_id", "employee_code"] },
     //   { fields: ["tenant_id", "staff_type"] },
     // ],
-  },
+  }
 );

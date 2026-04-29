@@ -14,20 +14,15 @@ const Role = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: false,
     },
-    slug: {
-      type: DataTypes.STRING(50),
-      allowNull: true, 
-      unique: false,
-    },
     roleType: {
       type: DataTypes.ENUM(["portal", "staff", "platform", "admin"]),
       allowNull: false,
-      unique: false,
+      unique: false, 
     },
     description: {
       type: DataTypes.TEXT,
       allowNull: true,
-    },
+    },  
     isSystem: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

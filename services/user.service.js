@@ -9,58 +9,35 @@ const userRepo = new UserRepository();
 const userRoleRepo = new UserRoleRepository();
 
 export class UserService {
- async createUser(payload, options = {}) {
+  async createUser(payload) {
     const email = payload.email?.toLowerCase().trim();
 
-    // 1. Check if email already exists
+    // Check if email already exists
     const existingUser = await userRepo.findByEmail(email, payload.tenantId);
     if (existingUser) {
       throw new AppError("Email already exists", 409);
     }
 
-    // 2. Hash password with bcrypt
+    // Hash password with bcrypt
     const hashedPassword = await BcryptHelper.hashPassword(payload.password);
 
-    // 🔥 TRANSACTION LOGIC: Use passed transaction or create a new one
-    let transaction = options.transaction;
-    let localTransaction = false;
+    const userData = {
+      email,
+      password: hashedPassword,
+      cognitoSub: payload.cognitoSub || null,
+      firstName: payload.firstName?.trim(),
+      lastName: payload.lastName?.trim(),
+      phone: payload.phone?.trim() || null,
+      userType: payload.userType,
+      status: payload.status || "pending_verification",
+      emailVerified: payload.emailVerified || false,
+      preferences: payload.preferences || { language: "en", theme: "system" },
+      tenantId: payload.tenantId,
+    };
 
-    if (!transaction) {
-      transaction = await sequelize.transaction();
-      localTransaction = true;
-    }
-
-    try {
-      const userData = {
-        email,
-        password: hashedPassword,
-        cognitoSub: payload.cognitoSub || null,
-        firstName: payload.firstName?.trim(),
-        lastName: payload.lastName?.trim(),
-        phone: payload.phone?.trim() || null,
-        status: payload.status || "pending_verification",
-        emailVerified: payload.emailVerified || false,
-        preferences: payload.preferences || { language: "en", theme: "system" },
-        tenantId: payload.tenantId,
-      };
-
-      // 🔥 Pass the transaction to repository
-      const user = await userRepo.create(userData, { transaction });
-
-      // Only commit if this function started the transaction
-      if (localTransaction) {
-        await transaction.commit();
-      }
-
-      return this.formatUserResponse(user);
-    } catch (error) {
-      // Only rollback if this function started the transaction
-      if (localTransaction && !transaction.finished) {
-        await transaction.rollback();
-      }
-      throw error;
-    }
-}
+    const user = await userRepo.create(userData);
+    return this.formatUserResponse(user);
+  }
 
   async getAllUsers(tenantId, filter = {}) {
     const users = await userRepo.findAllWithAssociations(tenantId, filter);

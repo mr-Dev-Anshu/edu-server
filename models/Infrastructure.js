@@ -109,7 +109,8 @@ export const TimetableSlot = sequelize.define(
     endTime: { type: DataTypes.TIME, allowNull: false },
   }),
   {
-    timestamps: false,
+    timestamps: true,
+    paranoid: true,
     underscored: true,
     tableName: "timetable_slots",
     // indexes: [

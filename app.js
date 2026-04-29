@@ -7,14 +7,9 @@ import { fileURLToPath } from 'url';
 import permissionRouter from './router/permission.router.js';
 import roleRouter from './router/role.router.js';
 import tenantRouter from './router/tenant.router.js';
+import infrastructure from './router/infrastructure.router.js'
 import userRouter from './router/user.router.js';
 import userRoleRouter from './router/user-role.router.js';
-import staffRouter from './router/staff.router.js';
-import academicYearRouter from './router/Academic/academicYear.routes.js';
-import classRouter from './router/Academic/class.routes.js';
-import sectionRouter from "./router/Academic/section.routes.js";
-import studentRouter from "./router/student.routes.js";
-import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
 
@@ -57,14 +52,9 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/tenants', tenantRouter);
 app.use('/api/v1/roles', roleRouter);
 app.use('/api/v1/permissions', permissionRouter);
+app.use('/api/v1/infrastructure', infrastructure)
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/user-roles', userRoleRouter);
-app.use('/api/v1/staff', staffRouter);
-app.use('/api/v1/academic-years', academicYearRouter);
-app.use('/api/v1/classes', classRouter);
-app.use('/api/v1/sections', sectionRouter);
-app.use('/api/v1/students', studentRouter);
-app.use('/api/v1/enrollments', enrollmentRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

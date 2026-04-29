@@ -8,31 +8,21 @@ export class UserRoleRepository extends BaseRepository {
     super(UserRole);
   }
 
- // repositories/userRole.repository.js
-
-async findByUserId(userId, options = {}) {
-  // Hum options se transaction nikal rahe hain aur baaki query params ko queryOptions mein
-  const { transaction, ...filter } = options;
-
-  return await this.model.findAll({
-    where: { 
-      ...filter, 
-      userId 
-    },
-    include: [
-      {
-        association: "role",
-        attributes: ["id", "name", "roleType", "description"],
-      },
-      {
-        association: "assignedBy",
-        attributes: ["id", "firstName", "lastName", "email"],
-      },
-    ],
-    // 🔥 Transaction ab sahi jagah (root level) par pass hogi
-    transaction: transaction || undefined 
-  });
-}
+  async findByUserId(userId, filter = {}) {
+    return await this.model.findAll({
+      where: { ...filter, userId },
+      include: [
+        {
+          association: "role",
+          attributes: ["id", "name", "roleType", "description"],
+        },
+        {
+          association: "assignedBy",
+          attributes: ["id", "firstName", "lastName", "email"],
+        },
+      ],
+    });
+  }
 
   async findByRoleId(roleId, filter = {}) {
     return await this.model.findAll({

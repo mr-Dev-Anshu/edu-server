@@ -40,6 +40,11 @@ const User = sequelize.define(
       allowNull: true,
     },
 
+    // --- RBAC & Logic ---
+    userType: {
+      type: DataTypes.ENUM("super_admin", "org_admin", "staff", "teacher", "student", "parent"),
+      allowNull: false,
+    },
     status: {
       type: DataTypes.ENUM("active", "inactive", "suspended", "pending_verification"),
       defaultValue: "pending_verification",

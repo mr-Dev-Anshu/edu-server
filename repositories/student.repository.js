@@ -54,6 +54,17 @@ export class StudentRepository extends BaseRepository {
           as: "user",
           attributes: ["id", "firstName", "lastName", "email"],
         },
+        {
+          association: "guardians",
+          through: { attributes: ["relationType", "isPrimary", "canPickup"] },
+          attributes: ["id", "tenantId", "userId", "relation", "phone", "occupation", "isPrimaryContact", "createdAt", "updatedAt"],
+          include: [
+            {
+              association: "user",
+              attributes: ["id", "firstName", "lastName", "email"],
+            },
+          ],
+        },
       ],
     });
 
@@ -79,6 +90,17 @@ export class StudentRepository extends BaseRepository {
           model: StudentSectionEnrollment,
           as: "enrollments",
           attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent", "createdAt"],
+        },
+        {
+          association: "guardians",
+          through: { attributes: ["relationType", "isPrimary", "canPickup"] },
+          attributes: ["id", "tenantId", "userId", "relation", "phone", "occupation", "isPrimaryContact", "createdAt", "updatedAt"],
+          include: [
+            {
+              association: "user",
+              attributes: ["id", "firstName", "lastName", "email"],
+            },
+          ],
         },
       ],
     });

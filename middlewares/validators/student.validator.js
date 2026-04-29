@@ -90,6 +90,34 @@ const GENDERS = ["male", "female", "other", "prefer_not_to_say"];
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "unknown"];
 const CATEGORIES = ["general", "obc", "sc", "st", "ews", "other"];
 const STATUSES = ["active", "inactive", "transferred_out", "passed_out", "dropped"];
+const GUARDIAN_RELATIONS = ["father", "mother", "guardian", "grandparent", "sibling", "other"];
+const GUARDIAN_MAP_RELATIONS = ["father", "mother", "guardian", "other"];
+
+const ensureArray = (value, fieldName) => {
+  if (!Array.isArray(value)) {
+    throw new AppError(`${fieldName} must be an array`, 400);
+  }
+};
+
+const ensureGuardianPayload = (guardian, index) => {
+  const fieldPrefix = `guardians[${index}]`;
+
+  if (!guardian || typeof guardian !== "object" || Array.isArray(guardian)) {
+    throw new AppError(`${fieldPrefix} must be an object`, 400);
+  }
+
+  ensureString(guardian.email, `${fieldPrefix}.email`, { min: 5, max: 100 });
+  ensureString(guardian.password, `${fieldPrefix}.password`, { min: 6, max: 50 });
+  ensureString(guardian.firstName, `${fieldPrefix}.firstName`, { min: 1, max: 100 });
+  ensureString(guardian.lastName, `${fieldPrefix}.lastName`, { min: 1, max: 100 });
+  ensureRequiredEnum(guardian.relation, `${fieldPrefix}.relation`, GUARDIAN_RELATIONS);
+  ensureString(guardian.phone, `${fieldPrefix}.phone`, { min: 1, max: 20 });
+  ensureOptionalString(guardian.occupation, `${fieldPrefix}.occupation`, { min: 1, max: 150 });
+  ensureOptionalEnum(guardian.relationType, `${fieldPrefix}.relationType`, GUARDIAN_MAP_RELATIONS);
+  ensureBoolean(guardian.isPrimaryContact, `${fieldPrefix}.isPrimaryContact`);
+  ensureBoolean(guardian.isPrimary, `${fieldPrefix}.isPrimary`);
+  ensureBoolean(guardian.canPickup, `${fieldPrefix}.canPickup`);
+};
 
 export const createStudentValidator = createValidator((req) => {
   ensureNoTenantId(req.body);
@@ -125,6 +153,15 @@ export const createStudentValidator = createValidator((req) => {
   ensureOptionalString(req.body.address, "address", { min: 1, max: 1000 });
   ensureOptionalString(req.body.city, "city", { min: 1, max: 100 });
   ensureOptionalString(req.body.pincode, "pincode", { min: 1, max: 20 });
+
+  ensureArray(req.body.guardians, "guardians");
+  if (!req.body.guardians.length) {
+    throw new AppError("guardians must contain at least one item", 400);
+  }
+
+  req.body.guardians.forEach((guardian, index) => {
+    ensureGuardianPayload(guardian, index);
+  });
 });
 
 export const updateStudentValidator = createValidator((req) => {

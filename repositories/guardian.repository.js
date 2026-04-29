@@ -13,11 +13,27 @@ export class GuardianRepository extends BaseRepository {
     });
   }
 
+  async findByEmail(email, tenantId) {
+    const normalizedEmail = email?.toLowerCase().trim();
+    return await this.model.findOne({
+      where: { tenantId },
+      include: [
+        {
+          association: "user",
+          where: { email: normalizedEmail },
+          required: true,
+          attributes: { exclude: ["password"] },
+        },
+      ],
+    });
+  }
+
   async attachStudents(
     studentIds,
     guardianId,
     tenantId,
     { relationType, isPrimary, canPickup },
+    options = {},
   ) {
     if (!studentIds.length) {
       return [];
@@ -32,6 +48,7 @@ export class GuardianRepository extends BaseRepository {
         canPickup,
         isPrimary,
       })),
+      options,
     );
   }
   async findByStudentId(studentId, tenantId) {
@@ -43,6 +60,11 @@ export class GuardianRepository extends BaseRepository {
           as: "studentMappings",
           where: { studentId, tenantId },
           required: true,
+          attributes: ["relationType", "isPrimary", "canPickup"],
+        },
+        {
+          association: "user",
+          attributes: ["id", "firstName", "lastName", "email", "phone"],
         },
       ],
     });

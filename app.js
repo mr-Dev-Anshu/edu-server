@@ -14,6 +14,7 @@ import academicYearRouter from './router/Academic/academicYear.routes.js';
 import classRouter from './router/Academic/class.routes.js';
 import sectionRouter from "./router/Academic/section.routes.js";
 import studentRouter from "./router/student.routes.js";
+import productRouter from "./router/product.routes.js";
 import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
@@ -65,7 +66,7 @@ app.use('/api/v1/classes', classRouter);
 app.use('/api/v1/sections', sectionRouter);
 app.use('/api/v1/students', studentRouter);
 app.use('/api/v1/enrollments', enrollmentRouter);
-
+app.use('/api/v1/products', productRouter);
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });
 });

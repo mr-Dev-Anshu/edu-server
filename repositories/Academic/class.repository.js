@@ -9,10 +9,15 @@ export class ClassRepository extends BaseRepository {
     super(Class);
   }
 
-  // Find class by name (for duplicate check)
+  // Find class by name (for duplicate check) - case-insensitive
   async findByName(name, tenantId) {
     return await this.model.findOne({
-      where: { name, tenantId },
+      where: { 
+        tenantId,
+        name: {
+          [Op.iLike]: name.trim(),
+        }
+      },
     });
   }
 

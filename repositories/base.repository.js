@@ -16,8 +16,10 @@ export class BaseRepository {
     // Agar options ek array hai (puraane code ke liye support), toh use include bana do
     const queryOptions = Array.isArray(options) ? { include: options } : options;
     
+    const where = tenantId !== undefined && tenantId !== null ? { id, tenantId } : { id };
+
     const record = await this.model.findOne({ 
-      where: { id, tenantId }, 
+      where, 
       ...queryOptions // Isme transaction aur include dono sahi jagah jayenge
     });
 
@@ -29,8 +31,12 @@ export class BaseRepository {
     // Same logic: options handles include and transaction
     const queryOptions = Array.isArray(options) ? { include: options } : options;
 
+    const where = tenantId !== undefined && tenantId !== null
+      ? { ...filter, tenantId }
+      : { ...filter };
+
     return await this.model.findAll({ 
-      where: { ...filter, tenantId }, 
+      where, 
       ...queryOptions 
     });
   }
@@ -111,6 +117,7 @@ export class BaseRepository {
  
   async delete(id, tenantId, options = {}) {
     const record = await this.findById(id, tenantId, options);
+    console.log(record)
     return await record.destroy(options);
   }
 }

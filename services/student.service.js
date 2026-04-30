@@ -1,12 +1,15 @@
 import sequelize from "../config/db.js";
 import { GuardianService } from "./guardian.service.js";
 import { StudentRepository } from "../repositories/student.repository.js";
+import { GuardianRepository } from "../repositories/guardian.repository.js";
 import { AppError } from "../utils/AppError.js";
 import { RoleService } from "./role.service.js";
 import { UserRoleService } from "./user-role.service.js";
 import { UserService } from "./user.service.js";
+import { StudentGuardianMap } from "../models/index.js";
 
 const studentRepo = new StudentRepository();
+const guardianRepo = new GuardianRepository();
 const guardianService = new GuardianService();
 const userService = new UserService();
 const userRoleService = new UserRoleService();
@@ -314,19 +317,47 @@ export class StudentService {
   }
 
   async deleteStudent(id, tenantId) {
-    // Fetch with details before deletion to return complete data
-    const student = await studentRepo.findWithDetails(id, tenantId);
-    if (!student) {
-      throw new AppError("Student not found", 404);
-    }
-    
-    await studentRepo.delete(id, tenantId);
+    const transaction = await sequelize.transaction();
 
-    const studentData = student.get ? student.get({ plain: true }) : student;
-    return {
-      message: "Student deleted successfully",
-      data: this.formatStudentResponse(studentData),
-    };
+    try {
+      // Fetch student with guardian IDs only (lightweight)
+      const student = await studentRepo.findWithDetails(id, tenantId);
+      if (!student) {
+        throw new AppError("Student not found", 404);
+      }
+      
+      const guardianIds = student.guardians?.map(g => g.id) || [];
+      
+      // Explicitly delete StudentGuardianMap entries first
+      await StudentGuardianMap.destroy({ 
+        where: { studentId: id, tenantId },
+        transaction
+      });
+      
+      // Delete student
+      await studentRepo.delete(id, tenantId, { transaction });
+
+      // Find orphaned guardians in single query (with transaction for consistency)
+      if (guardianIds.length > 0) {
+        const orphanedGuardianIds = await guardianRepo.findOrphanedGuardians(guardianIds, tenantId, { transaction });
+        
+        // Batch delete orphaned guardians
+        if (orphanedGuardianIds.length > 0) {
+          await guardianRepo.deleteMultiple(orphanedGuardianIds, tenantId, { transaction });
+        }
+      }
+
+      await transaction.commit();
+      
+      const studentData = student.get ? student.get({ plain: true }) : student;
+      return {
+        message: "Student deleted successfully",
+        data: this.formatStudentResponse(studentData),
+      };
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   formatStudentResponse(student) {

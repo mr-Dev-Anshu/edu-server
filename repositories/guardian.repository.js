@@ -1,6 +1,7 @@
 import { Guardian } from "../models/index.js";
 import {StudentGuardianMap} from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
+import sequelize from "../config/db.js";
 
 export class GuardianRepository extends BaseRepository {
   constructor() {
@@ -67,6 +68,39 @@ export class GuardianRepository extends BaseRepository {
           attributes: ["id", "firstName", "lastName", "email", "phone"],
         },
       ],
+    });
+  }
+
+  async countStudentMappings(guardianId, tenantId) {
+    return await StudentGuardianMap.count({
+      where: { guardianId, tenantId },
+    });
+  }
+
+  async findOrphanedGuardians(guardianIds, tenantId, options = {}) {
+    // Find guardians that have no remaining student mappings in one query
+    const guardianStats = await StudentGuardianMap.findAll({
+      attributes: [
+        "guardianId",
+        [sequelize.fn("COUNT", sequelize.col("id")), "mappingCount"],
+      ],
+      where: { guardianId: guardianIds, tenantId },
+      group: ["guardianId"],
+      raw: true,
+      ...options,
+    });
+
+    const guardianIdsWithMappings = guardianStats.map(stat => stat.guardianId);
+    const orphanedIds = guardianIds.filter(id => !guardianIdsWithMappings.includes(id));
+    
+    return orphanedIds;
+  }
+
+  async deleteMultiple(ids, tenantId, options = {}) {
+    if (!ids.length) return 0;
+    return await this.model.destroy({
+      where: { id: ids, tenantId },
+      ...options,
     });
   }
 }

@@ -17,7 +17,7 @@ import studentRouter from "./router/student.routes.js";
 import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
-
+import productRoutes from "./router/product.router.js"
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -30,19 +30,19 @@ const allowedOrigins = (process.env.CORS_ORIGIN || '')
 const corsOptions = {
   origin: allowedOrigins.length
     ? (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-          return callback(null, true);
-        }
-
-        return callback(new Error('Not allowed by CORS'));
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
+
+      return callback(new Error('Not allowed by CORS'));
+    }
     : true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id']
 };
 
-app.use(helmet()); 
+app.use(helmet());
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(morgan('dev'));
@@ -65,6 +65,7 @@ app.use('/api/v1/classes', classRouter);
 app.use('/api/v1/sections', sectionRouter);
 app.use('/api/v1/students', studentRouter);
 app.use('/api/v1/enrollments', enrollmentRouter);
+app.use("/api/v1/products", productRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

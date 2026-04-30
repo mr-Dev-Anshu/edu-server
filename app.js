@@ -17,6 +17,7 @@ import studentRouter from "./router/student.routes.js";
 import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
+import bookRouter from "./router/book.routes.js"
 
 
 const app = express();
@@ -65,6 +66,7 @@ app.use('/api/v1/classes', classRouter);
 app.use('/api/v1/sections', sectionRouter);
 app.use('/api/v1/students', studentRouter);
 app.use('/api/v1/enrollments', enrollmentRouter);
+app.use("/api/v1/books", bookRouter )
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

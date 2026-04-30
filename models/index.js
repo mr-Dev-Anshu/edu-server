@@ -39,6 +39,7 @@ import Subject from './Academic/Subject.js';
 
 // // --- Infrastructure ---
 import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
+import Product from "./Product.js";
 
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
@@ -119,6 +120,18 @@ StudentSectionEnrollment.belongsTo(Student, { foreignKey: "studentId", as: "stud
 StudentSectionEnrollment.belongsTo(Section, { foreignKey: "sectionId", as: "section"});
 StudentSectionEnrollment.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear"});
 
+// ─── Tenant → Product ───────────────────────
+Tenant.hasMany(Product, {
+  foreignKey: 'tenantId',
+  as: 'products',
+  onDelete: 'SET NULL',
+  onUpdate: 'CASCADE',
+});
+
+Product.belongsTo(Tenant, {
+  foreignKey: 'tenantId',
+  as: 'tenant',
+});;
 
 // Teacher Assignments
 TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId" });

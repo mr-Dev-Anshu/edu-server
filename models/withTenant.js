@@ -7,12 +7,13 @@ export const withTenant = (schema, options = { isGlobal: false }) => {
     tenantId: {
       type: DataTypes.UUID,
       allowNull: options.isGlobal,
+      allowNull:false,
       references: {
-        model: "tenants", 
+        model: "tenants",
         key: "id",
       },
       onUpdate: "CASCADE",
-      onDelete: "SET NULL", 
+      onDelete: "SET NULL",
     },
     customFields: {
       type: DataTypes.JSONB,

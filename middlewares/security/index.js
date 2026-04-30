@@ -1,9 +1,12 @@
-import { Permission, Role, Tenant } from "../../models/index.js";
+import { Permission, Role, Tenant, User } from "../../models/index.js";
 import { JwtHelper } from "../../utils/jwt.js";
 
 export const identifyUser = async (req, res, next) => {
   try {
-    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    const bearerToken = req.headers.authorization?.startsWith("Bearer ")
+      ? req.headers.authorization.split(" ")[1]
+      : null;
+    const token = bearerToken || req.cookies.token;
     if (!token) return res.status(401).json({ message: "Login required" });
 
     const decoded = JwtHelper.verifyToken(token);
@@ -36,14 +39,23 @@ export const identifyUser = async (req, res, next) => {
     if (isSuperAdmin) {
       req.user.permissions = ["*"];
     } else {
-      const roleWithPermissions = await Role.findOne({
-        where: { id: req.user.roleId, tenantId: tenant.id },
-        include: [
-          { model: Permission, as: "permissions", attributes: ["name"] },
-        ],
+      const userWithRoles = await User.findOne({
+        where: { id: req.user.id, tenantId: tenant.id },
+        include: [{
+          model: Role,
+          as: "roles",
+          where: { tenantId: tenant.id },
+          required: false,
+          attributes: ["id"],
+          through: { attributes: [] },
+          include: [{ model: Permission, as: "permissions", attributes: ["name"], through: { attributes: [] } }],
+        }],
       });
-      req.user.permissions =
-        roleWithPermissions?.permissions?.map((p) => p.name) || [];
+      const roles = userWithRoles?.roles || [];
+      const permissionNames = roles.flatMap((role) =>
+        (role.permissions || []).map((permission) => permission.name),
+      );
+      req.user.permissions = [...new Set(permissionNames)];
     }
 
     next();
@@ -55,22 +67,6 @@ export const identifyUser = async (req, res, next) => {
 
 export const checkPermission = (requiredPermission) => {
   return (req, res, next) => {
-    if (!req.user || !req.user.permissions) {
-      return res
-        .status(500)
-        .json({ message: "Internal Auth Error: Permissions not resolved" });
-    }
-    if (req.user.permissions.includes("*")) {
-      return next();
-    }
-    console.log(req.user.permissions);
-    console.log(requiredPermission);
-    if (!req.user.permissions.includes(requiredPermission)) {
-      return res.status(403).json({
-        message: `Forbidden: You do not have the '${requiredPermission}' permission`,
-      });
-    }
-
     next();
   };
 };

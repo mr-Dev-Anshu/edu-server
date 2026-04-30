@@ -11,6 +11,8 @@
     "migrate:undo": "npx sequelize-cli db:migrate:undo",
     "migrate:role-type": "node scripts/migrateRoleSlugToRoleType.js",
     "migrate:role-type-non-unique": "node scripts/dropRoleTypeUniqueIndex.js",
+    "migrate:product-permissions": "node scripts/backfillProductPermissionsForPlatformAdmin.js",
+    "migrate:product-table": "node scripts/fixProductTableSchema.js",
     "seed": "npx sequelize-cli db:seed:all",
     "seed:super-admin": "node scripts/seedSuperAdmin.js",
     "format": "prettier --write .",

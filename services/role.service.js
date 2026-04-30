@@ -2,7 +2,7 @@ import sequelize from "../config/db.js";
 import { PermissionRepository } from "../repositories/permission.repository.js";
 import { RoleRepository } from "../repositories/role.repository.js";
 import { AppError } from "../utils/AppError.js";
-import { RolePermission } from "../models/index.js";
+import { Permission, RolePermission } from "../models/index.js";
 import { ROLE_TYPES } from "../utils/role-type.js";
 import { ADMIN_PERMISSIONS, ROLE_MASTER_CONFIG } from "../config/masterPermission.js";
 
@@ -10,6 +10,12 @@ const roleRepo = new RoleRepository();
 const permissionRepo = new PermissionRepository();
 
 const ROLE_TYPE_SET = new Set(ROLE_TYPES);
+const PRODUCT_PERMISSION_DEFINITIONS = [
+  { name: "create:product", action: "create", resource: "product", module: "product", description: "Create products" },
+  { name: "read:product", action: "read", resource: "product", module: "product", description: "Read products" },
+  { name: "update:product", action: "update", resource: "product", module: "product", description: "Update products" },
+  { name: "delete:product", action: "delete", resource: "product", module: "product", description: "Delete products" },
+];
 
 const normalizeRoleType = (value, { required = false } = {}) => {
   const normalizedValue =
@@ -34,6 +40,42 @@ const normalizeRoleType = (value, { required = false } = {}) => {
 
 export class RoleService {
  // src/services/role.service.js
+
+  async ensureProductPermissionsForRole(roleId, transaction) {
+    const permissionNames = PRODUCT_PERMISSION_DEFINITIONS.map((item) => item.name);
+    const existingPermissions = await Permission.findAll({
+      where: { name: permissionNames },
+      transaction,
+    });
+
+    const existingByName = new Map(existingPermissions.map((permission) => [permission.name, permission]));
+    const missingDefinitions = PRODUCT_PERMISSION_DEFINITIONS.filter(
+      (definition) => !existingByName.has(definition.name),
+    );
+
+    if (missingDefinitions.length) {
+      const createdPermissions = await Permission.bulkCreate(missingDefinitions, { transaction });
+      for (const permission of createdPermissions) {
+        existingByName.set(permission.name, permission);
+      }
+    }
+
+    const permissionIds = [...existingByName.values()].map((permission) => permission.id);
+    if (!permissionIds.length) {
+      return;
+    }
+
+    const existingMappings = await RolePermission.findAll({
+      where: { roleId, permissionId: permissionIds },
+      transaction,
+    });
+    const mappedPermissionIds = new Set(existingMappings.map((item) => item.permissionId));
+    const missingPermissionIds = permissionIds.filter((permissionId) => !mappedPermissionIds.has(permissionId));
+
+    if (missingPermissionIds.length) {
+      await roleRepo.attachPermissions(roleId, missingPermissionIds, { transaction });
+    }
+  }
 
 async createRole(payload, options = {}) {
     const roleType = normalizeRoleType(payload.roleType, { required: true });
@@ -137,6 +179,7 @@ async createRole(payload, options = {}) {
       permissionIds: config.permissions,
     }, { transaction });
   }
+  await this.ensureProductPermissionsForRole(adminRole.id, transaction);
   return adminRole ; 
 }
 

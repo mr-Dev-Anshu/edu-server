@@ -127,18 +127,29 @@ export class TimetableSlotRepository extends BaseRepository {
     // Collision check: same room already booked in this period
     async findRoomConflict(tenantId, roomId, dayOfWeek, periodNumber, excludeId = null) {
         if (!roomId) return null;
-        const where = { tenantId, roomId, dayOfWeek, periodNumber };
-        if (excludeId) where.id = { [Op.ne]: excludeId };
-        return await TimetableSlot.findOne({
-            where,
-            include: [
-                {
-                    model: Timetable,
-                    where: { status: "published" },  // ← match teacher conflict logic
-                    attributes: [],
-                },
-            ],
+
+        // 1. Get all published timetables for this tenant manually
+        const publishedTimetables = await Timetable.findAll({
+            where: { tenantId, status: "published" },
+            attributes: ["id"] // We only need the IDs
         });
+        const publishedIds = publishedTimetables.map(t => t.id);
+
+        if (publishedIds.length === 0) return null; // No published timetables to conflict with
+
+        const where = { 
+            tenantId, 
+            roomId, 
+            dayOfWeek, 
+            periodNumber,
+            timetableId: publishedIds 
+        };
+        
+        if (excludeId) {
+            where.id = { [Op.ne]: excludeId };
+        }
+        
+        return await TimetableSlot.findOne({ where });
     }
 
     // async bulkCreate(slots, transaction) {

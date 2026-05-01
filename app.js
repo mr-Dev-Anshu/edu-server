@@ -46,7 +46,6 @@ const corsOptions = {
 app.use(helmet()); 
 app.use(cors(corsOptions));
 app.use(cookieParser());
-// 2. Utility Middleware
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

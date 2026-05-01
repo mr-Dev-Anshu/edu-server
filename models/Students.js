@@ -14,7 +14,8 @@ export const Student = sequelize.define(
     
     userId: {
       type: DataTypes.UUID,
-      allowNull: true, 
+      allowNull: false,
+      unique: true,
       references: { model: "users", key: "id" },
     },
     admissionNumber: {

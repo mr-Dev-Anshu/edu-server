@@ -1,11 +1,16 @@
 import sequelize from "../config/db.js";
+import { GuardianService } from "./guardian.service.js";
 import { StudentRepository } from "../repositories/student.repository.js";
+import { GuardianRepository } from "../repositories/guardian.repository.js";
 import { AppError } from "../utils/AppError.js";
 import { RoleService } from "./role.service.js";
 import { UserRoleService } from "./user-role.service.js";
 import { UserService } from "./user.service.js";
+import { StudentGuardianMap } from "../models/index.js";
 
 const studentRepo = new StudentRepository();
+const guardianRepo = new GuardianRepository();
+const guardianService = new GuardianService();
 const userService = new UserService();
 const userRoleService = new UserRoleService();
 const roleService = new RoleService();
@@ -18,7 +23,9 @@ export class StudentService {
       firstName,
       lastName,
       admissionNumber,
+      guardians = [],
       requestedBy,
+      ...studentFields
     } = payload;
 
     // 1. Admission Number check (Before transaction)
@@ -74,7 +81,10 @@ export class StudentService {
       // 5. Create Student Profile
       const student = await studentRepo.create(
         {
-          ...payload,
+          ...studentFields,
+          firstName: firstName?.trim(),
+          middleName: payload.middleName?.trim() || null,
+          lastName: lastName?.trim(),
           tenantId,
           userId: user.id,
           admissionNumber: admissionNumber.trim(),
@@ -82,8 +92,86 @@ export class StudentService {
         { transaction },
       );
 
+      const createdGuardians = [];
+
+      for (const guardianInput of guardians) {
+        const {
+          email: guardianEmail,
+          password: guardianPassword,
+          firstName: guardianFirstName,
+          lastName: guardianLastName,
+          relation,
+          relationType,
+          phone,
+          occupation,
+          isPrimaryContact,
+          isPrimary,
+          canPickup,
+        } = guardianInput;
+
+        const normalizedRelationType =
+          relationType ??
+          (relation === "father" || relation === "mother" || relation === "guardian"
+            ? relation
+            : "other");
+
+        const guardian = await guardianService.resolveGuardian(
+          tenantId,
+          {
+            email: guardianEmail,
+            password: guardianPassword,
+            firstName: guardianFirstName,
+            lastName: guardianLastName,
+            relation,
+            phone,
+            occupation,
+            isPrimaryContact,
+            requestedBy,
+          },
+          { transaction },
+        );
+
+        await guardianService.attachStudents(
+          guardian.id,
+          tenantId,
+          {
+            studentIds: [student.id],
+            relationType: normalizedRelationType,
+            isPrimary: isPrimary ?? false,
+            canPickup: canPickup ?? true,
+          },
+          { transaction },
+        );
+
+        // Format guardian response with all fields (handles both new and reused guardians)
+        createdGuardians.push({
+          id: guardian.id,
+          tenantId: guardian.tenantId,
+          userId: guardian.userId,
+          relation: guardian.relation,
+          phone: guardian.phone,
+          occupation: guardian.occupation,
+          isPrimaryContact: guardian.isPrimaryContact,
+          relationType: normalizedRelationType,
+          isPrimary: isPrimary ?? false,
+          canPickup: canPickup ?? true,
+          createdAt: guardian.createdAt,
+          updatedAt: guardian.updatedAt,
+          firstName: guardianFirstName,
+          lastName: guardianLastName,
+          email: guardianEmail,
+        });
+      }
+
       await transaction.commit();
-      return this.formatStudentResponse(student);
+      
+      // Convert Sequelize instance to plain object
+      const studentData = student.get({ plain: true });
+      
+      return this.formatStudentResponse({
+        ...studentData,
+        guardians: createdGuardians,
+      });
     } catch (error) {
       if (!transaction.finished) await transaction.rollback();
       throw error;
@@ -100,7 +188,16 @@ export class StudentService {
     if (query.userId) filters.userId = query.userId;
     if (query.name) filters.name = query.name;
 
-    return await studentRepo.findWithPagination(tenantId, filters, page, limit);
+    const result = await studentRepo.findWithPagination(tenantId, filters, page, limit);
+    
+    // Format each student's guardians properly
+    return {
+      ...result,
+      data: result.data.map(student => {
+        const studentData = student.get ? student.get({ plain: true }) : student;
+        return this.formatStudentResponse(studentData);
+      }),
+    };
   }
 
   async getStudentById(id, tenantId) {
@@ -109,7 +206,8 @@ export class StudentService {
       throw new AppError("Student not found", 404);
     }
 
-    return this.formatStudentResponse(student);
+    const studentData = student.get ? student.get({ plain: true }) : student;
+    return this.formatStudentResponse(studentData);
   }
 
   async updateStudent(id, tenantId, updateData) {
@@ -212,17 +310,54 @@ export class StudentService {
         : {}),
     });
 
-    return this.formatStudentResponse(updated);
+    // Fetch updated record with all details (guardians, user, enrollments)
+    const updatedWithDetails = await studentRepo.findWithDetails(id, tenantId);
+    const updatedData = updatedWithDetails.get ? updatedWithDetails.get({ plain: true }) : updatedWithDetails;
+    return this.formatStudentResponse(updatedData);
   }
 
   async deleteStudent(id, tenantId) {
-    const student = await studentRepo.findById(id, tenantId);
-    await studentRepo.delete(id, tenantId);
+    const transaction = await sequelize.transaction();
 
-    return {
-      message: "Student deleted successfully",
-      data: this.formatStudentResponse(student),
-    };
+    try {
+      // Fetch student with guardian IDs only (lightweight)
+      const student = await studentRepo.findWithDetails(id, tenantId);
+      if (!student) {
+        throw new AppError("Student not found", 404);
+      }
+      
+      const guardianIds = student.guardians?.map(g => g.id) || [];
+      
+      // Explicitly delete StudentGuardianMap entries first
+      await StudentGuardianMap.destroy({ 
+        where: { studentId: id, tenantId },
+        transaction
+      });
+      
+      // Delete student
+      await studentRepo.delete(id, tenantId, { transaction });
+
+      // Find orphaned guardians in single query (with transaction for consistency)
+      if (guardianIds.length > 0) {
+        const orphanedGuardianIds = await guardianRepo.findOrphanedGuardians(guardianIds, tenantId, { transaction });
+        
+        // Batch delete orphaned guardians
+        if (orphanedGuardianIds.length > 0) {
+          await guardianRepo.deleteMultiple(orphanedGuardianIds, tenantId, { transaction });
+        }
+      }
+
+      await transaction.commit();
+      
+      const studentData = student.get ? student.get({ plain: true }) : student;
+      return {
+        message: "Student deleted successfully",
+        data: this.formatStudentResponse(studentData),
+      };
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   formatStudentResponse(student) {
@@ -265,6 +400,23 @@ export class StudentService {
       updatedAt: student.updatedAt,
       user: student.user || undefined,
       enrollments: student.enrollments || undefined,
+      guardians: student.guardians?.map((guardian) => ({
+        id: guardian.id,
+        tenantId: guardian.tenantId,
+        userId: guardian.userId,
+        relation: guardian.relation,
+        phone: guardian.phone,
+        occupation: guardian.occupation,
+        isPrimaryContact: guardian.isPrimaryContact,
+        relationType: guardian.relationType ?? guardian.StudentGuardianMap?.relationType,
+        isPrimary: guardian.isPrimary ?? guardian.StudentGuardianMap?.isPrimary,
+        canPickup: guardian.canPickup ?? guardian.StudentGuardianMap?.canPickup,
+        firstName: guardian.firstName ?? guardian.user?.firstName,
+        lastName: guardian.lastName ?? guardian.user?.lastName,
+        email: guardian.email ?? guardian.user?.email,
+        createdAt: guardian.createdAt,
+        updatedAt: guardian.updatedAt,
+      })),
     };
   }
 }

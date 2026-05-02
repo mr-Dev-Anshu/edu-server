@@ -7,14 +7,17 @@ export class SectionRepository extends BaseRepository {
     super(Section);
   }
 
-  // Duplicate check (based on UNIQUE INDEX)
+  // Duplicate check (active records only, case-insensitive)
   async findDuplicate(name, classId, academicYearId, tenantId) {
     return await this.model.findOne({
       where: {
-        name,
+        name: {
+          [Op.iLike]: name.trim(),
+        },
         classId,
         academicYearId,
         tenantId,
+        deletedAt: null,
       },
     });
   }
@@ -22,7 +25,7 @@ export class SectionRepository extends BaseRepository {
   // Find sections by class
   async findByClass(classId, tenantId) {
     return await this.model.findAll({
-      where: { classId, tenantId },
+      where: { classId, tenantId, deletedAt: null },
       order: [["name", "ASC"]],
     });
   }
@@ -30,7 +33,7 @@ export class SectionRepository extends BaseRepository {
   // Find sections by academic year
   async findByAcademicYear(academicYearId, tenantId) {
     return await this.model.findAll({
-      where: { academicYearId, tenantId },
+      where: { academicYearId, tenantId, deletedAt: null },
       order: [["name", "ASC"]],
     });
   }
@@ -41,6 +44,7 @@ export class SectionRepository extends BaseRepository {
 
     const where = {
       tenantId,
+      deletedAt: null,
       ...filters,
     };
 
@@ -75,7 +79,7 @@ export class SectionRepository extends BaseRepository {
   // Get single section with full details
   async findWithDetails(id, tenantId) {
     return await this.model.findOne({
-      where: { id, tenantId },
+      where: { id, tenantId, deletedAt: null },
       include: [
         {
           model: Class,
@@ -96,6 +100,7 @@ export class SectionRepository extends BaseRepository {
     return await this.model.findAll({
       where: {
         tenantId,
+        deletedAt: null,
         name: {
           [Op.iLike]: `%${keyword}%`,
         },

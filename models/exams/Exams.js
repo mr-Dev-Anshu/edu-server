@@ -73,6 +73,7 @@ export const ExamSchedule = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
       references: { model: "sections", key: "id" },
+      onDelete: "CASCADE",
     },
     examDate: { type: DataTypes.DATEONLY, allowNull: false },
     startTime: { type: DataTypes.TIME, allowNull: true },

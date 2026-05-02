@@ -14,11 +14,13 @@ export const Section = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
       references: { model: "classes", key: "id" },
+      onDelete: "CASCADE",
     },
     academicYearId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: { model: "academic_years", key: "id" },
+      onDelete: "CASCADE",
     },
     name: {
       type: DataTypes.STRING(50),

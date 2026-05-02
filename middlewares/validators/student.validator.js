@@ -190,10 +190,23 @@ export const updateStudentValidator = createValidator((req) => {
   ensureOptionalString(req.body.previousClass, "previousClass", { min: 1, max: 100 });
   ensureOptionalString(req.body.tcNumber, "tcNumber", { min: 1, max: 100 });
   ensureOptionalUuid(req.body.siblingId, "siblingId");
-  ensureBoolean(req.body.isStaffWard, "isStaffWard");
-  ensureOptionalEnum(req.body.status, "status", STATUSES);
-  ensureBoolean(req.body.transportRequired, "transportRequired");
-  ensureBoolean(req.body.hostelRequired, "hostelRequired");
+
+  if (req.body.isStaffWard !== undefined) {
+    ensureBoolean(req.body.isStaffWard, "isStaffWard");
+  }
+
+  if (req.body.status !== undefined) {
+    ensureOptionalEnum(req.body.status, "status", STATUSES);
+  }
+
+  if (req.body.transportRequired !== undefined) {
+    ensureBoolean(req.body.transportRequired, "transportRequired");
+  }
+
+  if (req.body.hostelRequired !== undefined) {
+    ensureBoolean(req.body.hostelRequired, "hostelRequired");
+  }
+
   ensureOptionalString(req.body.medicalConditions, "medicalConditions", { min: 1, max: 1000 });
   ensureOptionalString(req.body.emergencyContactName, "emergencyContactName", { min: 1, max: 150 });
   ensureOptionalString(req.body.emergencyContactPhone, "emergencyContactPhone", { min: 1, max: 20 });

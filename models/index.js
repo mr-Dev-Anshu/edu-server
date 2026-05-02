@@ -98,6 +98,9 @@ Staff.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
 Student.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
+// Student -> Sibling (self-referential)
+Student.belongsTo(Student, { foreignKey: "siblingId", as: "sibling" });
+
 // ==========================================
 // 4. ACADEMIC & ENROLLMENT LOGIC
 // ==========================================

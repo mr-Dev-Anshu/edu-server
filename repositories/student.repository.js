@@ -47,6 +47,7 @@ export class StudentRepository extends BaseRepository {
       where,
       offset,
       limit,
+      distinct: true,
       order: [["createdAt", "DESC"]],
       include: [
         {
@@ -60,8 +61,22 @@ export class StudentRepository extends BaseRepository {
           attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
         },
         {
+          model: Student,
+          as: "sibling",
+          attributes: ["id", "firstName", "lastName", "rollNumber"],
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName", "email", "phone"],
+            },
+          ],
+        },
+        {
           model: StudentSectionEnrollment,
           as: "enrollments",
+          separate: true,
+          order: [["isCurrent", "DESC"], ["createdAt", "DESC"]],
           attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent"],
           include: [
             {
@@ -110,8 +125,22 @@ export class StudentRepository extends BaseRepository {
           attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
         },
         {
+          model: Student,
+          as: "sibling",
+          attributes: ["id", "firstName", "lastName", "rollNumber"],
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName", "email", "phone"],
+            },
+          ],
+        },
+        {
           model: StudentSectionEnrollment,
           as: "enrollments",
+          separate: true,
+          order: [["isCurrent", "DESC"], ["createdAt", "DESC"]],
           attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent", "createdAt"],
           include: [
             {

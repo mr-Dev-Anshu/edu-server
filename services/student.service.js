@@ -28,6 +28,7 @@ export class StudentService {
       sectionId,
       academicYearId,
       enrollmentStatus,
+      siblingId,
     } = payload;
 
     // 1. Admission Number check (Before transaction)
@@ -37,6 +38,14 @@ export class StudentService {
     );
     if (existingAdmission) {
       throw new AppError("Admission number already exists", 400);
+    }
+
+    // 2. Validate sibling exists and belongs to same tenant
+    if (siblingId) {
+      const sibling = await studentRepo.findById(siblingId, tenantId);
+      if (!sibling) {
+        throw new AppError("Sibling student not found in this organization", 404);
+      }
     }
 
     const transaction = await sequelize.transaction();
@@ -90,6 +99,14 @@ export class StudentService {
         },
         { transaction },
       );
+
+      // 5a. Validate circular sibling reference
+      if (siblingId) {
+        const sibling = await studentRepo.findById(siblingId, tenantId);
+        if (sibling && sibling.siblingId === student.id) {
+          throw new AppError("Cannot create circular sibling relationship", 400);
+        }
+      }
 
       // 6. Auto-enroll in section if provided
       if (sectionId && academicYearId) {
@@ -195,6 +212,24 @@ export class StudentService {
       }
     }
 
+    // Validate sibling exists and belongs to same tenant
+    if (updateData.siblingId !== undefined && updateData.siblingId !== null) {
+      const sibling = await studentRepo.findById(updateData.siblingId, tenantId);
+      if (!sibling) {
+        throw new AppError("Sibling student not found in this organization", 404);
+      }
+
+      // Prevent circular sibling reference
+      if (updateData.siblingId === id) {
+        throw new AppError("A student cannot be their own sibling", 400);
+      }
+
+      // Check if sibling's sibling points back to this student
+      if (sibling.siblingId === id) {
+        throw new AppError("Cannot create circular sibling relationship", 400);
+      }
+    }
+
     const updated = await studentRepo.update(id, tenantId, {
       ...(updateData.admissionNumber !== undefined
         ? { admissionNumber: updateData.admissionNumber }
@@ -293,6 +328,37 @@ export class StudentService {
   }
 
   formatStudentResponse(student) {
+    const enrollments = Array.isArray(student.enrollments) ? student.enrollments : [];
+    const currentEnrollment = enrollments.find((enrollment) => enrollment.isCurrent) || enrollments[0];
+    const formatEnrollment = (enrollment) => ({
+      id: enrollment.id,
+      rollNumber: enrollment.rollNumber,
+      enrollmentStatus: enrollment.enrollmentStatus,
+      isCurrent: enrollment.isCurrent,
+      createdAt: enrollment.createdAt,
+      section: enrollment.section
+        ? {
+            id: enrollment.section.id,
+            name: enrollment.section.name,
+            capacity: enrollment.section.capacity,
+            class: enrollment.section.class
+              ? {
+                  id: enrollment.section.class.id,
+                  name: enrollment.section.class.name,
+                  numericLevel: enrollment.section.class.numericLevel,
+                }
+              : undefined,
+          }
+        : undefined,
+      academicYear: enrollment.academicYear
+        ? {
+            id: enrollment.academicYear.id,
+            name: enrollment.academicYear.name,
+            isCurrent: enrollment.academicYear.isCurrent,
+          }
+        : undefined,
+    });
+
     return {
       id: student.id,
       admissionNumber: student.admissionNumber,
@@ -313,7 +379,6 @@ export class StudentService {
       previousSchool: student.previousSchool,
       previousClass: student.previousClass,
       tcNumber: student.tcNumber,
-      siblingId: student.siblingId,
       isStaffWard: student.isStaffWard,
       status: student.status,
       transportRequired: student.transportRequired,
@@ -347,36 +412,24 @@ export class StudentService {
             status: student.user.status,
           }
         : undefined,
-      enrollments: student.enrollments
-        ? student.enrollments.map((enrollment) => ({
-            id: enrollment.id,
-            rollNumber: enrollment.rollNumber,
-            enrollmentStatus: enrollment.enrollmentStatus,
-            isCurrent: enrollment.isCurrent,
-            createdAt: enrollment.createdAt,
-            section: enrollment.section
+      sibling: student.sibling
+        ? {
+            id: student.sibling.id,
+            firstName: student.sibling.firstName,
+            lastName: student.sibling.lastName,
+            rollNumber: student.sibling.rollNumber,
+            user: student.sibling.user
               ? {
-                  id: enrollment.section.id,
-                  name: enrollment.section.name,
-                  capacity: enrollment.section.capacity,
-                  class: enrollment.section.class
-                    ? {
-                        id: enrollment.section.class.id,
-                        name: enrollment.section.class.name,
-                        numericLevel: enrollment.section.class.numericLevel,
-                      }
-                    : undefined,
+                  id: student.sibling.user.id,
+                  firstName: student.sibling.user.firstName,
+                  lastName: student.sibling.user.lastName,
+                  email: student.sibling.user.email,
+                  phone: student.sibling.user.phone,
                 }
               : undefined,
-            academicYear: enrollment.academicYear
-              ? {
-                  id: enrollment.academicYear.id,
-                  name: enrollment.academicYear.name,
-                  isCurrent: enrollment.academicYear.isCurrent,
-                }
-              : undefined,
-          }))
-        : undefined,
+          }
+        : null,
+      enrollment: currentEnrollment ? formatEnrollment(currentEnrollment) : undefined,
     };
   }
 }

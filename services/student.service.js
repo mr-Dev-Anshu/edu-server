@@ -4,11 +4,17 @@ import { AppError } from "../utils/AppError.js";
 import { RoleService } from "./role.service.js";
 import { UserRoleService } from "./user-role.service.js";
 import { UserService } from "./user.service.js";
+import { StudentSectionEnrollmentRepository } from "../repositories/studentSectionEnrollment.repository.js";
+import { SectionRepository } from "../repositories/Academic/section.repository.js";
+import { AcademicYearRepository } from "../repositories/Academic/academicYear.repository.js";
 
 const studentRepo = new StudentRepository();
 const userService = new UserService();
 const userRoleService = new UserRoleService();
 const roleService = new RoleService();
+const enrollmentRepo = new StudentSectionEnrollmentRepository();
+const sectionRepo = new SectionRepository();
+const academicYearRepo = new AcademicYearRepository();
 
 export class StudentService {
   async createStudent(tenantId, payload) {
@@ -19,6 +25,9 @@ export class StudentService {
       lastName,
       admissionNumber,
       requestedBy,
+      sectionId,
+      academicYearId,
+      enrollmentStatus,
     } = payload;
 
     // 1. Admission Number check (Before transaction)
@@ -82,8 +91,56 @@ export class StudentService {
         { transaction },
       );
 
+      // 6. Auto-enroll in section if provided
+      if (sectionId && academicYearId) {
+        // Validate academic year exists
+        const year = await academicYearRepo.findById(academicYearId, tenantId);
+        if (!year) {
+          throw new AppError("Academic year not found", 404);
+        }
+
+        // Validate section exists and belongs to the academic year
+        const section = await sectionRepo.findById(sectionId, tenantId);
+        if (!section) {
+          throw new AppError("Section not found", 404);
+        }
+
+        if (section.academicYearId !== academicYearId) {
+          throw new AppError(
+            "Section does not belong to the provided academic year",
+            400,
+          );
+        }
+
+        // Check capacity
+        const enrolledCount = await enrollmentRepo.countBySection(
+          sectionId,
+          tenantId,
+        );
+        if (enrolledCount >= section.capacity) {
+          throw new AppError("Section capacity full", 400);
+        }
+
+        // Create enrollment
+        await enrollmentRepo.create(
+          {
+            tenantId,
+            studentId: student.id,
+            sectionId,
+            academicYearId,
+            rollNumber: enrolledCount + 1,
+            enrollmentStatus: enrollmentStatus || "regular",
+            isCurrent: true,
+          },
+          { transaction },
+        );
+      }
+
       await transaction.commit();
-      return this.formatStudentResponse(student);
+
+      // Reload student with all associations
+      const fullStudent = await studentRepo.findWithDetails(student.id, tenantId);
+      return this.formatStudentResponse(fullStudent);
     } catch (error) {
       if (!transaction.finished) await transaction.rollback();
       throw error;
@@ -100,7 +157,15 @@ export class StudentService {
     if (query.userId) filters.userId = query.userId;
     if (query.name) filters.name = query.name;
 
-    return await studentRepo.findWithPagination(tenantId, filters, page, limit);
+    const result = await studentRepo.findWithPagination(tenantId, filters, page, limit);
+    
+    return {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      pages: result.pages,
+      data: result.data.map((student) => this.formatStudentResponse(student)),
+    };
   }
 
   async getStudentById(id, tenantId) {
@@ -212,7 +277,9 @@ export class StudentService {
         : {}),
     });
 
-    return this.formatStudentResponse(updated);
+    // Reload with associations
+    const fullStudent = await studentRepo.findWithDetails(id, tenantId);
+    return this.formatStudentResponse(fullStudent);
   }
 
   async deleteStudent(id, tenantId) {
@@ -228,8 +295,6 @@ export class StudentService {
   formatStudentResponse(student) {
     return {
       id: student.id,
-      tenantId: student.tenantId,
-      userId: student.userId,
       admissionNumber: student.admissionNumber,
       rollNumber: student.rollNumber,
       firstName: student.firstName,
@@ -263,8 +328,55 @@ export class StudentService {
       metadata: student.metadata,
       createdAt: student.createdAt,
       updatedAt: student.updatedAt,
-      user: student.user || undefined,
-      enrollments: student.enrollments || undefined,
+      tenant: student.organization
+        ? {
+            id: student.organization.id,
+            name: student.organization.name,
+            organizationType: student.organization.organizationType,
+            officialEmail: student.organization.officialEmail,
+            subdomain: student.organization.subdomain,
+          }
+        : undefined,
+      user: student.user
+        ? {
+            id: student.user.id,
+            firstName: student.user.firstName,
+            lastName: student.user.lastName,
+            email: student.user.email,
+            phone: student.user.phone,
+            status: student.user.status,
+          }
+        : undefined,
+      enrollments: student.enrollments
+        ? student.enrollments.map((enrollment) => ({
+            id: enrollment.id,
+            rollNumber: enrollment.rollNumber,
+            enrollmentStatus: enrollment.enrollmentStatus,
+            isCurrent: enrollment.isCurrent,
+            createdAt: enrollment.createdAt,
+            section: enrollment.section
+              ? {
+                  id: enrollment.section.id,
+                  name: enrollment.section.name,
+                  capacity: enrollment.section.capacity,
+                  class: enrollment.section.class
+                    ? {
+                        id: enrollment.section.class.id,
+                        name: enrollment.section.class.name,
+                        numericLevel: enrollment.section.class.numericLevel,
+                      }
+                    : undefined,
+                }
+              : undefined,
+            academicYear: enrollment.academicYear
+              ? {
+                  id: enrollment.academicYear.id,
+                  name: enrollment.academicYear.name,
+                  isCurrent: enrollment.academicYear.isCurrent,
+                }
+              : undefined,
+          }))
+        : undefined,
     };
   }
 }

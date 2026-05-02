@@ -74,7 +74,9 @@ export class StudentSectionEnrollmentService {
       isCurrent: true,
     });
 
-    return this.formatResponse(enrollment);
+    // Reload with full associations
+    const fullEnrollment = await enrollmentRepo.findWithDetails(enrollment.id, tenantId);
+    return this.formatResponse(fullEnrollment);
   }
 
   // Get All
@@ -87,12 +89,20 @@ export class StudentSectionEnrollmentService {
     if (query.studentId) filters.studentId = query.studentId;
     if (query.academicYearId) filters.academicYearId = query.academicYearId;
 
-    return await enrollmentRepo.findWithPagination(
+    const result = await enrollmentRepo.findWithPagination(
       tenantId,
       filters,
       page,
       limit,
     );
+
+    return {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      pages: result.pages,
+      data: result.data.map((enrollment) => this.formatResponse(enrollment)),
+    };
   }
 
   // Get One
@@ -148,12 +158,14 @@ export class StudentSectionEnrollmentService {
       }),
     });
 
-    return this.formatResponse(updated);
+    // Reload with full associations
+    const fullEnrollment = await enrollmentRepo.findWithDetails(id, tenantId);
+    return this.formatResponse(fullEnrollment);
   }
 
   // Delete
   async deleteEnrollment(id, tenantId) {
-    const data = await enrollmentRepo.findById(id, tenantId);
+    const data = await enrollmentRepo.findWithDetails(id, tenantId);
 
     await enrollmentRepo.delete(id, tenantId);
 
@@ -167,13 +179,59 @@ export class StudentSectionEnrollmentService {
   formatResponse(data) {
     return {
       id: data.id,
-      studentId: data.studentId,
-      sectionId: data.sectionId,
-      academicYearId: data.academicYearId,
       rollNumber: data.rollNumber,
       enrollmentStatus: data.enrollmentStatus,
       isCurrent: data.isCurrent,
       createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      student: data.student
+        ? {
+            id: data.student.id,
+            admissionNumber: data.student.admissionNumber,
+            firstName: data.student.firstName,
+            middleName: data.student.middleName,
+            lastName: data.student.lastName,
+            user: data.student.user
+              ? {
+                  id: data.student.user.id,
+                  firstName: data.student.user.firstName,
+                  lastName: data.student.user.lastName,
+                  email: data.student.user.email,
+                  phone: data.student.user.phone,
+                }
+              : undefined,
+            tenant: data.student.organization
+              ? {
+                  id: data.student.organization.id,
+                  name: data.student.organization.name,
+                  organizationType: data.student.organization.organizationType,
+                }
+              : undefined,
+          }
+        : undefined,
+      section: data.section
+        ? {
+            id: data.section.id,
+            name: data.section.name,
+            capacity: data.section.capacity,
+            class: data.section.class
+              ? {
+                  id: data.section.class.id,
+                  name: data.section.class.name,
+                  numericLevel: data.section.class.numericLevel,
+                }
+              : undefined,
+          }
+        : undefined,
+      academicYear: data.academicYear
+        ? {
+            id: data.academicYear.id,
+            name: data.academicYear.name,
+            isCurrent: data.academicYear.isCurrent,
+            startDate: data.academicYear.startDate,
+            endDate: data.academicYear.endDate,
+          }
+        : undefined,
     };
   }
 }

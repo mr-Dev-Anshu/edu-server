@@ -46,7 +46,9 @@ export class SectionService {
       classTeacherId,
     });
 
-    return this.formatSectionResponse(section);
+    // Reload with associations
+    const fullSection = await sectionRepo.findWithDetails(section.id, tenantId);
+    return this.formatSectionResponse(fullSection);
   }
 
   // Get All Sections
@@ -58,7 +60,15 @@ export class SectionService {
     if (query.classId) filters.classId = query.classId;
     if (query.academicYearId) filters.academicYearId = query.academicYearId;
 
-    return await sectionRepo.findWithPagination(tenantId, filters, page, limit);
+    const result = await sectionRepo.findWithPagination(tenantId, filters, page, limit);
+    
+    return {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      pages: result.pages,
+      data: result.data.map((section) => this.formatSectionResponse(section)),
+    };
   }
 
   // Get Section by ID
@@ -113,12 +123,14 @@ export class SectionService {
       ...(updateData.classTeacherId !== undefined ? { classTeacherId: updateData.classTeacherId } : {}),
     });
 
-    return this.formatSectionResponse(updated);
+    // Reload with associations
+    const fullSection = await sectionRepo.findWithDetails(id, tenantId);
+    return this.formatSectionResponse(fullSection);
   }
 
   // Delete Section
   async deleteSection(id, tenantId) {
-    const section = await sectionRepo.findById(id, tenantId);
+    const section = await sectionRepo.findWithDetails(id, tenantId);
 
     await sectionRepo.delete(id, tenantId);
 
@@ -132,14 +144,25 @@ export class SectionService {
   formatSectionResponse(section) {
     return {
       id: section.id,
-      tenantId: section.tenantId,
       name: section.name,
-      classId: section.classId,
-      academicYearId: section.academicYearId,
       capacity: section.capacity,
       classTeacherId: section.classTeacherId,
       createdAt: section.createdAt,
       updatedAt: section.updatedAt,
+      class: section.class
+        ? {
+            id: section.class.id,
+            name: section.class.name,
+            numericLevel: section.class.numericLevel,
+          }
+        : undefined,
+      academicYear: section.academicYear
+        ? {
+            id: section.academicYear.id,
+            name: section.academicYear.name,
+            isCurrent: section.academicYear.isCurrent,
+          }
+        : undefined,
     };
   }
 }

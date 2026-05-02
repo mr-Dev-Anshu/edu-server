@@ -94,6 +94,12 @@ const STATUSES = ["active", "inactive", "transferred_out", "passed_out", "droppe
 export const createStudentValidator = createValidator((req) => {
   ensureNoTenantId(req.body);
 
+  const hasSectionId = req.body.sectionId !== undefined && req.body.sectionId !== null;
+  const hasAcademicYearId = req.body.academicYearId !== undefined && req.body.academicYearId !== null;
+  if (hasSectionId !== hasAcademicYearId) {
+    throw new AppError("sectionId and academicYearId must be provided together for student enrollment", 400);
+  }
+
   ensureString(req.body.email, "email", { min: 5, max: 100 });
   ensureString(req.body.password, "password", { min: 6, max: 50 });
   ensureString(req.body.admissionNumber, "admissionNumber", { min: 1, max: 50 });
@@ -125,6 +131,11 @@ export const createStudentValidator = createValidator((req) => {
   ensureOptionalString(req.body.address, "address", { min: 1, max: 1000 });
   ensureOptionalString(req.body.city, "city", { min: 1, max: 100 });
   ensureOptionalString(req.body.pincode, "pincode", { min: 1, max: 20 });
+
+  // Optional section enrollment fields
+  ensureOptionalUuid(req.body.sectionId, "sectionId");
+  ensureOptionalUuid(req.body.academicYearId, "academicYearId");
+  ensureOptionalString(req.body.enrollmentStatus, "enrollmentStatus", { min: 1, max: 30 });
 });
 
 export const updateStudentValidator = createValidator((req) => {

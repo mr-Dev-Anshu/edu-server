@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Student, User, StudentSectionEnrollment } from "../models/index.js";
+import { Student, User, StudentSectionEnrollment, Tenant, Section, AcademicYear, Class } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
 export class StudentRepository extends BaseRepository {
@@ -52,7 +52,36 @@ export class StudentRepository extends BaseRepository {
         {
           model: User,
           as: "user",
-          attributes: ["id", "firstName", "lastName", "email"],
+          attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+        },
+        {
+          model: Tenant,
+          as: "organization",
+          attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
+        },
+        {
+          model: StudentSectionEnrollment,
+          as: "enrollments",
+          attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent"],
+          include: [
+            {
+              model: Section,
+              as: "section",
+              attributes: ["id", "name", "capacity"],
+              include: [
+                {
+                  model: Class,
+                  as: "class",
+                  attributes: ["id", "name", "numericLevel"],
+                },
+              ],
+            },
+            {
+              model: AcademicYear,
+              as: "academicYear",
+              attributes: ["id", "name", "isCurrent"],
+            },
+          ],
         },
       ],
     });
@@ -73,12 +102,36 @@ export class StudentRepository extends BaseRepository {
         {
           model: User,
           as: "user",
-          attributes: ["id", "firstName", "lastName", "email"],
+          attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+        },
+        {
+          model: Tenant,
+          as: "organization",
+          attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
         },
         {
           model: StudentSectionEnrollment,
           as: "enrollments",
           attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent", "createdAt"],
+          include: [
+            {
+              model: Section,
+              as: "section",
+              attributes: ["id", "name", "capacity"],
+              include: [
+                {
+                  model: Class,
+                  as: "class",
+                  attributes: ["id", "name", "numericLevel"],
+                },
+              ],
+            },
+            {
+              model: AcademicYear,
+              as: "academicYear",
+              attributes: ["id", "name", "isCurrent"],
+            },
+          ],
         },
       ],
     });

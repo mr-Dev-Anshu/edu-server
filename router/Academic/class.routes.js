@@ -12,6 +12,9 @@ const ctrl = new ClassController();
 // Create Class
 router.post("/", identifyUser, checkPermission("create:classes"), createClassValidator, ctrl.create);
 
+// Bulk Create Classes with Sections
+router.post("/bulk", identifyUser, checkPermission("create:classes"), ctrl.bulkCreate);
+
 // Get All Classes (pagination supported)
 router.get("/", identifyUser, ctrl.getAll);
 

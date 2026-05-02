@@ -8,7 +8,7 @@ export class SectionRepository extends BaseRepository {
   }
 
   // Duplicate check (based on UNIQUE INDEX)
-  async findDuplicate(name, classId, academicYearId, tenantId) {
+  async findDuplicate(name, classId, academicYearId, tenantId, options = {}) {
     return await this.model.findOne({
       where: {
         name,
@@ -16,6 +16,7 @@ export class SectionRepository extends BaseRepository {
         academicYearId,
         tenantId,
       },
+      ...options,
     });
   }
 

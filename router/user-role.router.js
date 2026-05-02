@@ -13,7 +13,7 @@ const router = express.Router();
 const ctrl = new UserRoleController();
 
 // ✅ Static and specific routes FIRST
-router.route("/assign").post(identifyUser, checkPermission("assign:role"), assignRoleValidator, ctrl.assignRole);
+router.route("/assign").post(identifyUser, checkPermission("assign:create"),assignRoleValidator, ctrl.assignRole);
 // ❌ DEPRECATED: Users can only have one role
 // router.route("/assign-multiple").post(identifyUser, checkPermission("assign:role"), assignMultipleRolesValidator, ctrl.assignMultipleRoles);
 router.route("/revoke").post(identifyUser, checkPermission("assign:role"), revokeRoleValidator, ctrl.revokeRole);

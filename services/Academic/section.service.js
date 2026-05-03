@@ -140,6 +140,23 @@ export class SectionService {
     };
   }
 
+  // Get Section Options (for dropdowns)
+  async getSectionOptions(tenantId, classId, academicYearId) {
+    // Validate classId
+    const classExists = await classRepo.findById(classId, tenantId);
+    if (!classExists) {
+      throw new AppError("Class not found", 404);
+    }
+
+    // Validate academicYearId
+    const yearExists = await academicYearRepo.findById(academicYearId, tenantId);
+    if (!yearExists) {
+      throw new AppError("Academic year not found", 404);
+    }
+
+    return await sectionRepo.findOptions(tenantId, classId, academicYearId);
+  }
+
   // Clean Response
   formatSectionResponse(section) {
     return {

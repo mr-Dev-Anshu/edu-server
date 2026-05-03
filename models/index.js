@@ -121,7 +121,10 @@ StudentSectionEnrollment.belongsTo(AcademicYear, { foreignKey: "academicYearId",
 
 
 // Teacher Assignments
-TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId" });
+TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId", as: "staff" });
+TeacherSubjectAssignment.belongsTo(Subject, { foreignKey: "subjectId", as: "subject" });
+TeacherSubjectAssignment.belongsTo(Section, { foreignKey: "sectionId", as: "section" });
+TeacherSubjectAssignment.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
 
 // ==========================================
 // 5. FAMILY TREE (Guardians)

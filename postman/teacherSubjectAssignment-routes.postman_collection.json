@@ -1,0 +1,253 @@
+{
+  "info": {
+    "_postman_id": "teacher-subject-assignment-routes-collection",
+    "name": "Edu Server TeacherSubjectAssignment CRUD Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing TeacherSubjectAssignment CRUD + search routes."
+  },
+  "item": [
+    {
+      "name": "Create Teacher Subject Assignment",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('teacherSubjectAssignmentId', json.data.id);",
+              "  }",
+              "  console.log('TeacherSubjectAssignment created successfully:', json.data);",
+              "} else {",
+              "  console.log('Create failed:', pm.response.text());",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{orgAdminToken}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"staffId\": \"{{staffId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"isPrimaryTeacher\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/teacher-subject-assignments",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "teacher-subject-assignments"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Teacher Subject Assignments",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{orgAdminToken}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/teacher-subject-assignments?page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "teacher-subject-assignments"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search Teacher Subject Assignments",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{orgAdminToken}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/teacher-subject-assignments/search?staffId={{staffId}}&subjectId={{subjectId}}&sectionId={{sectionId}}&academicYearId={{academicYearId}}&page=1&limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "teacher-subject-assignments",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "staffId",
+              "value": "{{staffId}}"
+            },
+            {
+              "key": "subjectId",
+              "value": "{{subjectId}}"
+            },
+            {
+              "key": "sectionId",
+              "value": "{{sectionId}}"
+            },
+            {
+              "key": "academicYearId",
+              "value": "{{academicYearId}}"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Teacher Subject Assignment by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{orgAdminToken}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/teacher-subject-assignments/{{teacherSubjectAssignmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "teacher-subject-assignments",
+            "{{teacherSubjectAssignmentId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Teacher Subject Assignment",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{orgAdminToken}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isPrimaryTeacher\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/teacher-subject-assignments/{{teacherSubjectAssignmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "teacher-subject-assignments",
+            "{{teacherSubjectAssignmentId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Teacher Subject Assignment",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{orgAdminToken}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenantId}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/teacher-subject-assignments/{{teacherSubjectAssignmentId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "teacher-subject-assignments",
+            "{{teacherSubjectAssignmentId}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

@@ -40,6 +40,9 @@ import Subject from './Academic/Subject.js';
 // // --- Infrastructure ---
 import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
 
+//import Course from './Course.js'
+import Course from "./Course.js";
+
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
 // ==========================================
@@ -162,4 +165,5 @@ export {
   Room,
   Timetable,
   TimetableSlot,
+  Course,
 };

@@ -29,6 +29,10 @@ import StudentGuardianMap from "./StudentGaurdianMap.js";
 // import Section from './Academic/Section.js';
 import Subject from './Academic/Subject.js';
 
+import {
+ ExamGroup, ExamSchedule, Mark, GradeScale, GradeScaleRule,
+} from "./exams/Exams.js"
+
 // // --- Users & Relationships ---
 // import Student from './Students.js';
 // import Staff from './Staff.js';
@@ -162,4 +166,9 @@ export {
   Room,
   Timetable,
   TimetableSlot,
+  ExamGroup,
+ExamSchedule,
+Mark,
+GradeScale,
+GradeScaleRule,
 };

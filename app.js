@@ -18,6 +18,12 @@ import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
 
+import examGroupRoutes from "./router/Exam/examGroup.routes.js";
+import examScheduleRoutes from "./router/Exam/examSchedule.routes.js";
+import markRoutes from "./router/Exam/mark.routes.js";
+import gradeScaleRoutes from "./router/Exam/gradeScale.routes.js";
+import gradeScaleRuleRoutes from "./router/Exam/gradeScaleRule.routes.js";
+
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -65,6 +71,12 @@ app.use('/api/v1/classes', classRouter);
 app.use('/api/v1/sections', sectionRouter);
 app.use('/api/v1/students', studentRouter);
 app.use('/api/v1/enrollments', enrollmentRouter);
+
+app.use("/api/v1/exam-groups", examGroupRoutes);
+app.use("/api/v1/exam-schedules", examScheduleRoutes);
+app.use("/api/v1/marks", markRoutes);
+app.use("/api/v1/grade-scales", gradeScaleRoutes);
+app.use("/api/v1/grade-scale-rules", gradeScaleRuleRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

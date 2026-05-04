@@ -1,0 +1,124 @@
+import { ExamScheduleRepository } from "../../repositories/Exam/examSchedule.repository.js";
+import { AppError } from "../../utils/AppError.js";
+
+const examScheduleRepo = new ExamScheduleRepository();
+
+export class ExamScheduleService {
+  async createExamSchedule(tenantId, payload) {
+    const { examGroupId, subjectId, sectionId, examDate, startTime, endTime, maxMarks, passingMarks } = payload;
+
+    if (parseInt(passingMarks) >= parseInt(maxMarks)) {
+      throw new AppError("passingMarks must be less than maxMarks", 400);
+    }
+
+    if (startTime && endTime && startTime >= endTime) {
+      throw new AppError("endTime must be after startTime", 400);
+    }
+
+    // Check for duplicate schedule (same section + subject + date in same tenant)
+    const conflict = await examScheduleRepo.findConflict(sectionId, subjectId, examDate, tenantId);
+    if (conflict) {
+      throw new AppError("A schedule for this subject and section on this date already exists", 400);
+    }
+
+    const schedule = await examScheduleRepo.create({
+      tenantId,
+      examGroupId,
+      subjectId,
+      sectionId,
+      examDate,
+      startTime: startTime || null,
+      endTime: endTime || null,
+      maxMarks: parseInt(maxMarks),
+      passingMarks: parseInt(passingMarks),
+    });
+
+    return this.formatResponse(schedule);
+  }
+
+  async getAllExamSchedules(tenantId, query) {
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+
+    const filters = {};
+    if (query.examGroupId) filters.examGroupId = query.examGroupId;
+    if (query.subjectId) filters.subjectId = query.subjectId;
+    if (query.sectionId) filters.sectionId = query.sectionId;
+    if (query.examDate) filters.examDate = query.examDate;
+
+    return await examScheduleRepo.findWithPagination(tenantId, filters, page, limit);
+  }
+
+  async getExamScheduleById(id, tenantId) {
+    const schedule = await examScheduleRepo.findById(id, tenantId);
+    return this.formatResponse(schedule);
+  }
+
+  async updateExamSchedule(id, tenantId, updateData) {
+    const schedule = await examScheduleRepo.findById(id, tenantId);
+
+    const maxMarks = updateData.maxMarks !== undefined ? parseInt(updateData.maxMarks) : schedule.maxMarks;
+    const passingMarks = updateData.passingMarks !== undefined ? parseInt(updateData.passingMarks) : schedule.passingMarks;
+
+    if (passingMarks >= maxMarks) {
+      throw new AppError("passingMarks must be less than maxMarks", 400);
+    }
+
+    if (updateData.startTime && updateData.endTime && updateData.startTime >= updateData.endTime) {
+      throw new AppError("endTime must be after startTime", 400);
+    }
+
+    // Check conflict if date/section/subject is changing
+    if (updateData.examDate || updateData.sectionId || updateData.subjectId) {
+      const conflict = await examScheduleRepo.findConflict(
+        updateData.sectionId || schedule.sectionId,
+        updateData.subjectId || schedule.subjectId,
+        updateData.examDate || schedule.examDate,
+        tenantId,
+        id
+      );
+      if (conflict) {
+        throw new AppError("A schedule for this subject and section on this date already exists", 400);
+      }
+    }
+
+    const updated = await examScheduleRepo.update(id, tenantId, {
+      ...(updateData.examGroupId !== undefined ? { examGroupId: updateData.examGroupId } : {}),
+      ...(updateData.subjectId !== undefined ? { subjectId: updateData.subjectId } : {}),
+      ...(updateData.sectionId !== undefined ? { sectionId: updateData.sectionId } : {}),
+      ...(updateData.examDate !== undefined ? { examDate: updateData.examDate } : {}),
+      ...(updateData.startTime !== undefined ? { startTime: updateData.startTime } : {}),
+      ...(updateData.endTime !== undefined ? { endTime: updateData.endTime } : {}),
+      ...(updateData.maxMarks !== undefined ? { maxMarks: parseInt(updateData.maxMarks) } : {}),
+      ...(updateData.passingMarks !== undefined ? { passingMarks: parseInt(updateData.passingMarks) } : {}),
+    });
+
+    return this.formatResponse(updated);
+  }
+
+  async deleteExamSchedule(id, tenantId) {
+    const schedule = await examScheduleRepo.findById(id, tenantId);
+    await examScheduleRepo.delete(id, tenantId);
+    return {
+      message: "Exam schedule deleted successfully",
+      data: this.formatResponse(schedule),
+    };
+  }
+
+  formatResponse(schedule) {
+    return {
+      id: schedule.id,
+      tenantId: schedule.tenantId,
+      examGroupId: schedule.examGroupId,
+      subjectId: schedule.subjectId,
+      sectionId: schedule.sectionId,
+      examDate: schedule.examDate,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      maxMarks: schedule.maxMarks,
+      passingMarks: schedule.passingMarks,
+      createdAt: schedule.createdAt,
+      updatedAt: schedule.updatedAt,
+    };
+  }
+}

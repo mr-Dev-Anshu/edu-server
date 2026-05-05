@@ -77,7 +77,7 @@ export class StudentRepository extends BaseRepository {
           as: "enrollments",
           separate: true,
           order: [["isCurrent", "DESC"], ["createdAt", "DESC"]],
-          attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent"],
+          attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent", "createdAt"],
           include: [
             {
               model: Section,

@@ -28,10 +28,11 @@ export class StudentService {
       sectionId,
       academicYearId,
       enrollmentStatus,
+      rollNumber,
       siblingId,
     } = payload;
 
-    // 1. Admission Number check (Before transaction)
+    // 1. Check if admission number already exists
     const existingAdmission = await studentRepo.findByAdmissionNumber(
       admissionNumber,
       tenantId,
@@ -51,7 +52,7 @@ export class StudentService {
     const transaction = await sequelize.transaction();
 
     try {
-      // 2. Create User Account
+      // 3. Create User Account
       const user = await userService.createUser(
         {
           email,
@@ -65,7 +66,7 @@ export class StudentService {
         { transaction },
       );
 
-      // 3. Resolve 'student' Role
+      // 4. Resolve 'student' Role
       const roles = await roleService.getAllRoles(tenantId, {
         slug: "student",
       });
@@ -78,7 +79,7 @@ export class StudentService {
         );
       }
 
-      // 4. Assign Role (Isse user ko 'portal' type permissions mil jayengi)
+      // 5. Assign Role
       await userRoleService.assignRoleToUser(
         {
           userId: user.id,
@@ -89,7 +90,7 @@ export class StudentService {
         { transaction },
       );
 
-      // 5. Create Student Profile
+      // 6. Create Student Profile
       const student = await studentRepo.create(
         {
           ...payload,
@@ -100,7 +101,7 @@ export class StudentService {
         { transaction },
       );
 
-      // 5a. Validate circular sibling reference
+      // 7. Validate circular sibling reference
       if (siblingId) {
         const sibling = await studentRepo.findById(siblingId, tenantId);
         if (sibling && sibling.siblingId === student.id) {
@@ -108,7 +109,7 @@ export class StudentService {
         }
       }
 
-      // 6. Auto-enroll in section if provided
+      // 8. Auto-enroll in section if provided
       if (sectionId && academicYearId) {
         // Validate academic year exists
         const year = await academicYearRepo.findById(academicYearId, tenantId);
@@ -145,7 +146,7 @@ export class StudentService {
             studentId: student.id,
             sectionId,
             academicYearId,
-            rollNumber: enrolledCount + 1,
+            rollNumber: rollNumber || enrolledCount + 1,
             enrollmentStatus: enrollmentStatus || "regular",
             isCurrent: true,
           },
@@ -175,7 +176,7 @@ export class StudentService {
     if (query.name) filters.name = query.name;
 
     const result = await studentRepo.findWithPagination(tenantId, filters, page, limit);
-    
+
     return {
       total: result.total,
       page: result.page,
@@ -199,6 +200,7 @@ export class StudentService {
       throw new AppError("userId cannot be updated", 400);
     }
 
+    // Check admission number uniqueness if being updated
     if (updateData.admissionNumber !== undefined) {
       const existingAdmission = await studentRepo.findByAdmissionNumber(
         updateData.admissionNumber,
@@ -212,19 +214,18 @@ export class StudentService {
       }
     }
 
-    // Validate sibling exists and belongs to same tenant
+    // Validate sibling if being updated
     if (updateData.siblingId !== undefined && updateData.siblingId !== null) {
+      if (updateData.siblingId === id) {
+        throw new AppError("A student cannot be their own sibling", 400);
+      }
+
       const sibling = await studentRepo.findById(updateData.siblingId, tenantId);
       if (!sibling) {
         throw new AppError("Sibling student not found in this organization", 404);
       }
 
-      // Prevent circular sibling reference
-      if (updateData.siblingId === id) {
-        throw new AppError("A student cannot be their own sibling", 400);
-      }
-
-      // Check if sibling's sibling points back to this student
+      // Check for circular reference
       if (sibling.siblingId === id) {
         throw new AppError("Cannot create circular sibling relationship", 400);
       }
@@ -319,6 +320,10 @@ export class StudentService {
 
   async deleteStudent(id, tenantId) {
     const student = await studentRepo.findById(id, tenantId);
+    if (!student) {
+      throw new AppError("Student not found", 404);
+    }
+
     await studentRepo.delete(id, tenantId);
 
     return {
@@ -327,7 +332,7 @@ export class StudentService {
     };
   }
 
-  formatStudentResponse(student) {
+   formatStudentResponse(student) {
     const enrollments = Array.isArray(student.enrollments) ? student.enrollments : [];
     const currentEnrollment = enrollments.find((enrollment) => enrollment.isCurrent) || enrollments[0];
     const formatEnrollment = (enrollment) => ({

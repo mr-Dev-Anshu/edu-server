@@ -142,75 +142,91 @@ export const updateStudentValidator = createValidator((req) => {
   ensureNoTenantId(req.body);
   ensureDisallowedField(req.body.userId, "userId");
 
-  
-
   if (req.body.admissionNumber !== undefined) {
     ensureString(req.body.admissionNumber, "admissionNumber", { min: 1, max: 50 });
   }
-
+  if (req.body.rollNumber !== undefined) {
+    ensureOptionalString(req.body.rollNumber, "rollNumber", { min: 1, max: 30 });
+  }
   if (req.body.firstName !== undefined) {
     ensureString(req.body.firstName, "firstName", { min: 1, max: 100 });
   }
-
   if (req.body.middleName !== undefined) {
     ensureOptionalString(req.body.middleName, "middleName", { min: 1, max: 100 });
   }
-
   if (req.body.lastName !== undefined) {
     ensureString(req.body.lastName, "lastName", { min: 1, max: 100 });
   }
-
   if (req.body.dateOfBirth !== undefined) {
     ensureDate(req.body.dateOfBirth, "dateOfBirth");
   }
-
   if (req.body.gender !== undefined) {
     ensureEnum(req.body.gender, "gender", GENDERS);
   }
-
-  ensureOptionalEnum(req.body.bloodGroup, "bloodGroup", BLOOD_GROUPS);
-  ensureOptionalString(req.body.nationality, "nationality", { min: 1, max: 100 });
-  ensureOptionalString(req.body.religion, "religion", { min: 1, max: 100 });
-  ensureOptionalString(req.body.caste, "caste", { min: 1, max: 100 });
-  ensureOptionalEnum(req.body.category, "category", CATEGORIES);
-
+  if (req.body.bloodGroup !== undefined) {
+    ensureOptionalEnum(req.body.bloodGroup, "bloodGroup", BLOOD_GROUPS);
+  }
+  if (req.body.nationality !== undefined) {
+    ensureOptionalString(req.body.nationality, "nationality", { min: 1, max: 100 });
+  }
+  if (req.body.religion !== undefined) {
+    ensureOptionalString(req.body.religion, "religion", { min: 1, max: 100 });
+  }
+  if (req.body.caste !== undefined) {
+    ensureOptionalString(req.body.caste, "caste", { min: 1, max: 100 });
+  }
+  if (req.body.category !== undefined) {
+    ensureOptionalEnum(req.body.category, "category", CATEGORIES);
+  }
   if (req.body.aadharNumber !== undefined) {
     ensureOptionalString(req.body.aadharNumber, "aadharNumber", { min: 1, max: 255 });
   }
-
   if (req.body.photoUrl !== undefined) {
     ensureOptionalString(req.body.photoUrl, "photoUrl", { min: 1, max: 2048 });
   }
-
   if (req.body.enrollmentDate !== undefined) {
     ensureDate(req.body.enrollmentDate, "enrollmentDate");
   }
-
-  ensureOptionalString(req.body.previousSchool, "previousSchool", { min: 1, max: 255 });
-  ensureOptionalString(req.body.previousClass, "previousClass", { min: 1, max: 100 });
-  ensureOptionalString(req.body.tcNumber, "tcNumber", { min: 1, max: 100 });
-  ensureOptionalUuid(req.body.siblingId, "siblingId");
-
+  if (req.body.previousSchool !== undefined) {
+    ensureOptionalString(req.body.previousSchool, "previousSchool", { min: 1, max: 255 });
+  }
+  if (req.body.previousClass !== undefined) {
+    ensureOptionalString(req.body.previousClass, "previousClass", { min: 1, max: 100 });
+  }
+  if (req.body.tcNumber !== undefined) {
+    ensureOptionalString(req.body.tcNumber, "tcNumber", { min: 1, max: 100 });
+  }
+  if (req.body.siblingId !== undefined) {
+    ensureOptionalUuid(req.body.siblingId, "siblingId");
+  }
   if (req.body.isStaffWard !== undefined) {
     ensureBoolean(req.body.isStaffWard, "isStaffWard");
   }
-
   if (req.body.status !== undefined) {
-    ensureOptionalEnum(req.body.status, "status", STATUSES);
+    ensureEnum(req.body.status, "status", STATUSES);
   }
-
   if (req.body.transportRequired !== undefined) {
     ensureBoolean(req.body.transportRequired, "transportRequired");
   }
-
   if (req.body.hostelRequired !== undefined) {
     ensureBoolean(req.body.hostelRequired, "hostelRequired");
   }
-
-  ensureOptionalString(req.body.medicalConditions, "medicalConditions", { min: 1, max: 1000 });
-  ensureOptionalString(req.body.emergencyContactName, "emergencyContactName", { min: 1, max: 150 });
-  ensureOptionalString(req.body.emergencyContactPhone, "emergencyContactPhone", { min: 1, max: 20 });
-  ensureOptionalString(req.body.address, "address", { min: 1, max: 1000 });
-  ensureOptionalString(req.body.city, "city", { min: 1, max: 100 });
-  ensureOptionalString(req.body.pincode, "pincode", { min: 1, max: 20 });
+  if (req.body.medicalConditions !== undefined) {
+    ensureOptionalString(req.body.medicalConditions, "medicalConditions", { min: 1, max: 1000 });
+  }
+  if (req.body.emergencyContactName !== undefined) {
+    ensureOptionalString(req.body.emergencyContactName, "emergencyContactName", { min: 1, max: 150 });
+  }
+  if (req.body.emergencyContactPhone !== undefined) {
+    ensureOptionalString(req.body.emergencyContactPhone, "emergencyContactPhone", { min: 1, max: 20 });
+  }
+  if (req.body.address !== undefined) {
+    ensureOptionalString(req.body.address, "address", { min: 1, max: 1000 });
+  }
+  if (req.body.city !== undefined) {
+    ensureOptionalString(req.body.city, "city", { min: 1, max: 100 });
+  }
+  if (req.body.pincode !== undefined) {
+    ensureOptionalString(req.body.pincode, "pincode", { min: 1, max: 20 });
+  }
 });

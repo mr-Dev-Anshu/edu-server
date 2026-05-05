@@ -1,10 +1,11 @@
 import { Permission, Role, Tenant } from "../../models/index.js";
+import { AppError } from "../../utils/AppError.js";
 import { JwtHelper } from "../../utils/jwt.js";
 
 export const identifyUser = async (req, res, next) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "Login required" });
+    if (!token) return next(new AppError("Login required", 401));
 
     const decoded = JwtHelper.verifyToken(token);
     req.user = decoded;
@@ -16,18 +17,17 @@ export const identifyUser = async (req, res, next) => {
       tenant = await Tenant.findOne({
         where: { id: tenant_id, status: "active" },
       });
-      if (!tenant)
-        return res.status(404).json({ message: "Institute not found" });
+      if (!tenant) return next(new AppError("Institute not found", 404));
       req.tenantId = tenant.id;
     }
     const isSuperAdmin = req.user.roleId == process.env.SUPER_ADMIN_ROLE_ID;
     if (!isSuperAdmin) {
       if (!tenant) {
-        return res.status(400).json({ message: "Tenant context required" });
+        return next(new AppError("Tenant context required", 400));
       }
 
       if (req.user.tenantId !== tenant.id) {
-        return res.status(403).json({ message: "Wrong request" });
+        return next(new AppError("Wrong request", 403));
       }
     }
         console.log(req.user , 
@@ -49,16 +49,14 @@ export const identifyUser = async (req, res, next) => {
     next();
   } catch (err) {
     console.log(err);
-    return res.status(401).json({ message: "Session invalid" });
+    return next(new AppError("Session invalid", 401));
   }
 };
 
 export const checkPermission = (requiredPermission) => {
   return (req, res, next) => {
     if (!req.user || !req.user.permissions) {
-      return res
-        .status(500)
-        .json({ message: "Internal Auth Error: Permissions not resolved" });
+      return next(new AppError("Internal Auth Error: Permissions not resolved", 500));
     }
     if (req.user.permissions.includes("*")) {
       return next();
@@ -66,9 +64,9 @@ export const checkPermission = (requiredPermission) => {
     console.log(req.user.permissions);
     console.log(requiredPermission);
     if (!req.user.permissions.includes(requiredPermission)) {
-      return res.status(403).json({
-        message: `Forbidden: You do not have the '${requiredPermission}' permission`,
-      });
+      return next(
+        new AppError(`Forbidden: You do not have the '${requiredPermission}' permission`, 403),
+      );
     }
 
     next();

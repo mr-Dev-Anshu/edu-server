@@ -6,6 +6,30 @@ import { Staff, Subject, Section, AcademicYear } from "../models/index.js";
 const repo = new TeacherSubjectAssignmentRepository();
 
 export class TeacherSubjectAssignmentService {
+  async loadAssignmentContext(tenantId, { staffId, subjectId, sectionId, academicYearId }) {
+    const [staff, subject, section, academicYear] = await Promise.all([
+      Staff.findOne({ where: { id: staffId, tenantId } }),
+      Subject.findOne({ where: { id: subjectId, tenantId } }),
+      Section.findOne({ where: { id: sectionId, tenantId } }),
+      AcademicYear.findOne({ where: { id: academicYearId, tenantId } }),
+    ]);
+
+    if (!staff) throw new AppError("Staff not found for this tenant", 404);
+    if (!subject) throw new AppError("Subject not found for this tenant", 404);
+    if (!section) throw new AppError("Section not found for this tenant", 404);
+    if (!academicYear) throw new AppError("Academic year not found for this tenant", 404);
+
+    if (subject.classId !== section.classId) {
+      throw new AppError("Subject and section must belong to the same class", 400);
+    }
+
+    if (section.academicYearId !== academicYearId) {
+      throw new AppError("Section must belong to the selected academic year", 400);
+    }
+
+    return { staff, subject, section, academicYear };
+  }
+
   async getAllAssignments(tenantId, query = {}) {
     const page = Math.max(1, parseInt(query.page, 10) || 1);
     const limit = Math.max(1, Math.min(100, parseInt(query.limit, 10) || 10));
@@ -29,20 +53,9 @@ export class TeacherSubjectAssignmentService {
   }
 
   async createAssignment(tenantId, payload) {
-    const { staffId, subjectId, sectionId, academicYearId, isPrimaryTeacher = false } = payload;
+    const { staffId, subjectId, sectionId, academicYearId, isPrimaryTeacher = true } = payload;
 
-    // ensure related records exist and belong to the tenant
-    const staff = await Staff.findOne({ where: { id: staffId, tenantId } });
-    if (!staff) throw new AppError("Staff not found for this tenant", 404);
-
-    const subject = await Subject.findOne({ where: { id: subjectId, tenantId } });
-    if (!subject) throw new AppError("Subject not found for this tenant", 404);
-
-    const section = await Section.findOne({ where: { id: sectionId, tenantId } });
-    if (!section) throw new AppError("Section not found for this tenant", 404);
-
-    const year = await AcademicYear.findOne({ where: { id: academicYearId, tenantId } });
-    if (!year) throw new AppError("Academic year not found for this tenant", 404);
+    await this.loadAssignmentContext(tenantId, { staffId, subjectId, sectionId, academicYearId });
 
     const transaction = await sequelize.transaction();
     try {
@@ -68,31 +81,24 @@ export class TeacherSubjectAssignmentService {
     const existing = await repo.findById(id, tenantId);
 
     const { staffId, subjectId, sectionId, academicYearId, isPrimaryTeacher } = payload;
+    const nextStaffId = staffId || existing.staffId;
+    const nextSubjectId = subjectId || existing.subjectId;
+    const nextSectionId = sectionId || existing.sectionId;
+    const nextAcademicYearId = academicYearId || existing.academicYearId;
 
-    // If any reference fields are being changed, validate new targets
-    if (staffId && staffId !== existing.staffId) {
-      const staff = await Staff.findOne({ where: { id: staffId, tenantId } });
-      if (!staff) throw new AppError("Staff not found for this tenant", 404);
-    }
-    if (subjectId && subjectId !== existing.subjectId) {
-      const subject = await Subject.findOne({ where: { id: subjectId, tenantId } });
-      if (!subject) throw new AppError("Subject not found for this tenant", 404);
-    }
-    if (sectionId && sectionId !== existing.sectionId) {
-      const section = await Section.findOne({ where: { id: sectionId, tenantId } });
-      if (!section) throw new AppError("Section not found for this tenant", 404);
-    }
-    if (academicYearId && academicYearId !== existing.academicYearId) {
-      const year = await AcademicYear.findOne({ where: { id: academicYearId, tenantId } });
-      if (!year) throw new AppError("Academic year not found for this tenant", 404);
-    }
+    await this.loadAssignmentContext(tenantId, {
+      staffId: nextStaffId,
+      subjectId: nextSubjectId,
+      sectionId: nextSectionId,
+      academicYearId: nextAcademicYearId,
+    });
 
     const transaction = await sequelize.transaction();
     try {
       // If payload marks as primary, demote existing primary(s) for that composite
-      const targetSubjectId = subjectId || existing.subjectId;
-      const targetSectionId = sectionId || existing.sectionId;
-      const targetAcademicYearId = academicYearId || existing.academicYearId;
+      const targetSubjectId = nextSubjectId;
+      const targetSectionId = nextSectionId;
+      const targetAcademicYearId = nextAcademicYearId;
 
       if (isPrimaryTeacher) {
         await repo.demotePrimaryByComposite(tenantId, targetSubjectId, targetSectionId, targetAcademicYearId, transaction);
@@ -111,19 +117,27 @@ export class TeacherSubjectAssignmentService {
 
   async deleteAssignment(id, tenantId) {
     // soft delete using repo
-    await repo.softDelete(id, tenantId);
+    const deletedCount = await repo.softDelete(id, tenantId);
+    if (!deletedCount) {
+      throw new AppError("Teacher subject assignment not found", 404);
+    }
     return { success: true };
   }
 
   async searchAssignments(tenantId, query = {}) {
     const page = Math.max(1, parseInt(query.page, 10) || 1);
     const limit = Math.max(1, Math.min(100, parseInt(query.limit, 10) || 10));
+    const searchTerm = (query.q || query.search || query.keyword || "").trim();
     const filters = {};
     for (const key of ["staffId", "subjectId", "sectionId", "academicYearId"]) {
       if (query[key]) filters[key] = query[key];
     }
 
-    return await repo.findWithFilters(tenantId, filters, page, limit);
+    if (!searchTerm) {
+      return await repo.findWithFilters(tenantId, filters, page, limit);
+    }
+
+    return await repo.searchAssignments(tenantId, searchTerm, filters, page, limit);
   }
 }
 

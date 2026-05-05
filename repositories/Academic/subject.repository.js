@@ -1,41 +1,33 @@
-import { Subject } from "../models/index.js";
-import { BaseRepository } from "./base.repository.js";
+import { Subject } from "../../models/index.js";
+import { BaseRepository } from "../base.repository.js";
 import { Op } from "sequelize";
 
-/**
- * Subject Repository
- * Data access layer for Subject model
- * Implements custom query methods for Subject-specific operations
- */
 export class SubjectRepository extends BaseRepository {
   constructor() {
     super(Subject);
   }
 
-  /**
-   * Find subject by code for a specific class and tenant
-   * Used for uniqueness validation
-   */
+  normalizeCode(code) {
+    return typeof code === "string" ? code.trim() : code;
+  }
+
   async findByCode(code, classId, tenantId) {
     return await this.model.findOne({
-      where: { code, classId, tenantId },
+      where: { code: this.normalizeCode(code), classId, tenantId },
     });
   }
 
-  /**
-   * Find all subjects for a specific class
-   */
   async findByClassId(classId, tenantId, options = {}) {
     return await this.model.findAll({
       where: { classId, tenantId },
-      order: options.order || [["name", "ASC"], ["createdAt", "ASC"]],
+      order: options.order || [
+        ["name", "ASC"],
+        ["createdAt", "ASC"],
+      ],
       ...options,
     });
   }
 
-  /**
-   * Find subjects by subject type
-   */
   async findBySubjectType(subjectType, tenantId, options = {}) {
     return await this.model.findAll({
       where: { subjectType, tenantId },
@@ -44,16 +36,17 @@ export class SubjectRepository extends BaseRepository {
     });
   }
 
-  /**
-   * Find subjects with pagination and filtering
-   * Main method for list endpoints
-   */
-  async findWithPagination(tenantId, filters = {}, page = 1, limit = 10, options = {}) {
+  async findWithPagination(
+    tenantId,
+    filters = {},
+    page = 1,
+    limit = 10,
+    options = {},
+  ) {
     const offset = (page - 1) * limit;
     const where = { tenantId, ...filters };
     const { where: _where, distinct, order, ...queryOptions } = options;
 
-    // Default includes for class and tenant details
     const include = options.include || [
       { association: "class", attributes: ["id", "name", "numericLevel"] },
       { association: "organization", attributes: ["id", "name", "subdomain"] },
@@ -65,7 +58,10 @@ export class SubjectRepository extends BaseRepository {
       limit,
       include,
       distinct: distinct ?? Boolean(include),
-      order: order || [["name", "ASC"], ["createdAt", "ASC"]],
+      order: order || [
+        ["name", "ASC"],
+        ["createdAt", "ASC"],
+      ],
       ...queryOptions,
     });
 
@@ -78,11 +74,13 @@ export class SubjectRepository extends BaseRepository {
     };
   }
 
-  /**
-   * Search subjects by name and code
-   * Supports filtering by multiple criteria
-   */
-  async searchSubjects(tenantId, searchTerm, page = 1, limit = 10, filters = {}) {
+  async searchSubjects(
+    tenantId,
+    searchTerm,
+    page = 1,
+    limit = 10,
+    filters = {},
+  ) {
     const offset = (page - 1) * limit;
 
     const where = {
@@ -100,9 +98,15 @@ export class SubjectRepository extends BaseRepository {
       limit,
       include: [
         { association: "class", attributes: ["id", "name", "numericLevel"] },
-        { association: "organization", attributes: ["id", "name", "subdomain"] },
+        {
+          association: "organization",
+          attributes: ["id", "name", "subdomain"],
+        },
       ],
-      order: [["name", "ASC"], ["createdAt", "ASC"]],
+      order: [
+        ["name", "ASC"],
+        ["createdAt", "ASC"],
+      ],
       distinct: true,
     });
 
@@ -115,18 +119,12 @@ export class SubjectRepository extends BaseRepository {
     };
   }
 
-  /**
-   * Get subjects count for a class
-   */
   async countByClass(classId, tenantId) {
     return await this.model.count({
       where: { classId, tenantId },
     });
   }
 
-  /**
-   * Check if a subject code exists
-   */
   async codeExists(code, tenantId) {
     const count = await this.model.count({
       where: { code, tenantId },
@@ -134,9 +132,6 @@ export class SubjectRepository extends BaseRepository {
     return count > 0;
   }
 
-  /**
-   * Soft delete a subject
-   */
   async softDelete(id, tenantId) {
     const subject = await this.model.findOne({
       where: { id, tenantId },

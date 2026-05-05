@@ -7,7 +7,10 @@ const router = express.Router();
 const ctrl = new PermissionController();
 
 router.route("/")
-  .post(createPermissionValidator, checkPermission("create:permission"), ctrl.create)
+  .post(createPermissionValidator, 
+    checkPermission("create:permission"), 
+    ctrl.create
+  )
   .get(ctrl.getAll); 
 
 export default router;

@@ -1,0 +1,179 @@
+{
+  "info": {
+    "name": "Edu-Server: Plan Management API",
+    "description": "Comprehensive tests for Plan Routes including creation, listing, updating, and toggling active status.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create New Plan",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.success && body.data.id) {",
+              "    pm.collectionVariables.set(\"planId\", body.data.id);",
+              "    console.log(\"Saved planId: \" + body.data.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Premium Plan Demo\",\n  \"slug\": \"premium-plan-demo\",\n  \"description\": \"Comprehensive functionality for large-scale schools.\",\n  \"monthlyPrice\": 5000,\n  \"yearlyPrice\": 50000,\n  \"currency\": \"INR\",\n  \"features\": {\n    \"maxStudents\": 2000,\n    \"hasTransport\": true,\n    \"hasLMS\": true,\n    \"hasExams\": true,\n    \"storageLimitGb\": 100\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/super-admin/plans",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "plans"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get All Plans",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/super-admin/plans?isActive=true&search=",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "plans"
+          ],
+          "query": [
+            {
+              "key": "isActive",
+              "value": "true",
+              "description": "Filter by active status (true/false)"
+            },
+            {
+              "key": "search",
+              "value": "",
+              "description": "Search by plan name"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get Plan by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/super-admin/plans/{{planId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "plans",
+            "{{planId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Update Plan Details",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Premium Plan Demo (Updated)\",\n  \"description\": \"Updated description text for the plan.\",\n  \"monthlyPrice\": 5500,\n  \"features\": {\n    \"maxStudents\": 2500,\n    \"hasTransport\": true,\n    \"hasLMS\": true,\n    \"hasExams\": true,\n    \"storageLimitGb\": 150\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/super-admin/plans/{{planId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "plans",
+            "{{planId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Toggle Plan Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"isActive\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/super-admin/plans/{{planId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "super-admin",
+            "plans",
+            "{{planId}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "planId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "info": {
+    "_postman_id": "9e6bd015-b409-4fbd-b924-83564cd74ac6",
+    "name": "Subscription API Collection",
+    "description": "Test all subscription APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48380864",
+    "_collection_link": "https://go.postman.co/collection/48380864-9e6bd015-b409-4fbd-b924-83564cd74ac6?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Create Subscription",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenantId\": \"{{tenantId}}\",\n  \"planId\": \"{{planId}}\",\n  \"billingCycle\": \"monthly\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}",
+          "host": [
+            "{{baseUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Subscriptions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}?limit=10&offset=0",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "offset",
+              "value": "0"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Subscription By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/{{subscriptionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{subscriptionId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Subscriptions By Tenant",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tenant/{{tenantId}}?limit=10",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tenant",
+            "{{tenantId}}"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Subscription",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"active\",\n  \"billingCycle\": \"yearly\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{subscriptionId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{subscriptionId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upgrade Subscription",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"newPlanId\": \"{{planId}}\",\n  \"billingCycle\": \"yearly\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/{{subscriptionId}}/upgrade",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{subscriptionId}}",
+            "upgrade"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Toggle Subscription Status",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/{{subscriptionId}}/status",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{subscriptionId}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1/subscriptions"
+    },
+    {
+      "key": "tenantId",
+      "value": "REPLACE_WITH_UUID"
+    },
+    {
+      "key": "subscriptionId",
+      "value": "REPLACE_WITH_SUBSCRIPTION_ID"
+    },
+    {
+      "key": "planId",
+      "value": "REPLACE_WITH_PLAN_ID"
+    }
+  ]
+}

@@ -63,6 +63,7 @@ export class TenantService {
     const planIdentifier = data.plan ?? data.planId ?? data.planSlug;
     const plan = await tenantRepo.findPlan(planIdentifier);
     if (!plan) throw new AppError("Selected plan was not found", 404);
+    if (!plan.isActive) throw new AppError("This plan is no longer available for new subscriptions", 422);
 
     const normalizedEmail = data.officialEmail.trim().toLowerCase();
     const emailOwner = await tenantRepo.findByOfficialEmail(normalizedEmail);
@@ -72,14 +73,38 @@ export class TenantService {
     if (!data.password) throw new AppError("Admin password is required for tenant registration", 400);
 
     const subdomain = await this.generateUniqueSubdomain(data.subdomain || data.name);
-    const trialDays = data.trialDays ?? 14;
+
+    // ─── Dynamic Billing Calculation ───────────────────────────────────────
+    const billingCycle = data.billingCycle || "monthly";
+
+    // How many months is the tenant paying for? Default: 1
+    const parsedDuration = parseInt(data.durationMonths, 10);
+    const durationMonths = (isNaN(parsedDuration) || parsedDuration < 1) ? 1 : parsedDuration;
+
+    // Price per single billing cycle (monthly or yearly)
+    const pricePerCycle =
+      billingCycle === "yearly"
+        ? parseFloat(plan.yearlyPrice)
+        : parseFloat(plan.monthlyPrice);
+
+    // How many full billing cycles does durationMonths cover?
+    // e.g. yearly + 24 months = 2 cycles | monthly + 3 months = 3 cycles
+    const durationCycles =
+      billingCycle === "yearly"
+        ? Math.ceil(durationMonths / 12)
+        : durationMonths;
+
+    // Total amount the tenant must pay
+    const amountPaid = parseFloat((pricePerCycle * durationCycles).toFixed(2));
+
+    // Subscription period dates based on actual paid duration
     const startDate = new Date();
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + trialDays);
+    endDate.setMonth(endDate.getMonth() + durationMonths);
+    // ────────────────────────────────────────────────────────────────────────
 
     const transaction = await sequelize.transaction();
     let tenant;
-     console.log(plan[data.billingCycle] , "this is price")
     try {
       // 2. Create Tenant
       tenant = await tenantRepo.create({
@@ -97,16 +122,16 @@ export class TenantService {
         tenantId: tenant.id,
         planId: plan.id,
         status: "trialing",
-        billingCycle: data.billingCycle || "monthly",
-        startDate, endDate,
-         amountPaid:1,
+        billingCycle,
+        startDate,
+        endDate,
+        amountPaid,
         nextBillingDate: endDate,
       }, { transaction });
 
       // 4. 🔥 Provision Default Roles & Permissions
       // Yeh method roles create karke return karega (Humein Administrator role ID chahiye)
       const adminRole = await roleService.provisionDefaultTenantRoles(tenant.id, transaction);
-       console.log(adminRole , "this is adminrole ")
       if (!adminRole) throw new AppError("Failed to provision administrator role", 500);
 
       // 5. 🔥 Create Admin User (Owner)
@@ -616,3 +641,4 @@ export class TenantService {
     };
   }
 }
+

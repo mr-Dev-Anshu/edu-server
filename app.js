@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import planRoutes from './router/plan.router.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import permissionRouter from './router/permission.router.js';
@@ -16,6 +17,7 @@ import sectionRouter from "./router/Academic/section.routes.js";
 import studentRouter from "./router/student.routes.js";
 import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
+import subscriptionRoutes from './router/subscription.router.js';
 import cookieParser from 'cookie-parser';
 
 
@@ -53,6 +55,9 @@ app.use('/uploads', express.static(uploadsRoot));
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'UP', timestamp: new Date().toISOString() });
 });
+
+app.use('/api/v1/super-admin/plans', planRoutes);
+app.use('/api/v1/subscriptions', subscriptionRoutes);
 
 app.use('/api/v1/tenants', tenantRouter);
 app.use('/api/v1/roles', roleRouter);

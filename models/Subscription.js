@@ -10,47 +10,47 @@ const Subscription = sequelize.define('Subscription', {
     tenantId: {
         type: DataTypes.UUID,
         allowNull: false,
-        references: { model: 'tenants', key: 'id' }
+        references: { model: 'tenants', key: 'id' },
     },
     planId: {
         type: DataTypes.UUID,
         allowNull: false,
-        references: { model: 'plans', key: 'id' }
+        references: { model: 'plans', key: 'id' },
     },
     status: {
-        type: DataTypes.ENUM('active', 'past_due', 'canceled', 'trialing', 'expired'),
-        defaultValue: 'trialing'
+        type: DataTypes.ENUM('active', 'past_due', 'canceled', 'trialing', 'expired', 'paused'),
+        defaultValue: 'trialing',
     },
     billingCycle: {
         type: DataTypes.ENUM('monthly', 'yearly'),
-        allowNull: false
+        allowNull: false,
     },
     startDate: {
         type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW
+        defaultValue: DataTypes.NOW,
     },
     endDate: {
         type: DataTypes.DATE,
-        allowNull: false 
+        allowNull: false,
     },
     nextBillingDate: {
-        type: DataTypes.DATE
+        type: DataTypes.DATE,
     },
     amountPaid: {
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: false
-    }
+        allowNull: false,
+    },
 }, {
     timestamps: true,
     paranoid: true,
     underscored: true,
     tableName: 'subscriptions',
-    // indexes: [
-    //     { fields: ['tenant_id'] },
-    //     { fields: ['plan_id'] },
-    //     { fields: ['status'] },
-    //     { fields: ['end_date'] }
-    // ]
+    indexes: [
+        { fields: ['tenant_id'] },
+        { fields: ['plan_id'] },
+        { fields: ['status'] },
+        { fields: ['end_date'] },
+    ],
 });
 
 export default Subscription;

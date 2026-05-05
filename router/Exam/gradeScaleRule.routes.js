@@ -1,9 +1,9 @@
 import express from "express";
-import { GradeScaleRuleController } from "../../controllers/Exam/gradeScaleRule.js";
+import { GradeScaleRuleController } from "../../controllers/Exam/gradeScaleRule.controller.js";
 import {
   createGradeScaleRuleValidator,
   updateGradeScaleRuleValidator,
-} from "../../middlewares/validators/Exam/gradeScaleRule.js";
+} from "../../middlewares/validators/Exam/gradeScaleRule.validator.js";
 import { identifyUser, checkPermission } from "../../middlewares/security/index.js";
 
 const router = express.Router();

@@ -16,15 +16,19 @@ export class GradeScaleService {
       tenantId,
       name: name.trim(),
       scaleType,
-      isDefault: isDefault || false,
+      isDefault: false,
     });
 
-    // If marked as default, update all others
-    if (gradeScale.isDefault) {
+    if (isDefault) {
       await gradeScaleRepo.setDefault(gradeScale.id, tenantId);
     }
 
-    return this.formatResponse(gradeScale);
+    const finalGradeScale = await gradeScaleRepo.findById(
+      gradeScale.id,
+      tenantId
+    );
+
+    return this.formatResponse(finalGradeScale);
   }
 
   async getAllGradeScales(tenantId, query) {
@@ -35,11 +39,17 @@ export class GradeScaleService {
     if (query.scaleType) filters.scaleType = query.scaleType;
     if (query.isDefault === "true") filters.isDefault = true;
 
-    return await gradeScaleRepo.findWithPagination(tenantId, filters, page, limit);
+    return await gradeScaleRepo.findWithPagination(
+      tenantId,
+      filters,
+      page,
+      limit
+    );
   }
 
   async getGradeScaleById(id, tenantId) {
     const gradeScale = await gradeScaleRepo.findById(id, tenantId);
+    if (!gradeScale) throw new AppError("Grade scale not found", 404);
     return this.formatResponse(gradeScale);
   }
 
@@ -48,49 +58,67 @@ export class GradeScaleService {
     if (!gradeScale) {
       throw new AppError("No default grade scale set for this tenant", 404);
     }
+
     return this.formatResponse(gradeScale);
   }
 
   async updateGradeScale(id, tenantId, updateData) {
     const gradeScale = await gradeScaleRepo.findById(id, tenantId);
+     if (!gradeScale) throw new AppError("Grade scale not found", 404);
 
-    if (updateData.name && updateData.name.trim() !== gradeScale.name) {
-      const existing = await gradeScaleRepo.findByName(updateData.name.trim(), tenantId);
-      if (existing) throw new AppError("A grade scale with this name already exists", 400);
-    }
+    // if (updateData.name && updateData.name.trim() !== gradeScale.name) {
+    //   const existing = await gradeScaleRepo.findByName(
+    //     updateData.name.trim(),
+    //     tenantId
+    //   );
 
-    const updated = await gradeScaleRepo.update(id, tenantId, {
-      ...(updateData.name !== undefined ? { name: updateData.name.trim() } : {}),
-      ...(updateData.scaleType !== undefined ? { scaleType: updateData.scaleType } : {}),
-      ...(updateData.isDefault !== undefined ? { isDefault: updateData.isDefault } : {}),
-    });
+    //   if (existing) {
+    //     throw new AppError("A grade scale with this name already exists", 400);
+    //   }
+    // }
 
-    // Sync default if needed
-    if (updateData.isDefault === true) {
-      await gradeScaleRepo.setDefault(id, tenantId);
-    }
+    // const updated = await gradeScaleRepo.update(id, tenantId, {
+    //   ...(updateData.name !== undefined
+    //     ? { name: updateData.name.trim() }
+    //     : {}),
+    //   ...(updateData.scaleType !== undefined
+    //     ? { scaleType: updateData.scaleType }
+    //     : {}),
+    //   ...(updateData.isDefault !== undefined
+    //     ? { isDefault: updateData.isDefault }
+    //     : {}),
+    // });
 
-    return this.formatResponse(updated);
+    // if (updateData.isDefault === true) {
+    //   await gradeScaleRepo.setDefault(id, tenantId);
+    // }
+
+    // return this.formatResponse(updated);
   }
 
   async deleteGradeScale(id, tenantId) {
     const gradeScale = await gradeScaleRepo.findById(id, tenantId);
+      if (!gradeScale) throw new AppError("Grade scale not found", 404);
 
     if (gradeScale.isDefault) {
       throw new AppError("Cannot delete the default grade scale", 400);
     }
 
-    await gradeScaleRepo.delete(id, tenantId);
-    return {
-      message: "Grade scale deleted successfully",
-      data: this.formatResponse(gradeScale),
-    };
+    // await gradeScaleRepo.delete(id, tenantId);
+
+    // return {
+    //   message: "Grade scale deleted successfully",
+    //   data: this.formatResponse(gradeScale),
+    // };
   }
 
   async setDefaultGradeScale(id, tenantId) {
-    await gradeScaleRepo.findById(id, tenantId); // ensure exists
+    await gradeScaleRepo.findById(id, tenantId);
+
     await gradeScaleRepo.setDefault(id, tenantId);
+
     const updated = await gradeScaleRepo.findById(id, tenantId);
+
     return this.formatResponse(updated);
   }
 

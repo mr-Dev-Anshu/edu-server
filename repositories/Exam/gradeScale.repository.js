@@ -1,4 +1,6 @@
-import { sequelize, GradeScale } from "../../models/index.js";
+import sequelize from "../../config/db.js";
+import { GradeScale } from "../../models/index.js";
+
 import { BaseRepository } from "../base.repository.js";
 import { AppError } from "../../utils/AppError.js";
 

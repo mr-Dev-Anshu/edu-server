@@ -1,19 +1,22 @@
 import { MarkRepository } from "../../repositories/Exam/mark.repository.js";
+import { ExamScheduleRepository } from "../../repositories/Exam/examSchedule.repository.js";
 import { AppError } from "../../utils/AppError.js";
 
 const markRepo = new MarkRepository();
+const examScheduleRepo = new ExamScheduleRepository();
 
 export class MarkService {
   async createMark(tenantId, payload, enteredById) {
     const { studentId, examScheduleId, marksObtainedRaw, isAbsent } = payload;
 
-    // Prevent duplicate entry for same student + schedule
+    const schedule = await examScheduleRepo.findById(examScheduleId, tenantId);
+    if (!schedule) throw new AppError("Exam schedule not found", 404);
+
     const existing = await markRepo.findByStudentAndSchedule(studentId, examScheduleId, tenantId);
     if (existing) {
       throw new AppError("Mark entry already exists for this student and exam schedule", 400);
     }
 
-    // If absent, nullify marks
     const marksToSave = isAbsent ? null : (marksObtainedRaw !== undefined ? parseInt(marksObtainedRaw) : null);
 
     const mark = await markRepo.create({
@@ -39,6 +42,11 @@ export class MarkService {
     }));
 
     const created = await markRepo.bulkUpsert(records);
+
+    if (!created || created.length === 0) {
+      throw new AppError("Bulk mark creation failed", 500);
+    }
+
     return created.map((m) => this.formatResponse(m));
   }
 
@@ -57,11 +65,20 @@ export class MarkService {
 
   async getMarkById(id, tenantId) {
     const mark = await markRepo.findById(id, tenantId);
+
+    if (!mark) {
+      throw new AppError("Mark not found", 404);
+    }
+
     return this.formatResponse(mark);
   }
 
   async updateMark(id, tenantId, updateData, enteredById) {
-    await markRepo.findById(id, tenantId); // ensure exists
+    const mark = await markRepo.findById(id, tenantId);
+
+    if (!mark) {
+      throw new AppError("Mark not found", 404);
+    }
 
     const isAbsent = updateData.isAbsent;
     const marksObtainedRaw = isAbsent
@@ -81,7 +98,13 @@ export class MarkService {
 
   async deleteMark(id, tenantId) {
     const mark = await markRepo.findById(id, tenantId);
+
+    if (!mark) {
+      throw new AppError("Mark not found", 404);
+    }
+
     await markRepo.delete(id, tenantId);
+
     return {
       message: "Mark deleted successfully",
       data: this.formatResponse(mark),

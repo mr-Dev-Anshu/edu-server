@@ -1,26 +1,9 @@
 import { AppError } from "../../../utils/AppError.js";
-
-const createValidator = (validateFn) => (req, res, next) => {
-  try {
-    validateFn(req);
-    next();
-  } catch (error) {
-    next(error);
-  }
-};
-
-const ensureUUID = (value, fieldName) => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(value)) {
-    throw new AppError(`${fieldName} must be a valid UUID`, 400);
-  }
-};
-
-const ensureBoolean = (value, fieldName) => {
-  if (typeof value !== "boolean") {
-    throw new AppError(`${fieldName} must be a boolean`, 400);
-  }
-};
+import {
+  createValidator,
+  ensureUUID,
+  ensureBoolean,
+} from "./examValidatorHelpers.js";
 
 const validateSingleMark = (mark, index = null) => {
   const prefix = index !== null ? `marks[${index}]` : "";

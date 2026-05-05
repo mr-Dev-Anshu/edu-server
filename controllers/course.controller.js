@@ -2,11 +2,12 @@ import { CourseService } from "../services/course.service.js";
 import { catchAsync } from "../utils/catchAsync.js";
 
 const courseService = new CourseService();
+const DEFAULT_TENANT_ID = "e9433fa7-0eb0-4b7d-8be8-5fcc57c27a54";
 
- export class CourseController {
+export class CourseController {
 
   create = catchAsync(async (req, res) => {
-    const tenantId = req.tenantId || "e9433fa7-0eb0-4b7d-8be8-5fcc57c27a54";
+    const tenantId = req.tenantId || DEFAULT_TENANT_ID;
 
     const data = await courseService.createCourse(req.body, tenantId);
 
@@ -17,7 +18,7 @@ const courseService = new CourseService();
   });
 
   getAll = catchAsync(async (req, res) => {
-    const tenantId = req.tenantId || "e9433fa7-0eb0-4b7d-8be8-5fcc57c27a54";
+    const tenantId = req.tenantId || DEFAULT_TENANT_ID;
     const filter = req.query.filter ? JSON.parse(req.query.filter) : {};
 
     const data = await courseService.getAllCourses(tenantId, filter);
@@ -29,7 +30,7 @@ const courseService = new CourseService();
   });
 
   getById = catchAsync(async (req, res) => {
-    const tenantId = req.tenantId || "e9433fa7-0eb0-4b7d-8be8-5fcc57c27a54";
+    const tenantId = req.tenantId || DEFAULT_TENANT_ID;
 
     const data = await courseService.getCourseById(req.params.id, tenantId);
 
@@ -40,7 +41,7 @@ const courseService = new CourseService();
   });
 
   update = catchAsync(async (req, res) => {
-    const tenantId = req.tenantId || "e9433fa7-0eb0-4b7d-8be8-5fcc57c27a54";
+    const tenantId = req.tenantId || DEFAULT_TENANT_ID;
 
     const data = await courseService.updateCourse(
       req.params.id,
@@ -55,7 +56,7 @@ const courseService = new CourseService();
   });
 
   delete = catchAsync(async (req, res) => {
-    const tenantId = req.tenantId || "e9433fa7-0eb0-4b7d-8be8-5fcc57c27a54";
+    const tenantId = req.tenantId || DEFAULT_TENANT_ID;
 
     await courseService.deleteCourse(req.params.id, tenantId);
 

@@ -4,7 +4,7 @@ import {
   createCourseValidator,
   updateCourseValidator,
 } from "../middlewares/validators/course.validator.js";
-import { identifyUser } from "../middlewares/security/index.js";
+
 
 const router = express.Router();
 const ctrl = new CourseController();

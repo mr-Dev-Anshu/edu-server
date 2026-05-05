@@ -38,8 +38,8 @@ export const Section = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "sections",
-    // indexes: [
-    //   { unique: true, fields: ["tenant_id", "class_id", "name", "academic_year_id"] },
-    // ],
+    indexes: [
+      { fields: ["tenant_id", "class_id", "academic_year_id"] },
+    ],
   }
 );

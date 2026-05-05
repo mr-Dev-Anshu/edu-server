@@ -9,6 +9,9 @@ import { identifyUser, checkPermission } from "../../middlewares/security/index.
 const router = express.Router();
 const ctrl = new SectionController();
 
+// Get Section Options (must come before /:id to avoid route conflicts)
+router.get("/options", identifyUser, ctrl.getOptions);
+
 // Create Section
 router.post("/", identifyUser, checkPermission("create:sections"), createSectionValidator, ctrl.create);
 

@@ -103,4 +103,18 @@ export class SectionRepository extends BaseRepository {
       order: [["name", "ASC"]],
     });
   }
+
+  // Get section options (lightweight query for dropdowns)
+  async findOptions(tenantId, classId, academicYearId) {
+    return await this.model.findAll({
+      where: {
+        tenantId,
+        classId,
+        academicYearId,
+      },
+      attributes: ["id", "name"],
+      order: [["name", "ASC"]],
+      raw: true,
+    });
+  }
 }

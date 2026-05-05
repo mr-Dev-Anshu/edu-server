@@ -109,6 +109,10 @@ AcademicYear.belongsTo(Tenant, { foreignKey: "tenantId" });
 Class.hasMany(Section, { foreignKey: "classId", as: "sections" });
 Section.belongsTo(Class, { foreignKey: "classId", as: "class" });
 
+// Class Teacher (User) -> Section
+Section.belongsTo(User, { foreignKey: "classTeacherId", as: "classTeacher" });
+User.hasMany(Section, { foreignKey: "classTeacherId", as: "sectionsAssigned" });
+
 // Academic Year -> Section
 Section.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
 AcademicYear.hasMany(Section, { foreignKey: "academicYearId", as: "sections"});

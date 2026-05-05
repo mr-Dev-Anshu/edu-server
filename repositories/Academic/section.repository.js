@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { AcademicYear, Class, Section } from "../../models/index.js";
+import { AcademicYear, Class, Section, User } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
 export class SectionRepository extends BaseRepository {
@@ -57,12 +57,18 @@ export class SectionRepository extends BaseRepository {
         {
           model: Class,
           as: "class",
-          attributes: ["id", "name", "numericLevel"],
+          attributes: ["id", "name", "numericLevel", "description"],
         },
         {
           model: AcademicYear,
           as: "academicYear",
-          attributes: ["id", "name", "isCurrent"],
+          attributes: ["id", "name", "startDate", "endDate", "isCurrent", "isLocked"],
+        },
+        {
+          model: User,
+          as: "classTeacher",
+          attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+          required: false,
         },
       ],
     });
@@ -84,12 +90,18 @@ export class SectionRepository extends BaseRepository {
         {
           model: Class,
           as: "class",
-          attributes: ["id", "name", "numericLevel"],
+          attributes: ["id", "name", "numericLevel", "description", "tenantId"],
         },
         {
           model: AcademicYear,
           as: "academicYear",
-          attributes: ["id", "name", "isCurrent"],
+          attributes: ["id", "name", "startDate", "endDate", "isCurrent", "isLocked", "tenantId"],
+        },
+        {
+          model: User,
+          as: "classTeacher",
+          attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+          required: false,
         },
       ],
     });
@@ -107,5 +119,48 @@ export class SectionRepository extends BaseRepository {
       },
       order: [["name", "ASC"]],
     });
+  }
+
+  // NEW: Get sections by class with pagination and full details
+  async findByClassWithPagination(classId, tenantId, page = 1, limit = 10, academicYearId = null) {
+    const offset = (page - 1) * limit;
+
+    const where = {
+      classId,
+      tenantId,
+      deletedAt: null,
+    };
+
+    if (academicYearId) {
+      where.academicYearId = academicYearId;
+    }
+
+    const { count, rows } = await this.model.findAndCountAll({
+      where,
+      offset,
+      limit,
+      order: [["name", "ASC"]],
+      include: [
+        {
+          model: AcademicYear,
+          as: "academicYear",
+          attributes: ["id", "name", "startDate", "endDate", "isCurrent", "isLocked", "tenantId"],
+        },
+        {
+          model: User,
+          as: "classTeacher",
+          attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+          required: false,
+        },
+      ],
+    });
+
+    return {
+      total: count,
+      page,
+      limit,
+      pages: Math.ceil(count / limit),
+      data: rows,
+    };
   }
 }

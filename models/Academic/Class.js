@@ -30,6 +30,7 @@ export const Class = sequelize.define(
     // indexes: [
     //   { unique: true, fields: ["tenant_id", "name"] },
     //   { fields: ["tenant_id", "numeric_level"] },
+    //   { fields: ["tenant_id", "name"] },
     // ],
   }
 );

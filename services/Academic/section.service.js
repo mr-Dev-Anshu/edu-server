@@ -46,7 +46,9 @@ export class SectionService {
       classTeacherId,
     });
 
-    return this.formatSectionResponse(section);
+    // Fetch created section with full details
+    const createdSection = await sectionRepo.findWithDetails(section.id, tenantId);
+    return this.formatSectionResponse(createdSection);
   }
 
   // Get All Sections
@@ -58,7 +60,15 @@ export class SectionService {
     if (query.classId) filters.classId = query.classId;
     if (query.academicYearId) filters.academicYearId = query.academicYearId;
 
-    return await sectionRepo.findWithPagination(tenantId, filters, page, limit);
+    const result = await sectionRepo.findWithPagination(tenantId, filters, page, limit);
+
+    return {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      pages: result.pages,
+      data: result.data.map((sec) => this.formatSectionResponse(sec)),
+    };
   }
 
   // Get Section by ID
@@ -105,7 +115,7 @@ export class SectionService {
       }
     }
 
-    const updated = await sectionRepo.update(id, tenantId, {
+    await sectionRepo.update(id, tenantId, {
       ...(updateData.name !== undefined ? { name: updateData.name.trim() } : {}),
       ...(updateData.classId !== undefined ? { classId: updateData.classId } : {}),
       ...(updateData.academicYearId !== undefined ? { academicYearId: updateData.academicYearId } : {}),
@@ -113,12 +123,14 @@ export class SectionService {
       ...(updateData.classTeacherId !== undefined ? { classTeacherId: updateData.classTeacherId } : {}),
     });
 
-    return this.formatSectionResponse(updated);
+    // Fetch updated section with full details
+    const updatedSection = await sectionRepo.findWithDetails(id, tenantId);
+    return this.formatSectionResponse(updatedSection);
   }
 
   // Delete Section
   async deleteSection(id, tenantId) {
-    const section = await sectionRepo.findById(id, tenantId);
+    const section = await sectionRepo.findWithDetails(id, tenantId);
 
     await sectionRepo.delete(id, tenantId);
 
@@ -128,16 +140,40 @@ export class SectionService {
     };
   }
 
-  // Clean Response
+  // Clean Response with full nested objects
   formatSectionResponse(section) {
     return {
       id: section.id,
       tenantId: section.tenantId,
       name: section.name,
-      classId: section.classId,
-      academicYearId: section.academicYearId,
       capacity: section.capacity,
       classTeacherId: section.classTeacherId,
+      classTeacher: section.classTeacher ? {
+        id: section.classTeacher.id,
+        firstName: section.classTeacher.firstName,
+        lastName: section.classTeacher.lastName,
+        email: section.classTeacher.email,
+        phone: section.classTeacher.phone,
+        status: section.classTeacher.status,
+      } : null,
+      classId: section.classId,
+      class: section.class ? {
+        id: section.class.id,
+        tenantId: section.class.tenantId,
+        name: section.class.name,
+        numericLevel: section.class.numericLevel,
+        description: section.class.description,
+      } : null,
+      academicYearId: section.academicYearId,
+      academicYear: section.academicYear ? {
+        id: section.academicYear.id,
+        tenantId: section.academicYear.tenantId,
+        name: section.academicYear.name,
+        startDate: section.academicYear.startDate,
+        endDate: section.academicYear.endDate,
+        isCurrent: section.academicYear.isCurrent,
+        isLocked: section.academicYear.isLocked,
+      } : null,
       createdAt: section.createdAt,
       updatedAt: section.updatedAt,
     };

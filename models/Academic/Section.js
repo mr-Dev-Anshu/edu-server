@@ -42,6 +42,8 @@ export const Section = sequelize.define(
     tableName: "sections",
     // indexes: [
     //   { unique: true, fields: ["tenant_id", "class_id", "name", "academic_year_id"] },
+    //   { fields: ["tenant_id", "class_id", "academic_year_id"] },
+    //   { fields: ["tenant_id", "academic_year_id"] },
     // ],
   }
 );

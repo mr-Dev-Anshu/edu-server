@@ -131,13 +131,8 @@ export class SectionService {
   // Delete Section
   async deleteSection(id, tenantId) {
     const section = await sectionRepo.findWithDetails(id, tenantId);
-
     await sectionRepo.delete(id, tenantId);
-
-    return {
-      message: "Section deleted successfully",
-      data: this.formatSectionResponse(section),
-    };
+    return { message: "Section deleted successfully", data: this.formatSectionResponse(section) };
   }
 
   // Clean Response with full nested objects

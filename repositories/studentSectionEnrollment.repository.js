@@ -44,6 +44,39 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
     });
   }
 
+  // Used by class/section listing endpoints to avoid N+1 enrollment count queries.
+  async countBySectionIds(tenantId, sectionIds = [], academicYearId = null) {
+    const uniqueSectionIds = [...new Set(sectionIds.filter(Boolean))];
+
+    if (uniqueSectionIds.length === 0) {
+      return [];
+    }
+
+    const where = {
+      tenantId,
+      sectionId: { [Op.in]: uniqueSectionIds },
+    };
+
+    if (academicYearId) {
+      where.academicYearId = academicYearId;
+    }
+
+    const rows = await this.model.findAll({
+      attributes: [
+        "sectionId",
+        [this.model.sequelize.fn("COUNT", this.model.sequelize.col("id")), "count"],
+      ],
+      where,
+      group: ["sectionId"],
+      raw: true,
+    });
+
+    return rows.map((row) => ({
+      sectionId: row.sectionId,
+      count: Number(row.count) || 0,
+    }));
+  }
+
   // Pagination + relations
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
     const offset = (page - 1) * limit;

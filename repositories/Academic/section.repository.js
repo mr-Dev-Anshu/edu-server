@@ -122,7 +122,14 @@ export class SectionRepository extends BaseRepository {
   }
 
   // NEW: Get sections by class with pagination and full details
-  async findByClassWithPagination(classId, tenantId, page = 1, limit = 10, academicYearId = null) {
+  async findByClassWithPagination(
+    classId,
+    tenantId,
+    page = 1,
+    limit = 10,
+    academicYearId = null,
+    search = null,
+  ) {
     const offset = (page - 1) * limit;
 
     const where = {
@@ -133,6 +140,12 @@ export class SectionRepository extends BaseRepository {
 
     if (academicYearId) {
       where.academicYearId = academicYearId;
+    }
+
+    if (search) {
+      where.name = {
+        [Op.iLike]: `%${String(search).trim()}%`,
+      };
     }
 
     const { count, rows } = await this.model.findAndCountAll({

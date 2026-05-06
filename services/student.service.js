@@ -111,8 +111,6 @@ export class StudentService {
         { transaction },
       );
 
-      const createdGuardians = [];
-
       for (const guardianInput of guardians) {
         const {
           email: guardianEmail,
@@ -161,25 +159,6 @@ export class StudentService {
           },
           { transaction },
         );
-
-        // Format guardian response with all fields (handles both new and reused guardians)
-        createdGuardians.push({
-          id: guardian.id,
-          tenantId: guardian.tenantId,
-          userId: guardian.userId,
-          relation: guardian.relation,
-          phone: guardian.phone,
-          occupation: guardian.occupation,
-          isPrimaryContact: guardian.isPrimaryContact,
-          relationType: normalizedRelationType,
-          isPrimary: isPrimary ?? false,
-          canPickup: canPickup ?? true,
-          createdAt: guardian.createdAt,
-          updatedAt: guardian.updatedAt,
-          firstName: guardianFirstName,
-          lastName: guardianLastName,
-          email: guardianEmail,
-        });
       }
 
       // 7. Validate circular sibling reference
@@ -237,13 +216,9 @@ export class StudentService {
 
       await transaction.commit();
 
-      // Convert Sequelize instance to plain object
-      const studentData = student.get({ plain: true });
-
-      return this.formatStudentResponse({
-        ...studentData,
-        guardians: createdGuardians,
-      });
+      // Reload the student with all associations so the response is complete
+      const fullStudent = await studentRepo.findWithDetails(student.id, tenantId);
+      return this.formatStudentResponse(fullStudent);
     } catch (error) {
       if (!transaction.finished) await transaction.rollback();
       throw error;

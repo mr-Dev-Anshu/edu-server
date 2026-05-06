@@ -96,6 +96,9 @@ User.hasOne(Staff, { foreignKey: "userId", as: "staffProfile" });
 Staff.belongsTo(User, { foreignKey: "userId", as: "user" });
 Staff.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
+User.hasOne(Guardian, { foreignKey: "userId", as: "guardianProfile" });
+Guardian.belongsTo(User, { foreignKey: "userId", as: "user" });
+
 Student.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
 // Student -> Sibling (self-referential)

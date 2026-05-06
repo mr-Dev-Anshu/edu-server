@@ -40,6 +40,10 @@ import Subject from './Academic/Subject.js';
 // // --- Infrastructure ---
 import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
 
+// --- Attendance & Attendance Period ---
+import { Attendance } from "./Attendance.js";
+import { AttendancePeriod } from "./AttendancePeriod.js";
+
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
 // ==========================================
@@ -137,6 +141,23 @@ Guardian.belongsToMany(Student, {
   as: "students",
 });
 
+// ==========================================
+// 6. ATTENDANCE & ATTENDANCE PERIOD
+// ==========================================
+// Attendance Relationships
+Student.hasMany(Attendance, { foreignKey: "studentId", as: "attendanceRecords" });
+Attendance.belongsTo(Student, { foreignKey: "studentId", as: "student" });
+Attendance.belongsTo(Section, { foreignKey: "sectionId", as: "section" });
+Attendance.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
+Attendance.belongsTo(User, { foreignKey: "markedById", as: "markedBy" });
+Attendance.belongsTo(User, { foreignKey: "correctedById", as: "correctedBy" });
+
+// AttendancePeriod Relationships
+Student.hasMany(AttendancePeriod, { foreignKey: "studentId", as: "periodAttendanceRecords" });
+AttendancePeriod.belongsTo(Student, { foreignKey: "studentId", as: "student" });
+AttendancePeriod.belongsTo(TimetableSlot, { foreignKey: "timetableSlotId", as: "timetableSlot" });
+AttendancePeriod.belongsTo(User, { foreignKey: "markedById", as: "markedBy" });
+
 Tenant.addScope("active", { where: { status: "active" } });
 
 export {
@@ -162,4 +183,6 @@ export {
   Room,
   Timetable,
   TimetableSlot,
+  Attendance,
+  AttendancePeriod,
 };

@@ -1,0 +1,416 @@
+{
+  "info": {
+    "_postman_id": "attendance-api-collection",
+    "name": "Attendance API",
+    "description": "Complete CRUD API for Daily Attendance Management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Attendance - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"date\": \"{{date}}\",\n  \"status\": \"present\",\n  \"inTime\": \"09:00:00\",\n  \"outTime\": \"15:30:00\",\n  \"remarks\": \"Student was on time\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance"]
+        },
+        "description": "Mark attendance for a student"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Get All",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "status",
+              "value": "present",
+              "disabled": true
+            },
+            {
+              "key": "sectionId",
+              "value": "{{sectionId}}",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Get all attendance records with pagination and filters"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Get One",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/{{attendanceId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "{{attendanceId}}"]
+        },
+        "description": "Get a specific attendance record with all populated relations"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Update",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"late\",\n  \"inTime\": \"09:15:00\",\n  \"remarks\": \"Student was 15 minutes late\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/{{attendanceId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "{{attendanceId}}"]
+        },
+        "description": "Update attendance status or details"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Mark as Corrected",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"present\",\n  \"correctionReason\": \"Attendance was initially marked as absent but student was present\",\n  \"correctedById\": \"{{correctedById}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/{{attendanceId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "{{attendanceId}}"]
+        },
+        "description": "Mark attendance as corrected with reason"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/{{attendanceId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "{{attendanceId}}"]
+        },
+        "description": "Delete an attendance record"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Search",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/search?q={{searchTerm}}&page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "search"],
+          "query": [
+            {
+              "key": "q",
+              "value": "John"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Search attendance by student name or remarks"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Get Student Summary",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/student/{{studentId}}/summary?startDate={{startDate}}&endDate={{endDate}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "student", "{{studentId}}", "summary"],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "2026-05-01"
+            },
+            {
+              "key": "endDate",
+              "value": "2026-05-31"
+            }
+          ]
+        },
+        "description": "Get attendance summary for a student (includes percentage and statistics)"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Get Section Summary",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/section/{{sectionId}}/summary?startDate={{startDate}}&endDate={{endDate}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "section", "{{sectionId}}", "summary"],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "2026-05-01"
+            },
+            {
+              "key": "endDate",
+              "value": "2026-05-31"
+            }
+          ]
+        },
+        "description": "Get attendance summary for entire section"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Get Date Attendance",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/date/{{date}}?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "date", "{{date}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        },
+        "description": "Get all attendance marked on a specific date"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Get Uncorrected",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/uncorrected?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "uncorrected"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Get all attendance records that need correction"
+      },
+      "response": []
+    },
+    {
+      "name": "Attendance - Bulk Mark",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId1}}\",\n      \"sectionId\": \"{{sectionId}}\",\n      \"academicYearId\": \"{{academicYearId}}\",\n      \"date\": \"{{date}}\",\n      \"status\": \"present\"\n    },\n    {\n      \"studentId\": \"{{studentId2}}\",\n      \"sectionId\": \"{{sectionId}}\",\n      \"academicYearId\": \"{{academicYearId}}\",\n      \"date\": \"{{date}}\",\n      \"status\": \"absent\",\n      \"remarks\": \"Sick leave\"\n    },\n    {\n      \"studentId\": \"{{studentId3}}\",\n      \"sectionId\": \"{{sectionId}}\",\n      \"academicYearId\": \"{{academicYearId}}\",\n      \"date\": \"{{date}}\",\n      \"status\": \"late\",\n      \"inTime\": \"09:20:00\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/attendance/bulk-mark",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "attendance", "bulk-mark"]
+        },
+        "description": "Mark attendance for multiple students at once (transactional)"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your-jwt-token-here",
+      "type": "string"
+    },
+    {
+      "key": "studentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentId1",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentId2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentId3",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "attendanceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sectionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "academicYearId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "correctedById",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "date",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "startDate",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "endDate",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "searchTerm",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 import sequelize from "../config/db.js";
+import { GuardianService } from "./guardian.service.js";
 import { StudentRepository } from "../repositories/student.repository.js";
+import { GuardianRepository } from "../repositories/guardian.repository.js";
 import { AppError } from "../utils/AppError.js";
 import { RoleService } from "./role.service.js";
 import { UserRoleService } from "./user-role.service.js";
@@ -7,8 +9,11 @@ import { UserService } from "./user.service.js";
 import { StudentSectionEnrollmentRepository } from "../repositories/studentSectionEnrollment.repository.js";
 import { SectionRepository } from "../repositories/Academic/section.repository.js";
 import { AcademicYearRepository } from "../repositories/Academic/academicYear.repository.js";
+import { StudentGuardianMap } from "../models/index.js";
 
 const studentRepo = new StudentRepository();
+const guardianRepo = new GuardianRepository();
+const guardianService = new GuardianService();
 const userService = new UserService();
 const userRoleService = new UserRoleService();
 const roleService = new RoleService();
@@ -24,12 +29,14 @@ export class StudentService {
       firstName,
       lastName,
       admissionNumber,
+      guardians = [],
       requestedBy,
       sectionId,
       academicYearId,
       enrollmentStatus,
       rollNumber,
       siblingId,
+      ...studentFields
     } = payload;
 
     // 1. Check if admission number already exists
@@ -93,13 +100,87 @@ export class StudentService {
       // 6. Create Student Profile
       const student = await studentRepo.create(
         {
-          ...payload,
+          ...studentFields,
+          firstName: firstName?.trim(),
+          middleName: payload.middleName?.trim() || null,
+          lastName: lastName?.trim(),
           tenantId,
           userId: user.id,
           admissionNumber: admissionNumber.trim(),
         },
         { transaction },
       );
+
+      const createdGuardians = [];
+
+      for (const guardianInput of guardians) {
+        const {
+          email: guardianEmail,
+          password: guardianPassword,
+          firstName: guardianFirstName,
+          lastName: guardianLastName,
+          relation,
+          relationType,
+          phone,
+          occupation,
+          isPrimaryContact,
+          isPrimary,
+          canPickup,
+        } = guardianInput;
+
+        const normalizedRelationType =
+          relationType ??
+          (relation === "father" || relation === "mother" || relation === "guardian"
+            ? relation
+            : "other");
+
+        const guardian = await guardianService.resolveGuardian(
+          tenantId,
+          {
+            email: guardianEmail,
+            password: guardianPassword,
+            firstName: guardianFirstName,
+            lastName: guardianLastName,
+            relation,
+            phone,
+            occupation,
+            isPrimaryContact,
+            requestedBy,
+          },
+          { transaction },
+        );
+
+        await guardianService.attachStudents(
+          guardian.id,
+          tenantId,
+          {
+            studentIds: [student.id],
+            relationType: normalizedRelationType,
+            isPrimary: isPrimary ?? false,
+            canPickup: canPickup ?? true,
+          },
+          { transaction },
+        );
+
+        // Format guardian response with all fields (handles both new and reused guardians)
+        createdGuardians.push({
+          id: guardian.id,
+          tenantId: guardian.tenantId,
+          userId: guardian.userId,
+          relation: guardian.relation,
+          phone: guardian.phone,
+          occupation: guardian.occupation,
+          isPrimaryContact: guardian.isPrimaryContact,
+          relationType: normalizedRelationType,
+          isPrimary: isPrimary ?? false,
+          canPickup: canPickup ?? true,
+          createdAt: guardian.createdAt,
+          updatedAt: guardian.updatedAt,
+          firstName: guardianFirstName,
+          lastName: guardianLastName,
+          email: guardianEmail,
+        });
+      }
 
       // 7. Validate circular sibling reference
       if (siblingId) {
@@ -156,9 +237,13 @@ export class StudentService {
 
       await transaction.commit();
 
-      // Reload student with all associations
-      const fullStudent = await studentRepo.findWithDetails(student.id, tenantId);
-      return this.formatStudentResponse(fullStudent);
+      // Convert Sequelize instance to plain object
+      const studentData = student.get({ plain: true });
+
+      return this.formatStudentResponse({
+        ...studentData,
+        guardians: createdGuardians,
+      });
     } catch (error) {
       if (!transaction.finished) await transaction.rollback();
       throw error;
@@ -176,13 +261,14 @@ export class StudentService {
     if (query.name) filters.name = query.name;
 
     const result = await studentRepo.findWithPagination(tenantId, filters, page, limit);
-
+    
+    // Format each student's guardians properly
     return {
-      total: result.total,
-      page: result.page,
-      limit: result.limit,
-      pages: result.pages,
-      data: result.data.map((student) => this.formatStudentResponse(student)),
+      ...result,
+      data: result.data.map(student => {
+        const studentData = student.get ? student.get({ plain: true }) : student;
+        return this.formatStudentResponse(studentData);
+      }),
     };
   }
 
@@ -192,7 +278,8 @@ export class StudentService {
       throw new AppError("Student not found", 404);
     }
 
-    return this.formatStudentResponse(student);
+    const studentData = student.get ? student.get({ plain: true }) : student;
+    return this.formatStudentResponse(studentData);
   }
 
   async updateStudent(id, tenantId, updateData) {
@@ -313,23 +400,54 @@ export class StudentService {
         : {}),
     });
 
-    // Reload with associations
-    const fullStudent = await studentRepo.findWithDetails(id, tenantId);
-    return this.formatStudentResponse(fullStudent);
+    // Fetch updated record with all details (guardians, user, enrollments)
+    const updatedWithDetails = await studentRepo.findWithDetails(id, tenantId);
+    const updatedData = updatedWithDetails.get ? updatedWithDetails.get({ plain: true }) : updatedWithDetails;
+    return this.formatStudentResponse(updatedData);
   }
 
   async deleteStudent(id, tenantId) {
-    const student = await studentRepo.findById(id, tenantId);
-    if (!student) {
-      throw new AppError("Student not found", 404);
+    const transaction = await sequelize.transaction();
+
+    try {
+      // Fetch student with guardian IDs only (lightweight)
+      const student = await studentRepo.findWithDetails(id, tenantId);
+      if (!student) {
+        throw new AppError("Student not found", 404);
+      }
+      
+      const guardianIds = student.guardians?.map(g => g.id) || [];
+      
+      // Explicitly delete StudentGuardianMap entries first
+      await StudentGuardianMap.destroy({ 
+        where: { studentId: id, tenantId },
+        transaction
+      });
+      
+      // Delete student
+      await studentRepo.delete(id, tenantId, { transaction });
+
+      // Find orphaned guardians in single query (with transaction for consistency)
+      if (guardianIds.length > 0) {
+        const orphanedGuardianIds = await guardianRepo.findOrphanedGuardians(guardianIds, tenantId, { transaction });
+        
+        // Batch delete orphaned guardians
+        if (orphanedGuardianIds.length > 0) {
+          await guardianRepo.deleteMultiple(orphanedGuardianIds, tenantId, { transaction });
+        }
+      }
+
+      await transaction.commit();
+      
+      const studentData = student.get ? student.get({ plain: true }) : student;
+      return {
+        message: "Student deleted successfully",
+        data: this.formatStudentResponse(studentData),
+      };
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-
-    await studentRepo.delete(id, tenantId);
-
-    return {
-      message: "Student deleted successfully",
-      data: this.formatStudentResponse(student),
-    };
   }
 
    formatStudentResponse(student) {
@@ -437,10 +555,15 @@ export class StudentService {
       guardians: Array.isArray(student.guardians)
         ? student.guardians.map((g) => ({
             id: g.id,
+            tenantId: g.tenantId,
+            userId: g.userId,
             relation: g.relation,
             phone: g.phone,
             occupation: g.occupation,
             isPrimaryContact: g.isPrimaryContact,
+            relationType: g.relationType ?? g.StudentGuardianMap?.relationType,
+            isPrimary: g.isPrimary ?? g.StudentGuardianMap?.isPrimary,
+            canPickup: g.canPickup ?? g.StudentGuardianMap?.canPickup,
             user: g.user
               ? {
                   id: g.user.id,
@@ -461,6 +584,7 @@ export class StudentService {
           }))
         : [],
       enrollment: currentEnrollment ? formatEnrollment(currentEnrollment) : undefined,
+      enrollments: student.enrollments || undefined,
     };
   }
 }

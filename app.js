@@ -18,6 +18,7 @@ import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
 
+import guardianRouter from './router/guardian.router.js'
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -65,6 +66,7 @@ app.use('/api/v1/classes', classRouter);
 app.use('/api/v1/sections', sectionRouter);
 app.use('/api/v1/students', studentRouter);
 app.use('/api/v1/enrollments', enrollmentRouter);
+app.use('/api/v1/guardians' , guardianRouter)
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

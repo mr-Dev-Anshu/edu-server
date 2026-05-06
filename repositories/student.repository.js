@@ -111,6 +111,17 @@ export class StudentRepository extends BaseRepository {
             },
           ],
         },
+        {
+          association: "guardians",
+          through: { attributes: ["relationType", "isPrimary", "canPickup"] },
+          attributes: ["id", "tenantId", "userId", "relation", "phone", "occupation", "isPrimaryContact", "createdAt", "updatedAt"],
+          include: [
+            {
+              association: "user",
+              attributes: ["id", "firstName", "lastName", "email"],
+            },
+          ],
+        },
       ],
     });
 
@@ -172,6 +183,17 @@ export class StudentRepository extends BaseRepository {
               model: AcademicYear,
               as: "academicYear",
               attributes: ["id", "name", "isCurrent"],
+            },
+          ],
+        },
+        {
+          association: "guardians",
+          through: { attributes: ["relationType", "isPrimary", "canPickup"] },
+          attributes: ["id", "tenantId", "userId", "relation", "phone", "occupation", "isPrimaryContact", "createdAt", "updatedAt"],
+          include: [
+            {
+              association: "user",
+              attributes: ["id", "firstName", "lastName", "email"],
             },
           ],
         },

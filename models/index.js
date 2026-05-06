@@ -98,6 +98,7 @@ Staff.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
 User.hasOne(Guardian, { foreignKey: "userId", as: "guardianProfile" });
 Guardian.belongsTo(User, { foreignKey: "userId", as: "user" });
+Guardian.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
 Student.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
@@ -141,6 +142,10 @@ Guardian.belongsToMany(Student, {
   through: StudentGuardianMap,
   foreignKey: "guardianId",
   as: "students",
+});
+Guardian.hasMany(StudentGuardianMap, {
+  foreignKey: 'guardianId',
+  as: 'studentMappings',
 });
 
 Tenant.addScope("active", { where: { status: "active" } });

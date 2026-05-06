@@ -434,6 +434,32 @@ export class StudentService {
               : undefined,
           }
         : null,
+      guardians: Array.isArray(student.guardians)
+        ? student.guardians.map((g) => ({
+            id: g.id,
+            relation: g.relation,
+            phone: g.phone,
+            occupation: g.occupation,
+            isPrimaryContact: g.isPrimaryContact,
+            user: g.user
+              ? {
+                  id: g.user.id,
+                  firstName: g.user.firstName,
+                  lastName: g.user.lastName,
+                  email: g.user.email,
+                  phone: g.user.phone,
+                }
+              : undefined,
+            map: g.StudentGuardianMap
+              ? {
+                  id: g.StudentGuardianMap.id,
+                  relationType: g.StudentGuardianMap.relationType,
+                  isPrimary: g.StudentGuardianMap.isPrimary,
+                  canPickup: g.StudentGuardianMap.canPickup,
+                }
+              : undefined,
+          }))
+        : [],
       enrollment: currentEnrollment ? formatEnrollment(currentEnrollment) : undefined,
     };
   }

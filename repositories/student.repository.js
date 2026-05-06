@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Student, User, StudentSectionEnrollment, Tenant, Section, AcademicYear, Class } from "../models/index.js";
+import { Student, User, StudentSectionEnrollment, Tenant, Section, AcademicYear, Class, Guardian, StudentGuardianMap } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
 export class StudentRepository extends BaseRepository {
@@ -64,6 +64,19 @@ export class StudentRepository extends BaseRepository {
           model: Student,
           as: "sibling",
           attributes: ["id", "firstName", "lastName", "rollNumber"],
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName", "email", "phone"],
+            },
+          ],
+        },
+        {
+          model: Guardian,
+          as: "guardians",
+          attributes: ["id", "userId", "relation", "phone", "occupation", "isPrimaryContact"],
+          through: { attributes: ["id", "relationType", "isPrimary", "canPickup"] },
           include: [
             {
               model: User,

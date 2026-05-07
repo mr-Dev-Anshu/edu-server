@@ -1,13 +1,13 @@
 import { ClassSubjectRepository } from "../../../repositories/Academic/subject/ClassSubject.repository.js";
 import { SubjectMasterRepository } from "../../../repositories/Academic/subject/SubjectMaster.repository.js";
-import { Class } from "../../../models/index.js";
+import { ClassRepository } from "../../../repositories/Academic/class.repository.js";
 import { BaseService } from "../../base.service.js";
 import { AppError } from "../../../utils/AppError.js";
 import sequelize from "../../../config/db.js";
-import { Op } from "sequelize";
 
 const classSubjectRepo = new ClassSubjectRepository();
 const subjectRepo = new SubjectMasterRepository();
+const classRepo = new ClassRepository();
 
 export class ClassSubjectService extends BaseService {
   constructor() {
@@ -29,24 +29,15 @@ export class ClassSubjectService extends BaseService {
       throw new AppError("subjects array is required and must not be empty", 400);
     }
 
-    // Verify class exists
-    const classRecord = await Class.findOne({
-      where: { id: classId, tenantId }
-    });
-    if (!classRecord) {
-      throw new AppError("Class not found", 404);
-    }
-
-    // Verify all subjects exist
+    // Verify class and subjects exist
     const subjectIds = subjects.map(s => s.subjectMasterId);
-    const existingSubjects = await subjectRepo.model.findAll({
-      where: {
-        id: { [Op.in]: subjectIds },
-        tenantId
-      }
-    });
+    const uniqueSubjectIds = [...new Set(subjectIds)];
+    const [, foundSubjects] = await Promise.all([
+      classRepo.findById(classId, tenantId),
+      subjectRepo.findByIds(uniqueSubjectIds, tenantId),
+    ]);
 
-    if (existingSubjects.length !== subjectIds.length) {
+    if (foundSubjects.length !== uniqueSubjectIds.length) {
       throw new AppError("One or more subjects not found", 404);
     }
 
@@ -54,16 +45,17 @@ export class ClassSubjectService extends BaseService {
 
     try {
       const results = [];
+      const existingMappings = await classSubjectRepo.findAllByClassAndSubjectIds(
+        classId,
+        subjectIds,
+        tenantId,
+        { transaction }
+      );
+      const existingMap = new Map(existingMappings.map((mapping) => [mapping.subjectMasterId, mapping]));
 
       for (const subjectData of subjects) {
         const { subjectMasterId, code, isElective, weeklyPeriods, passingMarks } = subjectData;
-
-        // Check if this mapping already exists
-        const existing = await classSubjectRepo.findByClassAndSubject(
-          classId,
-          subjectMasterId,
-          tenantId
-        );
+        const existing = existingMap.get(subjectMasterId);
 
         if (existing) {
           // Update existing mapping
@@ -71,10 +63,10 @@ export class ClassSubjectService extends BaseService {
             existing.id,
             tenantId,
             {
-              code: code || existing.code,
+              code: code ?? existing.code,
               isElective: isElective !== undefined ? isElective : existing.isElective,
-              weeklyPeriods: weeklyPeriods || existing.weeklyPeriods,
-              passingMarks: passingMarks || existing.passingMarks
+              weeklyPeriods: weeklyPeriods ?? existing.weeklyPeriods,
+              passingMarks: passingMarks ?? existing.passingMarks
             },
             { transaction }
           );
@@ -85,10 +77,10 @@ export class ClassSubjectService extends BaseService {
             tenantId,
             classId,
             subjectMasterId,
-            code: code || null,
-            isElective: isElective || false,
-            weeklyPeriods: weeklyPeriods || 5,
-            passingMarks: passingMarks || 33
+            code: code ?? null,
+            isElective: isElective ?? false,
+            weeklyPeriods: weeklyPeriods ?? 5,
+            passingMarks: passingMarks ?? 33
           }, { transaction });
 
           // Fetch with associations
@@ -182,6 +174,9 @@ export class ClassSubjectService extends BaseService {
     const { code, isElective, weeklyPeriods, passingMarks } = payload;
 
     const classSubject = await classSubjectRepo.findById(id, tenantId);
+    if (!classSubject) {
+      throw new AppError("Class subject mapping not found", 404);
+    }
 
     const updatedClassSubject = await classSubjectRepo.update(id, tenantId, {
       code: code !== undefined ? code : classSubject.code,
@@ -212,6 +207,9 @@ export class ClassSubjectService extends BaseService {
    */
   async deleteClassSubject(id, tenantId) {
     const classSubject = await classSubjectRepo.findById(id, tenantId);
+    if (!classSubject) {
+      throw new AppError("Class subject mapping not found", 404);
+    }
 
     await classSubjectRepo.delete(id, tenantId);
 

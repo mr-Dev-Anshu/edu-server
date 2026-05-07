@@ -13,6 +13,16 @@ export class SubjectMasterRepository extends BaseRepository {
     });
   }
 
+  async findByIds(ids, tenantId) {
+    return await this.model.findAll({
+      where: {
+        id: { [Op.in]: ids },
+        tenantId,
+      },
+      attributes: ["id"],
+    });
+  }
+
   async findByType(type, tenantId) {
     return await this.model.findAll({
       where: { type, tenantId },

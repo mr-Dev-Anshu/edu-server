@@ -66,6 +66,20 @@ export class ClassSubjectRepository extends BaseRepository {
     });
   }
 
+  async findAllByClassAndSubjectIds(classId, subjectMasterIds, tenantId, options = {}) {
+    const queryOptions = Array.isArray(options) ? { include: options } : options;
+
+    return await this.model.findAll({
+      where: {
+        classId,
+        subjectMasterId: { [Op.in]: subjectMasterIds },
+        tenantId,
+      },
+      attributes: ["id", "subjectMasterId", "code", "isElective", "weeklyPeriods", "passingMarks"],
+      ...queryOptions,
+    });
+  }
+
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10, options = {}) {
     const offset = (page - 1) * limit;
     const where = { tenantId, ...filters };

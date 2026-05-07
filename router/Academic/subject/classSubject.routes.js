@@ -33,18 +33,18 @@ router.patch(
   ctrl.update
 );
 router.delete(
-  "/:id",
-  identifyUser,
-  checkPermission("delete:class-subject"),
-  classSubjectIdValidator,
-  ctrl.delete
-);
-router.delete(
   "/remove-all/:classId",
   identifyUser,
   checkPermission("delete:class-subject"),
   classIdValidator,
   ctrl.removeAllFromClass
+);
+router.delete(
+  "/:id",
+  identifyUser,
+  checkPermission("delete:class-subject"),
+  classSubjectIdValidator,
+  ctrl.delete
 );
 
 export default router;

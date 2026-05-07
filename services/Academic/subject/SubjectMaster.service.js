@@ -1,8 +1,6 @@
 import { SubjectMasterRepository } from "../../../repositories/Academic/subject/SubjectMaster.repository.js";
 import { BaseService } from "../../base.service.js";
 import { AppError } from "../../../utils/AppError.js";
-import sequelize from "../../../config/db.js";
-import { Op } from "sequelize";
 
 const subjectRepo = new SubjectMasterRepository();
 

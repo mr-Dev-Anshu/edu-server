@@ -1,3 +1,7 @@
+import { DataTypes } from "sequelize";
+import sequelize from "../../config/db.js";
+import { withTenant } from "../withTenant.js";
+
 export const SubjectMaster = sequelize.define(
   "SubjectMaster",
   withTenant({

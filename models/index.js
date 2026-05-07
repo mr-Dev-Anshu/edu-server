@@ -27,7 +27,7 @@ import StudentGuardianMap from "./StudentGaurdianMap.js";
 // import AcademicYear from './Academic/AcademicYear.js';
 // import Class from './Academic/Class.js';
 // import Section from './Academic/Section.js';
-import Subject from './Academic/Subject.js';
+import { SubjectMaster, ClassSubject } from './Academic/Subject.js';
 
 // // --- Users & Relationships ---
 // import Student from './Students.js';
@@ -124,7 +124,18 @@ StudentSectionEnrollment.belongsTo(AcademicYear, { foreignKey: "academicYearId",
 TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId" });
 
 // ==========================================
-// 5. FAMILY TREE (Guardians)
+// 6. SUBJECT & CLASS SUBJECT MAPPINGS
+// ==========================================
+// SubjectMaster -> ClassSubject
+SubjectMaster.hasMany(ClassSubject, { foreignKey: "subjectMasterId", as: "classSubjects" });
+ClassSubject.belongsTo(SubjectMaster, { foreignKey: "subjectMasterId", as: "subject" });
+
+// Class -> ClassSubject
+Class.hasMany(ClassSubject, { foreignKey: "classId", as: "subjects" });
+ClassSubject.belongsTo(Class, { foreignKey: "classId", as: "class" });
+
+// ==========================================
+// 7. FAMILY TREE (Guardians)
 // ==========================================
 Student.belongsToMany(Guardian, {
   through: StudentGuardianMap,
@@ -152,7 +163,8 @@ export {
   AcademicYear,
   Class,
   Section,
-  Subject,
+  SubjectMaster,
+  ClassSubject,
   Student,
   Staff,
   Guardian,

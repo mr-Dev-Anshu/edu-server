@@ -13,10 +13,10 @@ const ctrl = new SectionController();
 router.post("/", identifyUser, checkPermission("create:sections"), createSectionValidator, ctrl.create);
 
 // Get All Sections (pagination + filters)
-router.get("/", identifyUser, ctrl.getAll);
+router.get("/", identifyUser, checkPermission("read:sections"), ctrl.getAll);
 
 // Get Section by ID
-router.get("/:id", identifyUser, ctrl.getOne);
+router.get("/:id", identifyUser, checkPermission("read:sections"), ctrl.getOne);
 
 // Update Section
 router.patch("/:id", identifyUser, checkPermission("update:sections"), updateSectionValidator, ctrl.update);

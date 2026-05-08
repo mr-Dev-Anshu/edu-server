@@ -13,13 +13,13 @@ const ctrl = new AcademicYearController();
 router.post("/", identifyUser, checkPermission("create:academicyears"), createAcademicYearValidator, ctrl.create);
 
 // Get all academic years
-router.get("/", identifyUser, ctrl.getAll);
+router.get("/", identifyUser, checkPermission("read:academicyears"), ctrl.getAll);
 
 // Get current academic year
-router.get("/current", identifyUser, ctrl.getCurrent);
+router.get("/current", identifyUser, checkPermission("read:academicyears"), ctrl.getCurrent);
 
 // Get specific academic year by ID
-router.get("/:id", identifyUser, ctrl.getOne);
+router.get("/:id", identifyUser, checkPermission("read:academicyears"), ctrl.getOne);
 
 // Update academic year
 router.patch("/:id", identifyUser, checkPermission("update:academicyears"), updateAcademicYearValidator, ctrl.update);

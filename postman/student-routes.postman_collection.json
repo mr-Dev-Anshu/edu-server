@@ -39,7 +39,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"admissionNumber\": \"ADM-001\",\n  \"firstName\": \"Amit\",\n  \"lastName\": \"Sharma\",\n  \"dateOfBirth\": \"2010-07-14\",\n  \"gender\": \"male\",\n  \"enrollmentDate\": \"2024-06-04\"\n}"
+          "raw": "{\n  \"email\": \"sana.student2026@s.com\",\n  \"password\": \"SecureStudent@128\",\n  \"firstName\": \"Sana\",\n  \"middleName\": \"Fatima\",\n  \"lastName\": \"Sheikh\",\n  \"admissionNumber\": \"VSS-ADM-2026-014\",\n  \"rollNumber\": \"20\",\n  \"dateOfBirth\": \"2012-12-11\",\n  \"gender\": \"female\",\n  \"bloodGroup\": \"A-\",\n  \"nationality\": \"Indian\",\n  \"religion\": \"Islam\",\n  \"category\": \"general\",\n  \"aadharNumber\": \"5555-6666-7777\",\n  \"enrollmentDate\": \"2026-04-19\",\n  \"previousSchool\": \"Oxford Kids School\",\n  \"previousClass\": \"5th Standard\",\n  \"isStaffWard\": false,\n  \"status\": \"active\",\n  \"transportRequired\": true,\n  \"hostelRequired\": false,\n  \"medicalConditions\": \"None\",\n  \"emergencyContactName\": \"Yusuf Sheikh\",\n  \"emergencyContactPhone\": \"9876500015\",\n  \"address\": \"Apartment 9B, Lalghati\",\n  \"city\": \"Bhopal\",\n  \"pincode\": \"462030\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"enrollmentStatus\": \"regular\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/students",

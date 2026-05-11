@@ -135,11 +135,44 @@ export class SectionService {
     return { message: "Section deleted successfully", data: this.formatSectionResponse(section) };
   }
 
+  // Get Section Options (for dropdowns)
+  async getSectionOptions(tenantId, classId, academicYearId) {
+    // Validate classId
+    const classExists = await classRepo.findById(classId, tenantId);
+    if (!classExists) {
+      throw new AppError("Class not found", 404);
+    }
+
+    // Validate academicYearId
+    const yearExists = await academicYearRepo.findById(academicYearId, tenantId);
+    if (!yearExists) {
+      throw new AppError("Academic year not found", 404);
+    }
+
+    return await sectionRepo.findOptions(tenantId, classId, academicYearId);
+  }
+
+  // Get Section Options (for dropdowns)
+  async getSectionOptions(tenantId, classId, academicYearId) {
+    // Validate classId
+    const classExists = await classRepo.findById(classId, tenantId);
+    if (!classExists) {
+      throw new AppError("Class not found", 404);
+    }
+
+    // Validate academicYearId
+    const yearExists = await academicYearRepo.findById(academicYearId, tenantId);
+    if (!yearExists) {
+      throw new AppError("Academic year not found", 404);
+    }
+
+    return await sectionRepo.findOptions(tenantId, classId, academicYearId);
+  }
+
   // Clean Response with full nested objects
   formatSectionResponse(section) {
     return {
       id: section.id,
-      tenantId: section.tenantId,
       name: section.name,
       capacity: section.capacity,
       classTeacherId: section.classTeacherId,
@@ -171,6 +204,20 @@ export class SectionService {
       } : null,
       createdAt: section.createdAt,
       updatedAt: section.updatedAt,
+      class: section.class
+        ? {
+            id: section.class.id,
+            name: section.class.name,
+            numericLevel: section.class.numericLevel,
+          }
+        : undefined,
+      academicYear: section.academicYear
+        ? {
+            id: section.academicYear.id,
+            name: section.academicYear.name,
+            isCurrent: section.academicYear.isCurrent,
+          }
+        : undefined,
     };
   }
 }

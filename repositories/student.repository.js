@@ -1,6 +1,71 @@
 import { Op } from "sequelize";
-import { Student, User, StudentSectionEnrollment } from "../models/index.js";
+import { Student, User, StudentSectionEnrollment, Tenant, Section, AcademicYear, Class, Guardian, StudentGuardianMap } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
+
+// Common includes used for fetching full student details
+const STUDENT_DETAILS_INCLUDES = [
+  {
+    model: User,
+    as: "user",
+    attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+  },
+  {
+    model: Tenant,
+    as: "organization",
+    attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
+  },
+  {
+    model: Student,
+    as: "sibling",
+    attributes: ["id", "firstName", "lastName", "rollNumber"],
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["id", "firstName", "lastName", "email", "phone"],
+      },
+    ],
+  },
+  {
+    model: StudentSectionEnrollment,
+    as: "enrollments",
+    separate: true,
+    order: [["isCurrent", "DESC"], ["createdAt", "DESC"]],
+    attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent", "createdAt"],
+    include: [
+      {
+        model: Section,
+        as: "section",
+        attributes: ["id", "name", "capacity"],
+        include: [
+          {
+            model: Class,
+            as: "class",
+            attributes: ["id", "name", "numericLevel"],
+          },
+        ],
+      },
+      {
+        model: AcademicYear,
+        as: "academicYear",
+        attributes: ["id", "name", "isCurrent"],
+      },
+    ],
+  },
+  {
+    model: Guardian,
+    as: "guardians",
+    attributes: ["id", "userId", "relation", "phone", "occupation", "isPrimaryContact"],
+    through: { attributes: ["id", "relationType", "isPrimary", "canPickup"] },
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["id", "firstName", "lastName", "email", "phone"],
+      },
+    ],
+  },
+];
 
 export class StudentRepository extends BaseRepository {
   constructor() {
@@ -43,19 +108,14 @@ export class StudentRepository extends BaseRepository {
       ];
     }
 
-    const { count, rows } = await this.model.findAndCountAll({
-      where,
-      offset,
-      limit,
-      order: [["createdAt", "DESC"]],
-      include: [
-        {
-          model: User,
-          as: "user",
-          attributes: ["id", "firstName", "lastName", "email"],
-        },
-      ],
-    });
+      const { count, rows } = await this.model.findAndCountAll({
+        where,
+        offset,
+        limit,
+        distinct: true,
+        order: [["createdAt", "DESC"]],
+        include: STUDENT_DETAILS_INCLUDES,
+      });
 
     return {
       total: count,
@@ -69,18 +129,7 @@ export class StudentRepository extends BaseRepository {
   async findWithDetails(id, tenantId) {
     return await this.model.findOne({
       where: { id, tenantId },
-      include: [
-        {
-          model: User,
-          as: "user",
-          attributes: ["id", "firstName", "lastName", "email"],
-        },
-        {
-          model: StudentSectionEnrollment,
-          as: "enrollments",
-          attributes: ["id", "sectionId", "academicYearId", "rollNumber", "enrollmentStatus", "isCurrent", "createdAt"],
-        },
-      ],
+        include: STUDENT_DETAILS_INCLUDES,
     });
   }
 }

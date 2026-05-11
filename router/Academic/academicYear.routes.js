@@ -28,7 +28,7 @@ router.patch("/:id", identifyUser, checkPermission("update:academicyears"), upda
 router.delete("/:id", identifyUser, checkPermission("delete:academicyears"), ctrl.delete);
 
 // Set academic year as current
-router.post("/:id/set-current", identifyUser, checkPermission("update:academicyears"), ctrl.setCurrent);
+router.post("/:id/set-current", identifyUser,  ctrl.setCurrent);
 
 // Lock academic year
 router.post("/:id/lock", identifyUser, checkPermission("update:academicyears"), ctrl.lock);

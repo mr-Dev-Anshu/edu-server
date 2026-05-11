@@ -3,7 +3,10 @@ import {
   StudentSectionEnrollment,
   Student,
   Section,
-  AcademicYear
+  AcademicYear,
+  User,
+  Class,
+  Tenant
 } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
@@ -95,14 +98,31 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
         {
           model: Student,
           as: "student",
+          attributes: ["id", "admissionNumber", "firstName", "middleName", "lastName", "userId"],
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName", "email", "phone"],
+            },
+          ],
         },
         {
           model: Section,
           as: "section",
+          attributes: ["id", "name", "capacity", "classId", "academicYearId"],
+          include: [
+            {
+              model: Class,
+              as: "class",
+              attributes: ["id", "name", "numericLevel"],
+            },
+          ],
         },
         {
           model: AcademicYear,
           as: "academicYear",
+          attributes: ["id", "name", "isCurrent", "startDate", "endDate"],
         },
       ],
     });
@@ -124,14 +144,36 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
         {
           model: Student,
           as: "student",
+          attributes: ["id", "admissionNumber", "firstName", "middleName", "lastName", "userId", "tenantId"],
+          include: [
+            {
+              model: User,
+              as: "user",
+              attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+            },
+            {
+              model: Tenant,
+              as: "organization",
+              attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
+            },
+          ],
         },
         {
           model: Section,
           as: "section",
+          attributes: ["id", "name", "capacity", "classId", "academicYearId"],
+          include: [
+            {
+              model: Class,
+              as: "class",
+              attributes: ["id", "name", "numericLevel"],
+            },
+          ],
         },
         {
           model: AcademicYear,
           as: "academicYear",
+          attributes: ["id", "name", "isCurrent", "startDate", "endDate"],
         },
       ],
     });

@@ -81,13 +81,16 @@ export class StudentSectionEnrollmentService {
 
   // Get All
   async getAllEnrollments(tenantId, query) {
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
+    const page = parseInt(query.page, 10) || 1;
+    const limit = parseInt(query.limit, 10) || 10;
 
     const filters = {};
+    if (query.classId) filters.classId = query.classId;
     if (query.sectionId) filters.sectionId = query.sectionId;
     if (query.studentId) filters.studentId = query.studentId;
     if (query.academicYearId) filters.academicYearId = query.academicYearId;
+  if (query.enrollmentStatus) filters.enrollmentStatus = query.enrollmentStatus;
+  if (query.search && query.search.trim() !== "") filters.search = query.search.trim();
 
     const result = await enrollmentRepo.findWithPagination(
       tenantId,
@@ -177,6 +180,10 @@ export class StudentSectionEnrollmentService {
 
   // Clean Response
   formatResponse(data) {
+    const student = data.student?.get
+      ? data.student.get({ plain: true })
+      : data.student;
+
     return {
       id: data.id,
       rollNumber: data.rollNumber,
@@ -184,29 +191,92 @@ export class StudentSectionEnrollmentService {
       isCurrent: data.isCurrent,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
-      student: data.student
+      student: student
         ? {
-            id: data.student.id,
-            admissionNumber: data.student.admissionNumber,
-            firstName: data.student.firstName,
-            middleName: data.student.middleName,
-            lastName: data.student.lastName,
-            user: data.student.user
+            id: student.id,
+            admissionNumber: student.admissionNumber,
+            rollNumber: student.rollNumber,
+            firstName: student.firstName,
+            middleName: student.middleName,
+            lastName: student.lastName,
+            dateOfBirth: student.dateOfBirth,
+            gender: student.gender,
+            bloodGroup: student.bloodGroup,
+            nationality: student.nationality,
+            religion: student.religion,
+            caste: student.caste,
+            category: student.category,
+            aadharNumber: student.aadharNumber,
+            photoUrl: student.photoUrl,
+            enrollmentDate: student.enrollmentDate,
+            previousSchool: student.previousSchool,
+            previousClass: student.previousClass,
+            tcNumber: student.tcNumber,
+            siblingId: student.siblingId,
+            isStaffWard: student.isStaffWard,
+            status: student.status,
+            transportRequired: student.transportRequired,
+            hostelRequired: student.hostelRequired,
+            medicalConditions: student.medicalConditions,
+            emergencyContactName: student.emergencyContactName,
+            emergencyContactPhone: student.emergencyContactPhone,
+            address: student.address,
+            city: student.city,
+            pincode: student.pincode,
+            customFields: student.customFields,
+            metadata: student.metadata,
+            createdAt: student.createdAt,
+            updatedAt: student.updatedAt,
+            user: student.user
               ? {
-                  id: data.student.user.id,
-                  firstName: data.student.user.firstName,
-                  lastName: data.student.user.lastName,
-                  email: data.student.user.email,
-                  phone: data.student.user.phone,
+                  id: student.user.id,
+                  firstName: student.user.firstName,
+                  lastName: student.user.lastName,
+                  email: student.user.email,
+                  phone: student.user.phone,
+                  status: student.user.status,
                 }
               : undefined,
-            tenant: data.student.organization
+            tenant: student.organization
               ? {
-                  id: data.student.organization.id,
-                  name: data.student.organization.name,
-                  organizationType: data.student.organization.organizationType,
+                  id: student.organization.id,
+                  name: student.organization.name,
+                  organizationType: student.organization.organizationType,
+                  officialEmail: student.organization.officialEmail,
+                  subdomain: student.organization.subdomain,
                 }
               : undefined,
+            guardians: Array.isArray(student.guardians)
+              ? student.guardians.map((guardian) => ({
+                  id: guardian.id,
+                  tenantId: guardian.tenantId,
+                  userId: guardian.userId,
+                  relation: guardian.relation,
+                  phone: guardian.phone,
+                  occupation: guardian.occupation,
+                  isPrimaryContact: guardian.isPrimaryContact,
+                  relationType: guardian.relationType ?? guardian.StudentGuardianMap?.relationType,
+                  isPrimary: guardian.isPrimary ?? guardian.StudentGuardianMap?.isPrimary,
+                  canPickup: guardian.canPickup ?? guardian.StudentGuardianMap?.canPickup,
+                  user: guardian.user
+                    ? {
+                        id: guardian.user.id,
+                        firstName: guardian.user.firstName,
+                        lastName: guardian.user.lastName,
+                        email: guardian.user.email,
+                        phone: guardian.user.phone,
+                      }
+                    : undefined,
+                  map: guardian.StudentGuardianMap
+                    ? {
+                        id: guardian.StudentGuardianMap.id,
+                        relationType: guardian.StudentGuardianMap.relationType,
+                        isPrimary: guardian.StudentGuardianMap.isPrimary,
+                        canPickup: guardian.StudentGuardianMap.canPickup,
+                      }
+                    : undefined,
+                }))
+              : [],
           }
         : undefined,
       section: data.section

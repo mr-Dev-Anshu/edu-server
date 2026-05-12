@@ -6,7 +6,8 @@ import {
   AcademicYear,
   User,
   Class,
-  Tenant
+  Tenant,
+  Guardian,
 } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
@@ -84,32 +85,113 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
     const offset = (page - 1) * limit;
 
+    const {
+      classId,
+        enrollmentStatus,
+        search,
+      ...enrollmentFilters
+    } = filters;
+
     const where = {
-      tenantId,
-      ...filters,
-    };
+    tenantId,
+    ...enrollmentFilters,
+  };
+
+  if (enrollmentStatus) {
+    where.enrollmentStatus = enrollmentStatus;
+  }
 
     const { count, rows } = await this.model.findAndCountAll({
       where,
       offset,
       limit,
+      distinct: true,
       order: [["createdAt", "DESC"]],
       include: [
         {
           model: Student,
           as: "student",
-          attributes: ["id", "admissionNumber", "firstName", "middleName", "lastName", "userId"],
+                    where: search
+                      ? {
+                          [Op.or]: [
+                            { firstName: { [Op.iLike]: `%${search}%` } },
+                            { middleName: { [Op.iLike]: `%${search}%` } },
+                            { lastName: { [Op.iLike]: `%${search}%` } },
+                            { admissionNumber: { [Op.iLike]: `%${search}%` } },
+                            { rollNumber: { [Op.iLike]: `%${search}%` } },
+                          ]
+                        }
+                      : undefined,
+          attributes: [
+            "id",
+            "admissionNumber",
+            "rollNumber",
+            "firstName",
+            "middleName",
+            "lastName",
+            "dateOfBirth",
+            "gender",
+            "bloodGroup",
+            "nationality",
+            "religion",
+            "caste",
+            "category",
+            "aadharNumber",
+            "photoUrl",
+            "enrollmentDate",
+            "previousSchool",
+            "previousClass",
+            "tcNumber",
+            "siblingId",
+            "isStaffWard",
+            "status",
+            "transportRequired",
+            "hostelRequired",
+            "medicalConditions",
+            "emergencyContactName",
+            "emergencyContactPhone",
+            "address",
+            "city",
+            "pincode",
+            "customFields",
+            "metadata",
+            "createdAt",
+            "updatedAt",
+            "tenantId",
+            "userId",
+          ],
           include: [
             {
               model: User,
               as: "user",
-              attributes: ["id", "firstName", "lastName", "email", "phone"],
+              attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+            },
+            {
+              model: Tenant,
+              as: "organization",
+              attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
+            },
+            {
+              model: Guardian,
+              as: "guardians",
+              attributes: ["id", "tenantId", "userId", "relation", "phone", "occupation", "isPrimaryContact"],
+              through: {
+                attributes: ["id", "relationType", "isPrimary", "canPickup"],
+              },
+              include: [
+                {
+                  model: User,
+                  as: "user",
+                  attributes: ["id", "firstName", "lastName", "email", "phone"],
+                },
+              ],
             },
           ],
         },
         {
           model: Section,
           as: "section",
+          where: classId ? { classId } : undefined,
           attributes: ["id", "name", "capacity", "classId", "academicYearId"],
           include: [
             {
@@ -144,7 +226,44 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
         {
           model: Student,
           as: "student",
-          attributes: ["id", "admissionNumber", "firstName", "middleName", "lastName", "userId", "tenantId"],
+          attributes: [
+            "id",
+            "admissionNumber",
+            "rollNumber",
+            "firstName",
+            "middleName",
+            "lastName",
+            "dateOfBirth",
+            "gender",
+            "bloodGroup",
+            "nationality",
+            "religion",
+            "caste",
+            "category",
+            "aadharNumber",
+            "photoUrl",
+            "enrollmentDate",
+            "previousSchool",
+            "previousClass",
+            "tcNumber",
+            "siblingId",
+            "isStaffWard",
+            "status",
+            "transportRequired",
+            "hostelRequired",
+            "medicalConditions",
+            "emergencyContactName",
+            "emergencyContactPhone",
+            "address",
+            "city",
+            "pincode",
+            "customFields",
+            "metadata",
+            "createdAt",
+            "updatedAt",
+            "tenantId",
+            "userId",
+          ],
           include: [
             {
               model: User,
@@ -155,6 +274,21 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
               model: Tenant,
               as: "organization",
               attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
+            },
+            {
+              model: Guardian,
+              as: "guardians",
+              attributes: ["id", "tenantId", "userId", "relation", "phone", "occupation", "isPrimaryContact"],
+              through: {
+                attributes: ["id", "relationType", "isPrimary", "canPickup"],
+              },
+              include: [
+                {
+                  model: User,
+                  as: "user",
+                  attributes: ["id", "firstName", "lastName", "email", "phone"],
+                },
+              ],
             },
           ],
         },

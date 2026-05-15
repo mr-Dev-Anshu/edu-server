@@ -20,10 +20,10 @@ router.post(
   ctrl.assignSubjects
 );
 
-router.get("/by-class/:classId", identifyUser, classIdValidator, ctrl.getSubjectsByClass);
-router.get("/by-subject/:subjectId", identifyUser, subjectIdValidator, ctrl.getClassesBySubject);
-router.get("/search", identifyUser, ctrl.search);
-router.get("/:id", identifyUser, classSubjectIdValidator, ctrl.getOne);
+router.get("/by-class/:classId", identifyUser, checkPermission("read:class-subject"), classIdValidator, ctrl.getSubjectsByClass);
+router.get("/by-subject/:subjectId", identifyUser, checkPermission("read:class-subject"), subjectIdValidator, ctrl.getClassesBySubject);
+router.get("/search", identifyUser, checkPermission("read:class-subject"), ctrl.search);
+router.get("/:id", identifyUser, checkPermission("read:class-subject"), classSubjectIdValidator, ctrl.getOne);
 router.patch(
   "/:id",
   identifyUser,

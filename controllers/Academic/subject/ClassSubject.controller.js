@@ -8,8 +8,8 @@ export class ClassSubjectController {
    * Assign multiple subjects to a class (bulk operation)
    */
   assignSubjects = catchAsync(async (req, res) => {
-    const data = await classSubjectService.assignSubjectsToClass(req.tenantId, req.body);
-    res.status(201).json({ success: true, ...data });
+    const result = await classSubjectService.assignSubjectsToClass(req.tenantId, req.body);
+    res.status(201).json({ success: true, data: result });
   });
 
   /**
@@ -21,7 +21,7 @@ export class ClassSubjectController {
       req.tenantId,
       req.query
     );
-    res.status(200).json({ success: true, ...result });
+    res.status(200).json({ success: true, data: result });
   });
 
   /**
@@ -33,7 +33,7 @@ export class ClassSubjectController {
       req.tenantId,
       req.query
     );
-    res.status(200).json({ success: true, ...result });
+    res.status(200).json({ success: true, data: result });
   });
 
   /**
@@ -60,19 +60,19 @@ export class ClassSubjectController {
    * Delete specific class-subject mapping
    */
   delete = catchAsync(async (req, res) => {
-    const data = await classSubjectService.deleteClassSubject(req.params.id, req.tenantId);
-    res.status(200).json({ success: true, ...data });
+    const result = await classSubjectService.deleteClassSubject(req.params.id, req.tenantId);
+    res.status(200).json({ success: true, data: result });
   });
 
   /**
    * Remove all subjects from a class
    */
   removeAllFromClass = catchAsync(async (req, res) => {
-    const data = await classSubjectService.removeAllSubjectsFromClass(
+    const result = await classSubjectService.removeAllSubjectsFromClass(
       req.params.classId,
       req.tenantId
     );
-    res.status(200).json({ success: true, ...data });
+    res.status(200).json({ success: true, data: result });
   });
 
   /**
@@ -82,8 +82,7 @@ export class ClassSubjectController {
     const result = await classSubjectService.searchClassSubjects(req.tenantId, req.query);
     res.status(200).json({
       success: true,
-      results: result.data.length,
-      ...result,
+      data: result,
     });
   });
 }

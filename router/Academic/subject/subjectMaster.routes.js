@@ -18,10 +18,10 @@ router.post(
   ctrl.create
 );
 
-router.get("/", identifyUser, ctrl.getAll);
-router.get("/search", identifyUser, ctrl.search);
-router.get("/:id/classes", identifyUser, subjectIdValidator, ctrl.getWithClasses);
-router.get("/:id", identifyUser, subjectIdValidator, ctrl.getOne);
+router.get("/", identifyUser, checkPermission("read:subject"), ctrl.getAll);
+router.get("/search", identifyUser, checkPermission("read:subject"), ctrl.search);
+router.get("/:id/classes", identifyUser, checkPermission("read:subject"), subjectIdValidator, ctrl.getWithClasses);
+router.get("/:id", identifyUser, checkPermission("read:subject"), subjectIdValidator, ctrl.getOne);
 router.patch(
   "/:id",
   identifyUser,

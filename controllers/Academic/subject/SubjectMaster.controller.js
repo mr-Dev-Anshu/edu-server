@@ -11,7 +11,7 @@ export class SubjectMasterController {
 
   getAll = catchAsync(async (req, res) => {
     const result = await subjectService.getAllSubjects(req.tenantId, req.query);
-    res.status(200).json({ success: true, ...result });
+    res.status(200).json({ success: true, data: result });
   });
 
   getOne = catchAsync(async (req, res) => {
@@ -30,16 +30,15 @@ export class SubjectMasterController {
   });
 
   delete = catchAsync(async (req, res) => {
-    const data = await subjectService.deleteSubjectMaster(req.params.id, req.tenantId);
-    res.status(200).json({ success: true, ...data });
+    const result = await subjectService.deleteSubjectMaster(req.params.id, req.tenantId);
+    res.status(200).json({ success: true, data: result });
   });
 
   search = catchAsync(async (req, res) => {
     const result = await subjectService.searchSubjects(req.tenantId, req.query);
     res.status(200).json({
       success: true,
-      results: result.data.length,
-      ...result,
+      data: result,
     });
   });
 }

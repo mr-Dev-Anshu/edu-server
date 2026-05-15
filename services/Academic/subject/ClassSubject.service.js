@@ -29,13 +29,24 @@ export class ClassSubjectService extends BaseService {
       throw new AppError("subjects array is required and must not be empty", 400);
     }
 
-    // Verify class and subjects exist
+    // Extract and validate subject IDs
     const subjectIds = subjects.map(s => s.subjectMasterId);
     const uniqueSubjectIds = [...new Set(subjectIds)];
-    const [, foundSubjects] = await Promise.all([
+
+    // Check for duplicate subject IDs in payload
+    if (uniqueSubjectIds.length !== subjectIds.length) {
+      throw new AppError("Duplicate subjects found in payload", 400);
+    }
+
+    // Verify class and subjects exist
+    const [foundClass, foundSubjects] = await Promise.all([
       classRepo.findById(classId, tenantId),
       subjectRepo.findByIds(uniqueSubjectIds, tenantId),
     ]);
+
+    if (!foundClass) {
+      throw new AppError("Class not found", 404);
+    }
 
     if (foundSubjects.length !== uniqueSubjectIds.length) {
       throw new AppError("One or more subjects not found", 404);

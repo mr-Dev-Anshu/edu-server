@@ -38,11 +38,21 @@ const TeacherSubjectAssignment = sequelize.define(
   }),
   {
     timestamps: true,
+    paranoid: true,
     underscored: true,
     tableName: "teacher_subject_assignments",
-    // indexes: [
-    
-    // ],
+    indexes: [
+      {
+        unique: true,
+        fields: ["tenant_id", "staff_id", "subject_id", "section_id", "academic_year_id"],
+        where: { deleted_at: null },
+        name: "uq_teacher_assignment_business_key",
+      },
+      {
+        fields: ["tenant_id", "subject_id", "section_id", "academic_year_id"],
+        name: "idx_teacher_assignment_composite",
+      },
+    ],
   }
 );
 

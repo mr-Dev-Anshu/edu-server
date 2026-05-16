@@ -113,6 +113,7 @@ Section.belongsTo(Class, { foreignKey: "classId", as: "class" });
 Section.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
 AcademicYear.hasMany(Section, { foreignKey: "academicYearId", as: "sections"});
 
+
 // Student Enrollment (History)
 Student.hasMany(StudentSectionEnrollment, { foreignKey: "studentId", as: "enrollments"});
 StudentSectionEnrollment.belongsTo(Student, { foreignKey: "studentId", as: "student"});
@@ -121,7 +122,10 @@ StudentSectionEnrollment.belongsTo(AcademicYear, { foreignKey: "academicYearId",
 
 
 // Teacher Assignments
-TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId" });
+TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId", as: "staff" });
+TeacherSubjectAssignment.belongsTo(Subject, { foreignKey: "subjectId", as: "subject" });
+TeacherSubjectAssignment.belongsTo(Section, { foreignKey: "sectionId", as: "section" });
+TeacherSubjectAssignment.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
 
 // ==========================================
 // 5. FAMILY TREE (Guardians)

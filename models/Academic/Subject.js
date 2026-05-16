@@ -40,7 +40,7 @@ import { withTenant } from "../withTenant.js";
     timestamps: true,
     underscored: true,
     tableName: "subjects",
-    // indexes: [
+      // indexes: [
     //   { fields: ["tenant_id", "class_id"] },
     //   { fields: ["tenant_id", "code"] },
     // ],

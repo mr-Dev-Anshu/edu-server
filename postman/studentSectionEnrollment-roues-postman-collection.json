@@ -24,14 +24,31 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"rollNumber\": \"1\",\n  \"enrollmentStatus\": \"regular\"\n}"
+          "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"rollNumber\": \"2\",\n  \"enrollmentStatus\": \"regular\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/enrollments",
           "host": ["{{baseUrl}}"],
           "path": ["api", "v1", "enrollments"]
         }
-      }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  const json = pm.response.json();",
+              "  if (json.data && json.data.id) {",
+              "    pm.environment.set('enrollmentId', json.data.id);",
+              "  }",
+              "  console.log('Enrollment created successfully:', json.data);",
+              "}"
+            ]
+          }
+        }
+      ]
     },
     {
       "name": "Get All Enrollments",

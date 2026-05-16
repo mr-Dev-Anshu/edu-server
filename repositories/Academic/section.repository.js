@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { AcademicYear, Class, Section } from "../../models/index.js";
+import { AcademicYear, Class, Section, User } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
 export class SectionRepository extends BaseRepository {
@@ -7,14 +7,17 @@ export class SectionRepository extends BaseRepository {
     super(Section);
   }
 
-  // Duplicate check (based on UNIQUE INDEX)
+  // Duplicate check (active records only, case-insensitive)
   async findDuplicate(name, classId, academicYearId, tenantId) {
     return await this.model.findOne({
       where: {
-        name,
+        name: {
+          [Op.iLike]: name.trim(),
+        },
         classId,
         academicYearId,
         tenantId,
+        deletedAt: null,
       },
     });
   }
@@ -22,7 +25,7 @@ export class SectionRepository extends BaseRepository {
   // Find sections by class
   async findByClass(classId, tenantId) {
     return await this.model.findAll({
-      where: { classId, tenantId },
+      where: { classId, tenantId, deletedAt: null },
       order: [["name", "ASC"]],
     });
   }
@@ -30,7 +33,7 @@ export class SectionRepository extends BaseRepository {
   // Find sections by academic year
   async findByAcademicYear(academicYearId, tenantId) {
     return await this.model.findAll({
-      where: { academicYearId, tenantId },
+      where: { academicYearId, tenantId, deletedAt: null },
       order: [["name", "ASC"]],
     });
   }
@@ -41,6 +44,7 @@ export class SectionRepository extends BaseRepository {
 
     const where = {
       tenantId,
+      deletedAt: null,
       ...filters,
     };
 
@@ -53,12 +57,18 @@ export class SectionRepository extends BaseRepository {
         {
           model: Class,
           as: "class",
-          attributes: ["id", "name", "numericLevel"],
+          attributes: ["id", "name", "numericLevel", "description"],
         },
         {
           model: AcademicYear,
           as: "academicYear",
-          attributes: ["id", "name", "isCurrent"],
+          attributes: ["id", "name", "startDate", "endDate", "isCurrent", "isLocked"],
+        },
+        {
+          model: User,
+          as: "classTeacher",
+          attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+          required: false,
         },
       ],
     });
@@ -75,17 +85,23 @@ export class SectionRepository extends BaseRepository {
   // Get single section with full details
   async findWithDetails(id, tenantId) {
     return await this.model.findOne({
-      where: { id, tenantId },
+      where: { id, tenantId, deletedAt: null },
       include: [
         {
           model: Class,
           as: "class",
-          attributes: ["id", "name", "numericLevel"],
+          attributes: ["id", "name", "numericLevel", "description", "tenantId"],
         },
         {
           model: AcademicYear,
           as: "academicYear",
-          attributes: ["id", "name", "isCurrent"],
+          attributes: ["id", "name", "startDate", "endDate", "isCurrent", "isLocked", "tenantId"],
+        },
+        {
+          model: User,
+          as: "classTeacher",
+          attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+          required: false,
         },
       ],
     });
@@ -96,11 +112,82 @@ export class SectionRepository extends BaseRepository {
     return await this.model.findAll({
       where: {
         tenantId,
+        deletedAt: null,
         name: {
           [Op.iLike]: `%${keyword}%`,
         },
       },
       order: [["name", "ASC"]],
+    });
+  }
+
+  // NEW: Get sections by class with pagination and full details
+  async findByClassWithPagination(
+    classId,
+    tenantId,
+    page = 1,
+    limit = 10,
+    academicYearId = null,
+    search = null,
+  ) {
+    const offset = (page - 1) * limit;
+
+    const where = {
+      classId,
+      tenantId,
+      deletedAt: null,
+    };
+
+    if (academicYearId) {
+      where.academicYearId = academicYearId;
+    }
+
+    if (search) {
+      where.name = {
+        [Op.iLike]: `%${String(search).trim()}%`,
+      };
+    }
+
+    const { count, rows } = await this.model.findAndCountAll({
+      where,
+      offset,
+      limit,
+      order: [["name", "ASC"]],
+      include: [
+        {
+          model: AcademicYear,
+          as: "academicYear",
+          attributes: ["id", "name", "startDate", "endDate", "isCurrent", "isLocked", "tenantId"],
+        },
+        {
+          model: User,
+          as: "classTeacher",
+          attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+          required: false,
+        },
+      ],
+    });
+
+    return {
+      total: count,
+      page,
+      limit,
+      pages: Math.ceil(count / limit),
+      data: rows,
+    };
+  }
+
+  // Get section options (lightweight query for dropdowns)
+  async findOptions(tenantId, classId, academicYearId) {
+    return await this.model.findAll({
+      where: {
+        tenantId,
+        classId,
+        academicYearId,
+      },
+      attributes: ["id", "name"],
+      order: [["name", "ASC"]],
+      raw: true,
     });
   }
 }

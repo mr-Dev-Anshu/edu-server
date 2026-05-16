@@ -19,12 +19,12 @@ router.route("/assign").post(identifyUser, checkPermission("assign:role"), assig
 router.route("/revoke").post(identifyUser, checkPermission("assign:role"), revokeRoleValidator, ctrl.revokeRole);
 // ❌ DEPRECATED: Users can only have one role
 // router.route("/revoke-multiple").post(identifyUser, checkPermission("assign:role"), revokeMultipleRolesValidator, ctrl.revokeMultipleRoles);
-router.route("/expired/list").get(ctrl.getExpired);
-router.route("/user/:userId").get(identifyUser, ctrl.getUserRoles);
-router.route("/role/:roleId").get(ctrl.getRoleUsers);
+router.route("/expired/list").get(identifyUser, checkPermission("read:roles"), ctrl.getExpired);
+router.route("/user/:userId").get(identifyUser, checkPermission("read:roles"), ctrl.getUserRoles);
+router.route("/role/:roleId").get(identifyUser, checkPermission("read:roles"), ctrl.getRoleUsers);
 
 // ✅ Dynamic routes LAST
-router.route("/:id").get(ctrl.getById);
-router.route("/:id/expiry").put(updateRoleExpiryValidator, ctrl.updateExpiry);
+router.route("/:id").get(identifyUser, checkPermission("read:roles"), ctrl.getById);
+router.route("/:id/expiry").put(identifyUser, checkPermission("update:roles"), updateRoleExpiryValidator, ctrl.updateExpiry);
 
 export default router;

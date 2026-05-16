@@ -10,13 +10,13 @@ const ctrl = new StaffController();
 router.post("/", identifyUser, checkPermission("create:staff"), createStaffValidator, ctrl.create);
 
 // Get all staff
-router.get("/", identifyUser, ctrl.getAll);
+router.get("/", identifyUser, checkPermission("read:staff"), ctrl.getAll);
 
 // Search staff
-router.get("/search", identifyUser, ctrl.search);
+router.get("/search", identifyUser, checkPermission("read:staff"), ctrl.search);
 
 // Get specific staff by ID
-router.get("/:id", identifyUser, staffIdValidator, ctrl.getOne);
+router.get("/:id", identifyUser, checkPermission("read:staff"), staffIdValidator, ctrl.getOne);
 
 // Update staff
 router.patch("/:id", identifyUser, checkPermission("update:staff"), staffIdValidator, updateStaffValidator, ctrl.update);

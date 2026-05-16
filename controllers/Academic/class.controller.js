@@ -51,4 +51,23 @@ export class ClassController extends BaseController {
     const data = await classService.getClassesWithSections(req.tenantId);
     res.status(200).json({ success: true, data });
   });
+
+  // NEW: Get classes with sections filtered by academic year, search, and pagination
+  getWithSectionsFiltered = catchAsync(async (req, res) => {
+    const result = await classService.getClassesWithSectionsFiltered(
+      req.tenantId,
+      req.query
+    );
+    res.status(200).json({ success: true, ...result });
+  });
+
+  // NEW: Get sections for a specific class, optionally filtered by academic year
+  getClassSections = catchAsync(async (req, res) => {
+    const result = await classService.getClassSections(
+      req.params.id,
+      req.tenantId,
+      req.query
+    );
+    res.status(200).json({ success: true, ...result });
+  });
 }

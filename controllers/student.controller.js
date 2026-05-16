@@ -5,7 +5,10 @@ const studentService = new StudentService();
 
 export class StudentController {
   create = catchAsync(async (req, res) => {
-    const data = await studentService.createStudent(req.tenantId, req.body);
+    const data = await studentService.createStudent(req.tenantId, {
+      ...req.body,
+      requestedBy: req.user.id,
+    });
     res.status(201).json({ success: true, data });
   });
 
@@ -13,6 +16,13 @@ export class StudentController {
     const result = await studentService.getAllStudents(req.tenantId, req.query);
     res.status(200).json({ success: true, ...result });
   });
+
+  // Get Students NOT assigned to any section
+  getUnassigned = catchAsync(async (req, res) => {
+    const result = await studentService.getUnassignedStudents(req.tenantId, req.query);
+    res.status(200).json({ success: true, ...result });
+  });
+
 
   getOne = catchAsync(async (req, res) => {
     const data = await studentService.getStudentById(req.params.id, req.tenantId);

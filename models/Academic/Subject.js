@@ -38,25 +38,12 @@ import { withTenant } from "../withTenant.js";
   }),
   {
     timestamps: true,
-    paranoid: true,
     underscored: true,
     tableName: "subjects",
-    indexes: [
-      {
-        unique: true,
-        fields: ["tenant_id", "class_id", "code"],
-        where: { deleted_at: null },
-        name: "uq_subject_tenant_class_code",
-      },
-      {
-        fields: ["tenant_id", "class_id"],
-        name: "idx_subject_tenant_class",
-      },
-      {
-        fields: ["tenant_id", "code"],
-        name: "idx_subject_tenant_code",
-      },
-    ],
+      // indexes: [
+    //   { fields: ["tenant_id", "class_id"] },
+    //   { fields: ["tenant_id", "code"] },
+    // ],
   }
 );
 

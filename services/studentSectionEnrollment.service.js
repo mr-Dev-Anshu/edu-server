@@ -10,25 +10,14 @@ const academicYearRepo = new AcademicYearRepository();
 const studentRepo = new StudentRepository();
 
 export class StudentSectionEnrollmentService {
-  // Enroll Student
-  async enrollStudent(tenantId, payload) {
-    const {
-      studentId,
-      sectionId,
-      academicYearId,
-      rollNumber,
-      enrollmentStatus,
-    } = payload;
-
-    // Check Academic Year exists
+  // Helper: Validate and get section with academic year check
+  async validateSectionAndYear(sectionId, academicYearId, tenantId) {
     const year = await academicYearRepo.findById(academicYearId, tenantId);
     if (!year) throw new AppError("Academic year not found", 404);
 
-    // Check Section exists
     const section = await sectionRepo.findById(sectionId, tenantId);
     if (!section) throw new AppError("Section not found", 404);
 
-    // Ensure section belongs to the chosen academic year
     if (section.academicYearId !== academicYearId) {
       throw new AppError(
         "Section does not belong to the provided academic year",
@@ -36,10 +25,12 @@ export class StudentSectionEnrollmentService {
       );
     }
 
-    // Check Student exists in tenant
-    await studentRepo.findById(studentId, tenantId);
+    return { year, section };
+  }
 
-    // UNIQUE RULE → already enrolled?
+  // Helper: Create single enrollment with validation
+  async createSingleEnrollment(tenantId, studentId, sectionId, academicYearId, rollNumber, enrollmentStatus, section) {
+    // Check if already enrolled
     const existing = await enrollmentRepo.findByStudentAndYear(
       studentId,
       academicYearId,
@@ -50,7 +41,7 @@ export class StudentSectionEnrollmentService {
       throw new AppError("Student already enrolled in this academic year", 400);
     }
 
-    // OPTIONAL (PRO): Capacity check
+    // Check capacity
     const enrolledCount = await enrollmentRepo.countBySection(
       sectionId,
       tenantId,
@@ -59,10 +50,7 @@ export class StudentSectionEnrollmentService {
       throw new AppError("Section capacity full", 400);
     }
 
-    let finalRoll = rollNumber;
-    if (finalRoll === undefined || finalRoll === null) {
-      finalRoll = enrolledCount + 1;
-    }
+    const finalRoll = rollNumber || enrolledCount + 1;
 
     const enrollment = await enrollmentRepo.create({
       tenantId,
@@ -74,9 +62,143 @@ export class StudentSectionEnrollmentService {
       isCurrent: true,
     });
 
-    // Reload with full associations
     const fullEnrollment = await enrollmentRepo.findWithDetails(enrollment.id, tenantId);
     return this.formatResponse(fullEnrollment);
+  }
+
+  // Enroll Student (handles both single and bulk)
+  async enrollStudent(tenantId, payload) {
+    // If payload is array, handle bulk enrollment
+    if (Array.isArray(payload)) {
+      return await this.enrollMultipleStudents(tenantId, payload);
+    }
+
+    // Single enrollment logic
+    const {
+      studentId,
+      sectionId,
+      academicYearId,
+      rollNumber,
+      enrollmentStatus,
+    } = payload;
+
+    // Check Student exists in tenant
+    await studentRepo.findById(studentId, tenantId);
+
+    // Validate section and year
+    const { section } = await this.validateSectionAndYear(sectionId, academicYearId, tenantId);
+
+    // Create enrollment
+    return await this.createSingleEnrollment(
+      tenantId,
+      studentId,
+      sectionId,
+      academicYearId,
+      rollNumber,
+      enrollmentStatus,
+      section,
+    );
+  }
+
+  // Enroll Multiple Students (bulk)
+  async enrollMultipleStudents(tenantId, enrollments) {
+    const results = [];
+    const errors = [];
+
+    // Check Academic Year and Section once
+    const academicYearId = enrollments[0]?.academicYearId;
+    const sectionId = enrollments[0]?.sectionId;
+
+    // Validate section and year (once for all)
+    const { section } = await this.validateSectionAndYear(sectionId, academicYearId, tenantId);
+
+    let currentRollNumber = await enrollmentRepo.countBySection(sectionId, tenantId);
+
+    // Validate all students exist first
+    for (const enrollment of enrollments) {
+      try {
+        await studentRepo.findById(enrollment.studentId, tenantId);
+      } catch (error) {
+        errors.push({
+          studentId: enrollment.studentId,
+          error: "Student not found",
+        });
+      }
+    }
+
+    // Process each enrollment
+    for (const enrollment of enrollments) {
+      if (errors.some((e) => e.studentId === enrollment.studentId)) {
+        continue;
+      }
+
+      try {
+        const { studentId, rollNumber, enrollmentStatus } = enrollment;
+
+        // Check if already enrolled
+        const existing = await enrollmentRepo.findByStudentAndYear(
+          studentId,
+          academicYearId,
+          tenantId,
+        );
+
+        if (existing) {
+          errors.push({
+            studentId,
+            error: "Already enrolled in this academic year",
+          });
+          continue;
+        }
+
+        // Check capacity
+        const enrolledCount = await enrollmentRepo.countBySection(
+          sectionId,
+          tenantId,
+        );
+        if (enrolledCount >= section.capacity) {
+          errors.push({
+            studentId,
+            error: "Section capacity full",
+          });
+          continue;
+        }
+
+        currentRollNumber++;
+        const finalRoll = rollNumber || currentRollNumber;
+
+        const newEnrollment = await enrollmentRepo.create({
+          tenantId,
+          studentId,
+          sectionId,
+          academicYearId,
+          rollNumber: finalRoll,
+          enrollmentStatus: enrollmentStatus || "regular",
+          isCurrent: true,
+        });
+
+        const fullEnrollment = await enrollmentRepo.findWithDetails(
+          newEnrollment.id,
+          tenantId,
+        );
+        results.push(this.formatResponse(fullEnrollment));
+      } catch (error) {
+        errors.push({
+          studentId: enrollment.studentId,
+          error: error.message,
+        });
+      }
+    }
+
+    return {
+      message: `${results.length} student(s) enrolled successfully`,
+      enrolled: results,
+      errors: errors.length > 0 ? errors : undefined,
+      summary: {
+        total: enrollments.length,
+        successful: results.length,
+        failed: errors.length,
+      },
+    };
   }
 
   // Get All

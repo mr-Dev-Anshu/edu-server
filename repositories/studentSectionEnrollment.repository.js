@@ -11,6 +11,97 @@ import {
 } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
+const STUDENT_USER_INCLUDE = {
+  model: User,
+  as: "user",
+  attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
+};
+
+const STUDENT_ORGANIZATION_INCLUDE = {
+  model: Tenant,
+  as: "organization",
+  attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
+};
+
+const STUDENT_GUARDIANS_INCLUDE = {
+  model: Guardian,
+  as: "guardians",
+  attributes: ["id", "tenantId", "userId", "relation", "phone", "occupation", "isPrimaryContact"],
+  through: {
+    attributes: ["id", "relationType", "isPrimary", "canPickup"],
+  },
+  include: [
+    {
+      model: User,
+      as: "user",
+      attributes: ["id", "firstName", "lastName", "email", "phone"],
+    },
+  ],
+};
+
+const STUDENT_DETAILS_INCLUDE = {
+  model: Student,
+  as: "student",
+  attributes: [
+    "id",
+    "admissionNumber",
+    "rollNumber",
+    "firstName",
+    "middleName",
+    "lastName",
+    "dateOfBirth",
+    "gender",
+    "bloodGroup",
+    "nationality",
+    "religion",
+    "caste",
+    "category",
+    "aadharNumber",
+    "photoUrl",
+    "enrollmentDate",
+    "previousSchool",
+    "previousClass",
+    "tcNumber",
+    "siblingId",
+    "isStaffWard",
+    "status",
+    "transportRequired",
+    "hostelRequired",
+    "medicalConditions",
+    "emergencyContactName",
+    "emergencyContactPhone",
+    "address",
+    "city",
+    "pincode",
+    "customFields",
+    "metadata",
+    "createdAt",
+    "updatedAt",
+    "tenantId",
+    "userId",
+  ],
+  include: [STUDENT_USER_INCLUDE, STUDENT_ORGANIZATION_INCLUDE, STUDENT_GUARDIANS_INCLUDE],
+};
+
+const SECTION_INCLUDE = {
+  model: Section,
+  as: "section",
+  attributes: ["id", "name", "capacity", "classId", "academicYearId"],
+  include: [
+    {
+      model: Class,
+      as: "class",
+      attributes: ["id", "name", "numericLevel"],
+    },
+  ],
+};
+
+const ACADEMIC_YEAR_INCLUDE = {
+  model: AcademicYear,
+  as: "academicYear",
+  attributes: ["id", "name", "isCurrent", "startDate", "endDate"],
+};
+
 export class StudentSectionEnrollmentRepository extends BaseRepository {
   constructor() {
     super(StudentSectionEnrollment);
@@ -44,7 +135,7 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
 
   async countBySection(sectionId, tenantId) {
     return await this.model.count({
-      where: { sectionId, tenantId },
+      where: { sectionId, tenantId, isCurrent: true },
     });
   }
 
@@ -59,6 +150,7 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
     const where = {
       tenantId,
       sectionId: { [Op.in]: uniqueSectionIds },
+      isCurrent: true,
     };
 
     if (academicYearId) {
@@ -109,103 +201,24 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
       order: [["createdAt", "DESC"]],
       include: [
         {
-          model: Student,
-          as: "student",
-                    where: search
-                      ? {
-                          [Op.or]: [
-                            { firstName: { [Op.iLike]: `%${search}%` } },
-                            { middleName: { [Op.iLike]: `%${search}%` } },
-                            { lastName: { [Op.iLike]: `%${search}%` } },
-                            { admissionNumber: { [Op.iLike]: `%${search}%` } },
-                            { rollNumber: { [Op.iLike]: `%${search}%` } },
-                          ]
-                        }
-                      : undefined,
-          attributes: [
-            "id",
-            "admissionNumber",
-            "rollNumber",
-            "firstName",
-            "middleName",
-            "lastName",
-            "dateOfBirth",
-            "gender",
-            "bloodGroup",
-            "nationality",
-            "religion",
-            "caste",
-            "category",
-            "aadharNumber",
-            "photoUrl",
-            "enrollmentDate",
-            "previousSchool",
-            "previousClass",
-            "tcNumber",
-            "siblingId",
-            "isStaffWard",
-            "status",
-            "transportRequired",
-            "hostelRequired",
-            "medicalConditions",
-            "emergencyContactName",
-            "emergencyContactPhone",
-            "address",
-            "city",
-            "pincode",
-            "customFields",
-            "metadata",
-            "createdAt",
-            "updatedAt",
-            "tenantId",
-            "userId",
-          ],
-          include: [
-            {
-              model: User,
-              as: "user",
-              attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
-            },
-            {
-              model: Tenant,
-              as: "organization",
-              attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
-            },
-            {
-              model: Guardian,
-              as: "guardians",
-              attributes: ["id", "tenantId", "userId", "relation", "phone", "occupation", "isPrimaryContact"],
-              through: {
-                attributes: ["id", "relationType", "isPrimary", "canPickup"],
-              },
-              include: [
-                {
-                  model: User,
-                  as: "user",
-                  attributes: ["id", "firstName", "lastName", "email", "phone"],
-                },
-              ],
-            },
-          ],
+          ...STUDENT_DETAILS_INCLUDE,
+          where: search
+            ? {
+                [Op.or]: [
+                  { firstName: { [Op.iLike]: `%${search}%` } },
+                  { middleName: { [Op.iLike]: `%${search}%` } },
+                  { lastName: { [Op.iLike]: `%${search}%` } },
+                  { admissionNumber: { [Op.iLike]: `%${search}%` } },
+                  { rollNumber: { [Op.iLike]: `%${search}%` } },
+                ],
+              }
+            : undefined,
         },
         {
-          model: Section,
-          as: "section",
+          ...SECTION_INCLUDE,
           where: classId ? { classId } : undefined,
-          attributes: ["id", "name", "capacity", "classId", "academicYearId"],
-          include: [
-            {
-              model: Class,
-              as: "class",
-              attributes: ["id", "name", "numericLevel"],
-            },
-          ],
         },
-        {
-          model: AcademicYear,
-          as: "academicYear",
-          attributes: ["id", "name", "isCurrent", "startDate", "endDate"],
-        },
+        ACADEMIC_YEAR_INCLUDE,
       ],
     });
 
@@ -223,92 +236,9 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
     return await this.model.findOne({
       where: { id, tenantId },
       include: [
-        {
-          model: Student,
-          as: "student",
-          attributes: [
-            "id",
-            "admissionNumber",
-            "rollNumber",
-            "firstName",
-            "middleName",
-            "lastName",
-            "dateOfBirth",
-            "gender",
-            "bloodGroup",
-            "nationality",
-            "religion",
-            "caste",
-            "category",
-            "aadharNumber",
-            "photoUrl",
-            "enrollmentDate",
-            "previousSchool",
-            "previousClass",
-            "tcNumber",
-            "siblingId",
-            "isStaffWard",
-            "status",
-            "transportRequired",
-            "hostelRequired",
-            "medicalConditions",
-            "emergencyContactName",
-            "emergencyContactPhone",
-            "address",
-            "city",
-            "pincode",
-            "customFields",
-            "metadata",
-            "createdAt",
-            "updatedAt",
-            "tenantId",
-            "userId",
-          ],
-          include: [
-            {
-              model: User,
-              as: "user",
-              attributes: ["id", "firstName", "lastName", "email", "phone", "status"],
-            },
-            {
-              model: Tenant,
-              as: "organization",
-              attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
-            },
-            {
-              model: Guardian,
-              as: "guardians",
-              attributes: ["id", "tenantId", "userId", "relation", "phone", "occupation", "isPrimaryContact"],
-              through: {
-                attributes: ["id", "relationType", "isPrimary", "canPickup"],
-              },
-              include: [
-                {
-                  model: User,
-                  as: "user",
-                  attributes: ["id", "firstName", "lastName", "email", "phone"],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          model: Section,
-          as: "section",
-          attributes: ["id", "name", "capacity", "classId", "academicYearId"],
-          include: [
-            {
-              model: Class,
-              as: "class",
-              attributes: ["id", "name", "numericLevel"],
-            },
-          ],
-        },
-        {
-          model: AcademicYear,
-          as: "academicYear",
-          attributes: ["id", "name", "isCurrent", "startDate", "endDate"],
-        },
+        STUDENT_DETAILS_INCLUDE,
+        SECTION_INCLUDE,
+        ACADEMIC_YEAR_INCLUDE,
       ],
     });
   }

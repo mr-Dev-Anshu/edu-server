@@ -247,6 +247,28 @@ export class StudentService {
     };
   }
 
+  // Get Students NOT assigned to any section
+  async getUnassignedStudents(tenantId, query) {
+    const page = parseInt(query.page, 10) || 1;
+    const limit = parseInt(query.limit, 10) || 10;
+
+    const filters = {};
+    if (query.status) filters.status = query.status;
+    if (query.name) filters.name = query.name;
+    if (query.search) filters.search = query.search.trim();
+
+    const result = await studentRepo.findUnassignedStudents(tenantId, filters, page, limit);
+
+    return {
+      ...result,
+      data: result.data.map(student => {
+        const studentData = student.get ? student.get({ plain: true }) : student;
+        return this.formatStudentResponse(studentData);
+      }),
+    };
+  }
+
+
   async getStudentById(id, tenantId) {
     const student = await studentRepo.findWithDetails(id, tenantId);
     if (!student) {

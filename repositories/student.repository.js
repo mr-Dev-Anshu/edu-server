@@ -72,6 +72,15 @@ export class StudentRepository extends BaseRepository {
     super(Student);
   }
 
+  // Helper: Build name search clause
+  buildNameSearchClause(searchTerm) {
+    return [
+      { firstName: { [Op.iLike]: `%${searchTerm}%` } },
+      { middleName: { [Op.iLike]: `%${searchTerm}%` } },
+      { lastName: { [Op.iLike]: `%${searchTerm}%` } },
+    ];
+  }
+
   async findByUserId(userId, tenantId) {
     return await this.model.findOne({
       where: { userId, tenantId },
@@ -101,11 +110,7 @@ export class StudentRepository extends BaseRepository {
     }
 
     if (filters.name) {
-      where[Op.or] = [
-        { firstName: { [Op.iLike]: `%${filters.name}%` } },
-        { middleName: { [Op.iLike]: `%${filters.name}%` } },
-        { lastName: { [Op.iLike]: `%${filters.name}%` } },
-      ];
+      where[Op.or] = this.buildNameSearchClause(filters.name);
     }
 
       const { count, rows } = await this.model.findAndCountAll({
@@ -131,5 +136,58 @@ export class StudentRepository extends BaseRepository {
       where: { id, tenantId },
         include: STUDENT_DETAILS_INCLUDES,
     });
+  }
+
+  // Get Students NOT assigned to any section
+  async findUnassignedStudents(tenantId, filters = {}, page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    const where = { tenantId };
+    const include = STUDENT_DETAILS_INCLUDES.map((item) => ({
+      ...item,
+      required: false,
+    }));
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.name) {
+      where[Op.or] = this.buildNameSearchClause(filters.name);
+    }
+
+    if (filters.search) {
+      const searchTerm = `%${filters.search}%`;
+      const searchClause = [
+        ...this.buildNameSearchClause(filters.search),
+        { admissionNumber: { [Op.iLike]: searchTerm } },
+        { "$user.email$": { [Op.iLike]: searchTerm } },
+      ];
+
+      where[Op.or] = where[Op.or] ? [...where[Op.or], ...searchClause] : searchClause;
+    }
+
+    const { count, rows } = await this.model.findAndCountAll({
+      where,
+      offset,
+      limit,
+      distinct: true,
+      order: [["createdAt", "DESC"]],
+      include,
+      subQuery: false,
+    });
+
+    // Filter students who have NO current enrollment (unassigned)
+    const unassignedStudents = rows.filter((student) => {
+      const enrollments = student.enrollments || [];
+      return !enrollments.some(e => e.isCurrent === true);
+    });
+
+    return {
+      total: count,
+      page,
+      limit,
+      pages: Math.ceil(count / limit),
+      data: unassignedStudents,
+    };
   }
 }

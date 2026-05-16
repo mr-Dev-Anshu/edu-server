@@ -17,6 +17,13 @@ export class StudentController {
     res.status(200).json({ success: true, ...result });
   });
 
+  // Get Students NOT assigned to any section
+  getUnassigned = catchAsync(async (req, res) => {
+    const result = await studentService.getUnassignedStudents(req.tenantId, req.query);
+    res.status(200).json({ success: true, ...result });
+  });
+
+
   getOne = catchAsync(async (req, res) => {
     const data = await studentService.getStudentById(req.params.id, req.tenantId);
     res.status(200).json({ success: true, data });

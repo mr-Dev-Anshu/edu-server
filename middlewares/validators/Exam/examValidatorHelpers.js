@@ -9,7 +9,11 @@ export const createValidator = (validateFn) => (req, res, next) => {
   }
 };
 
+// FIX — Warning #4: Added null/undefined guard before running regex to prevent runtime crash
 export const ensureUUID = (value, fieldName) => {
+  if (!value || typeof value !== "string") {
+    throw new AppError(`${fieldName} is required and must be a string`, 400);
+  }
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if (!uuidRegex.test(value)) {
     throw new AppError(`${fieldName} must be a valid UUID`, 400);

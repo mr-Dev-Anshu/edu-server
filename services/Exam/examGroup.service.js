@@ -49,62 +49,65 @@ export class ExamGroupService {
   }
 
   async getExamGroupById(id, tenantId) {
-  const examGroup = await examGroupRepo.findById(id, tenantId);
-  if (!examGroup) throw new AppError("Exam group not found", 404); // ADD
-  return this.formatResponse(examGroup);
-}
+    const examGroup = await examGroupRepo.findById(id, tenantId);
+    if (!examGroup) throw new AppError("Exam group not found", 404);
+    return this.formatResponse(examGroup);
+  }
 
-
+  // FIX — Blocker #1 + Warning #7: Uncommented all logic + added date range validation
   async updateExamGroup(id, tenantId, updateData) {
     const examGroup = await examGroupRepo.findById(id, tenantId);
-     if (!examGroup) throw new AppError("Exam group not found", 404);
+    if (!examGroup) throw new AppError("Exam group not found", 404);
 
     // If result is published, restrict edits
     if (examGroup.isResultPublished) {
       throw new AppError("Cannot update an exam group after result is published", 400);
     }
 
-//     const newStart = updateData.startDate ?? examGroup.startDate;
-// const newEnd = updateData.endDate ?? examGroup.endDate;
-// if (newStart && newEnd) {
-//   if (new Date(newEnd) <= new Date(newStart)) {
-//     throw new AppError("endDate must be after startDate", 400);
-//   }
-// }
+    // FIX — Warning #7: Validate date range on update
+    const newStart = updateData.startDate ?? examGroup.startDate;
+    const newEnd = updateData.endDate ?? examGroup.endDate;
+    if (newStart && newEnd) {
+      if (new Date(newEnd) <= new Date(newStart)) {
+        throw new AppError("endDate must be after startDate", 400);
+      }
+    }
 
-//     if (updateData.name && updateData.name.trim() !== examGroup.name) {
-//       const existing = await examGroupRepo.findByName(updateData.name.trim(), tenantId);
-//       if (existing) throw new AppError("An exam group with this name already exists", 400);
-//     }
+    if (updateData.name && updateData.name.trim() !== examGroup.name) {
+      const existing = await examGroupRepo.findByName(updateData.name.trim(), tenantId);
+      if (existing) throw new AppError("An exam group with this name already exists", 400);
+    }
 
-//     const updated = await examGroupRepo.update(id, tenantId, {
-//       ...(updateData.name !== undefined ? { name: updateData.name.trim() } : {}),
-//       ...(updateData.examType !== undefined ? { examType: updateData.examType } : {}),
-//       ...(updateData.academicYearId !== undefined ? { academicYearId: updateData.academicYearId } : {}),
-//       ...(updateData.gradingSchemeId !== undefined ? { gradingSchemeId: updateData.gradingSchemeId } : {}),
-//       ...(updateData.startDate !== undefined ? { startDate: updateData.startDate } : {}),
-//       ...(updateData.endDate !== undefined ? { endDate: updateData.endDate } : {}),
-//       ...(updateData.weightagePercent !== undefined ? { weightagePercent: updateData.weightagePercent } : {}),
-//     });
+    const updated = await examGroupRepo.update(id, tenantId, {
+      ...(updateData.name !== undefined ? { name: updateData.name.trim() } : {}),
+      ...(updateData.examType !== undefined ? { examType: updateData.examType } : {}),
+      ...(updateData.academicYearId !== undefined ? { academicYearId: updateData.academicYearId } : {}),
+      ...(updateData.gradingSchemeId !== undefined ? { gradingSchemeId: updateData.gradingSchemeId } : {}),
+      ...(updateData.startDate !== undefined ? { startDate: updateData.startDate } : {}),
+      ...(updateData.endDate !== undefined ? { endDate: updateData.endDate } : {}),
+      ...(updateData.weightagePercent !== undefined ? { weightagePercent: updateData.weightagePercent } : {}),
+    });
 
-//     return this.formatResponse(updated);
+    return this.formatResponse(updated);
   }
 
+  // FIX — Blocker #1: Uncommented delete logic
   async deleteExamGroup(id, tenantId) {
     const examGroup = await examGroupRepo.findById(id, tenantId);
-     if (!examGroup) throw new AppError("Exam group not found", 404); 
+    if (!examGroup) throw new AppError("Exam group not found", 404);
 
     if (examGroup.isResultPublished) {
       throw new AppError("Cannot delete an exam group after result is published", 400);
     }
 
-    // await examGroupRepo.delete(id, tenantId);
-    // return {
-    //   message: "Exam group deleted successfully",
-    //   data: this.formatResponse(examGroup),
-    // };
+    await examGroupRepo.delete(id, tenantId);
+    return {
+      message: "Exam group deleted successfully",
+      data: this.formatResponse(examGroup),
+    };
   }
 
+  // FIX — Blocker #1: Uncommented publishResult logic
   async publishResult(id, tenantId) {
     const examGroup = await examGroupRepo.findById(id, tenantId);
     if (!examGroup) throw new AppError("Exam group not found", 404);
@@ -112,21 +115,24 @@ export class ExamGroupService {
     if (examGroup.isResultPublished) {
       throw new AppError("Result is already published", 400);
     }
-    // await examGroupRepo.setResultPublished(id, tenantId, true);
-    // const updated = await examGroupRepo.findById(id, tenantId);
-    // return this.formatResponse(updated);
+
+    await examGroupRepo.setResultPublished(id, tenantId, true);
+    const updated = await examGroupRepo.findById(id, tenantId);
+    return this.formatResponse(updated);
   }
 
+  // FIX — Blocker #1: Uncommented unpublishResult logic
   async unpublishResult(id, tenantId) {
     const examGroup = await examGroupRepo.findById(id, tenantId);
-      if (!examGroup) throw new AppError("Exam group not found", 404);
+    if (!examGroup) throw new AppError("Exam group not found", 404);
 
     if (!examGroup.isResultPublished) {
       throw new AppError("Result is not published yet", 400);
     }
-    // await examGroupRepo.setResultPublished(id, tenantId, false);
-    // const updated = await examGroupRepo.findById(id, tenantId);
-    // return this.formatResponse(updated);
+
+    await examGroupRepo.setResultPublished(id, tenantId, false);
+    const updated = await examGroupRepo.findById(id, tenantId);
+    return this.formatResponse(updated);
   }
 
   formatResponse(examGroup) {

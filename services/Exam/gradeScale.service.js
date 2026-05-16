@@ -23,10 +23,7 @@ export class GradeScaleService {
       await gradeScaleRepo.setDefault(gradeScale.id, tenantId);
     }
 
-    const finalGradeScale = await gradeScaleRepo.findById(
-      gradeScale.id,
-      tenantId
-    );
+    const finalGradeScale = await gradeScaleRepo.findById(gradeScale.id, tenantId);
 
     return this.formatResponse(finalGradeScale);
   }
@@ -39,12 +36,7 @@ export class GradeScaleService {
     if (query.scaleType) filters.scaleType = query.scaleType;
     if (query.isDefault === "true") filters.isDefault = true;
 
-    return await gradeScaleRepo.findWithPagination(
-      tenantId,
-      filters,
-      page,
-      limit
-    );
+    return await gradeScaleRepo.findWithPagination(tenantId, filters, page, limit);
   }
 
   async getGradeScaleById(id, tenantId) {
@@ -62,58 +54,52 @@ export class GradeScaleService {
     return this.formatResponse(gradeScale);
   }
 
+  // FIX — Blocker #1: Uncommented all updateGradeScale logic
   async updateGradeScale(id, tenantId, updateData) {
     const gradeScale = await gradeScaleRepo.findById(id, tenantId);
-     if (!gradeScale) throw new AppError("Grade scale not found", 404);
+    if (!gradeScale) throw new AppError("Grade scale not found", 404);
 
-    // if (updateData.name && updateData.name.trim() !== gradeScale.name) {
-    //   const existing = await gradeScaleRepo.findByName(
-    //     updateData.name.trim(),
-    //     tenantId
-    //   );
+    if (updateData.name && updateData.name.trim() !== gradeScale.name) {
+      const existing = await gradeScaleRepo.findByName(updateData.name.trim(), tenantId);
+      if (existing) {
+        throw new AppError("A grade scale with this name already exists", 400);
+      }
+    }
 
-    //   if (existing) {
-    //     throw new AppError("A grade scale with this name already exists", 400);
-    //   }
-    // }
+    const updated = await gradeScaleRepo.update(id, tenantId, {
+      ...(updateData.name !== undefined ? { name: updateData.name.trim() } : {}),
+      ...(updateData.scaleType !== undefined ? { scaleType: updateData.scaleType } : {}),
+      ...(updateData.isDefault !== undefined ? { isDefault: updateData.isDefault } : {}),
+    });
 
-    // const updated = await gradeScaleRepo.update(id, tenantId, {
-    //   ...(updateData.name !== undefined
-    //     ? { name: updateData.name.trim() }
-    //     : {}),
-    //   ...(updateData.scaleType !== undefined
-    //     ? { scaleType: updateData.scaleType }
-    //     : {}),
-    //   ...(updateData.isDefault !== undefined
-    //     ? { isDefault: updateData.isDefault }
-    //     : {}),
-    // });
+    if (updateData.isDefault === true) {
+      await gradeScaleRepo.setDefault(id, tenantId);
+    }
 
-    // if (updateData.isDefault === true) {
-    //   await gradeScaleRepo.setDefault(id, tenantId);
-    // }
-
-    // return this.formatResponse(updated);
+    return this.formatResponse(updated);
   }
 
+  // FIX — Blocker #1: Uncommented deleteGradeScale logic
   async deleteGradeScale(id, tenantId) {
     const gradeScale = await gradeScaleRepo.findById(id, tenantId);
-      if (!gradeScale) throw new AppError("Grade scale not found", 404);
+    if (!gradeScale) throw new AppError("Grade scale not found", 404);
 
     if (gradeScale.isDefault) {
       throw new AppError("Cannot delete the default grade scale", 400);
     }
 
-    // await gradeScaleRepo.delete(id, tenantId);
+    await gradeScaleRepo.delete(id, tenantId);
 
-    // return {
-    //   message: "Grade scale deleted successfully",
-    //   data: this.formatResponse(gradeScale),
-    // };
+    return {
+      message: "Grade scale deleted successfully",
+      data: this.formatResponse(gradeScale),
+    };
   }
 
+  // FIX — Blocker #3: findById result assign karke null check lagaya
   async setDefaultGradeScale(id, tenantId) {
-    await gradeScaleRepo.findById(id, tenantId);
+    const gs = await gradeScaleRepo.findById(id, tenantId);
+    if (!gs) throw new AppError("Grade scale not found", 404);
 
     await gradeScaleRepo.setDefault(id, tenantId);
 

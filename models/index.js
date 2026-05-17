@@ -99,6 +99,16 @@ Student.belongsTo(User, { foreignKey: "userId", as: "user" });
 
 User.hasOne(Staff, { foreignKey: "userId", as: "staffProfile" });
 Staff.belongsTo(User, { foreignKey: "userId", as: "user" });
+Staff.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+
+User.hasOne(Guardian, { foreignKey: "userId", as: "guardianProfile" });
+Guardian.belongsTo(User, { foreignKey: "userId", as: "user" });
+Guardian.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+
+Student.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+
+// Student -> Sibling (self-referential)
+Student.belongsTo(Student, { foreignKey: "siblingId", as: "sibling" });
 
 // ==========================================
 // 4. ACADEMIC & ENROLLMENT LOGIC
@@ -110,6 +120,10 @@ AcademicYear.belongsTo(Tenant, { foreignKey: "tenantId" });
 // Class -> Section
 Class.hasMany(Section, { foreignKey: "classId", as: "sections" });
 Section.belongsTo(Class, { foreignKey: "classId", as: "class" });
+
+// Class Teacher (User) -> Section
+Section.belongsTo(User, { foreignKey: "classTeacherId", as: "classTeacher" });
+User.hasMany(Section, { foreignKey: "classTeacherId", as: "sectionsAssigned" });
 
 // Academic Year -> Section
 Section.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
@@ -137,6 +151,10 @@ Guardian.belongsToMany(Student, {
   through: StudentGuardianMap,
   foreignKey: "guardianId",
   as: "students",
+});
+Guardian.hasMany(StudentGuardianMap, {
+  foreignKey: 'guardianId',
+  as: 'studentMappings',
 });
 
 // ==========================================

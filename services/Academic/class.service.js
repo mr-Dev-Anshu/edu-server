@@ -1,9 +1,80 @@
 import { ClassRepository } from "../../repositories/Academic/class.repository.js";
+import { SectionRepository } from "../../repositories/Academic/section.repository.js";
+import { StudentSectionEnrollmentRepository } from "../../repositories/studentSectionEnrollment.repository.js";
 import { AppError } from "../../utils/AppError.js";
 
 const classRepo = new ClassRepository();
+const sectionRepo = new SectionRepository();
+const enrollmentRepo = new StudentSectionEnrollmentRepository();
+
+const formatTeacherSummary = (user) =>
+  user
+    ? {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        status: user.status,
+      }
+    : null;
+
+const formatAcademicYearSummary = (academicYear) =>
+  academicYear
+    ? {
+        id: academicYear.id,
+        tenantId: academicYear.tenantId,
+        name: academicYear.name,
+        startDate: academicYear.startDate,
+        endDate: academicYear.endDate,
+        isCurrent: academicYear.isCurrent,
+        isLocked: academicYear.isLocked,
+      }
+    : null;
+
+const formatClassSection = (section, enrolledCount = 0) => ({
+  id: section.id,
+  tenantId: section.tenantId,
+  name: section.name,
+  capacity: section.capacity,
+  enrolledCount,
+  classTeacherId: section.classTeacherId,
+  classTeacher: formatTeacherSummary(section.classTeacher),
+  classId: section.classId,
+  academicYearId: section.academicYearId,
+  academicYear: formatAcademicYearSummary(section.academicYear),
+  createdAt: section.createdAt,
+  updatedAt: section.updatedAt,
+});
+
+const formatClassWithSections = (classData, sectionCounts = new Map()) => {
+  const sections = (classData.sections || []).map((section) =>
+    formatClassSection(section, sectionCounts.get(section.id) || 0),
+  );
+
+  return {
+    id: classData.id,
+    tenantId: classData.tenantId,
+    name: classData.name,
+    numericLevel: classData.numericLevel,
+    description: classData.description,
+    totalEnrollment: sections.reduce((sum, section) => sum + section.enrolledCount, 0),
+    createdAt: classData.createdAt,
+    updatedAt: classData.updatedAt,
+    sections,
+  };
+};
 
 export class ClassService {
+
+  async attachEnrollmentCounts(classes, academicYearId = null) {
+    const sectionIds = classes.flatMap((classData) => (classData.sections || []).map((section) => section.id));
+    const tenantId = classes[0]?.tenantId || null;
+    const counts = await enrollmentRepo.countBySectionIds(tenantId, sectionIds, academicYearId);
+    const sectionCountMap = new Map(counts.map(({ sectionId, count }) => [sectionId, count]));
+
+    return classes.map((classData) => formatClassWithSections(classData, sectionCountMap));
+  }
 
   // Create Class
   async createClass(tenantId, payload) {
@@ -77,7 +148,72 @@ export class ClassService {
 
   // Get Classes with Sections (relation use)
   async getClassesWithSections(tenantId) {
-    return await classRepo.findWithSections(tenantId);
+    const classes = await classRepo.findWithSections(tenantId);
+    return await this.attachEnrollmentCounts(classes);
+  }
+
+  // ===== NEW: Get classes with sections filtered by academic year, search, and pagination =====
+  async getClassesWithSectionsFiltered(tenantId, query) {
+    const page = Math.max(parseInt(query.page) || 1, 1);
+    const limit = Math.max(parseInt(query.limit) || 10, 1);
+    const search = String(query.search || "").trim();
+    const academicYearId = query.academicYearId ? String(query.academicYearId).trim() : null;
+    const numericLevel = query.numericLevel ? parseInt(query.numericLevel) : null;
+
+    const result = await classRepo.findWithSectionsFiltered(tenantId, {
+      search,
+      academicYearId,
+      numericLevelSearch: numericLevel,
+      page,
+      limit,
+    });
+
+    const classesWithCounts = await this.attachEnrollmentCounts(result.data, academicYearId);
+
+    return {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      pages: result.pages,
+      data: classesWithCounts,
+    };
+  }
+
+  // ===== NEW: Get sections for a specific class, optionally filtered by academic year =====
+  async getClassSections(classId, tenantId, query) {
+    const classData = await classRepo.findById(classId, tenantId);
+    if (!classData) {
+      throw new AppError("Class not found", 404);
+    }
+
+    const page = Math.max(parseInt(query.page) || 1, 1);
+    const limit = Math.max(parseInt(query.limit) || 10, 1);
+    const academicYearId = query.academicYearId ? String(query.academicYearId).trim() : null;
+    const search = query.search ? String(query.search).trim() : null;
+    const result = await sectionRepo.findByClassWithPagination(
+      classId,
+      tenantId,
+      page,
+      limit,
+      academicYearId,
+      search,
+    );
+
+    const sectionCounts = await enrollmentRepo.countBySectionIds(
+      tenantId,
+      result.data.map((section) => section.id),
+      academicYearId,
+    );
+    const sectionCountMap = new Map(sectionCounts.map((entry) => [entry.sectionId, entry.count]));
+
+    return {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      pages: result.pages,
+      totalEnrollment: sectionCounts.reduce((sum, entry) => sum + entry.count, 0),
+      data: result.data.map((section) => formatClassSection(section, sectionCountMap.get(section.id) || 0)),
+    };
   }
 
   // Response Formatter (clean response)

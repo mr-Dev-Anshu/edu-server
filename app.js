@@ -21,6 +21,7 @@ import feeStructureItemRouter from "./router/FeeStructure/feeStructureItem.route
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
 
+import guardianRouter from './router/guardian.router.js'
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -48,7 +49,6 @@ const corsOptions = {
 app.use(helmet()); 
 app.use(cors(corsOptions));
 app.use(cookieParser());
-// 2. Utility Middleware
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -69,6 +69,7 @@ app.use('/api/v1/classes', classRouter);
 app.use('/api/v1/sections', sectionRouter);
 app.use('/api/v1/students', studentRouter);
 app.use('/api/v1/enrollments', enrollmentRouter);
+app.use('/api/v1/guardians' , guardianRouter)
 app.use('/api/v1/fee-heads', feeHeadRouter);
 app.use('/api/v1/fee-structures', feeStructureRouter);
 app.use('/api/v1/fee-structure-items', feeStructureItemRouter);

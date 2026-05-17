@@ -1,4 +1,3 @@
-import { Op } from "sequelize";
 import { Staff } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
@@ -36,15 +35,25 @@ export class StaffRepository extends BaseRepository {
     });
   }
 
-  async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
+  async findWithPagination(tenantId, filters = {}, page = 1, limit = 10, options = {}) {
     const offset = (page - 1) * limit;
-    const where = { tenantId, ...filters };
+    const where = options.where || { tenantId, ...filters };
+    const { where: _where, distinct, order, ...queryOptions } = options;
+    
+    // Default includes for user and tenant details
+    const include = options.include || [
+      { association: "user", attributes: ["id", "firstName", "lastName", "email", "phone", "status"] },
+      { association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }
+    ];
     
     const { count, rows } = await this.model.findAndCountAll({
       where,
       offset,
       limit,
-      order: [["createdAt", "DESC"]],
+      include,
+      distinct: distinct ?? Boolean(include),
+      order: order || [["createdAt", "DESC"]],
+      ...queryOptions,
     });
 
     return {
@@ -56,17 +65,15 @@ export class StaffRepository extends BaseRepository {
     };
   }
 
-  async searchStaff(tenantId, searchTerm) {
-    return await this.model.findAll({
-      where: {
-        tenantId,
-        [Op.or]: [
-          { employeeCode: { [Op.iLike]: `%${searchTerm}%` } },
-          { designation: { [Op.iLike]: `%${searchTerm}%` } },
-          { department: { [Op.iLike]: `%${searchTerm}%` } },
-        ],
-      },
-      limit: 20,
+  async searchStaff(tenantId, searchTerm, page = 1, limit = 10) {
+    return await this.search(tenantId, searchTerm, [
+      "employeeCode",
+      "designation",
+      "department",
+    ], {
+      page,
+      limit,
+      order: [["createdAt", "DESC"]],
     });
   }
 }

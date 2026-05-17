@@ -71,4 +71,25 @@ export class SectionController extends BaseController {
       ...data,
     });
   });
+
+  // Get Section Options (for dropdowns)
+  getOptions = catchAsync(async (req, res) => {
+    const { classId, academicYearId } = req.query;
+
+    if (!classId || !academicYearId) {
+      const AppError = (await import("../../utils/AppError.js")).AppError;
+      throw new AppError("classId and academicYearId are required", 400);
+    }
+
+    const data = await sectionService.getSectionOptions(
+      req.tenantId,
+      classId,
+      academicYearId
+    );
+
+    res.status(200).json({
+      success: true,
+      data,
+    });
+  });
 }

@@ -19,6 +19,7 @@ export const Attendance = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
       references: { model: "sections", key: "id" },
+      onDelete: "CASCADE",
     },
     academicYearId: {
       type: DataTypes.UUID,

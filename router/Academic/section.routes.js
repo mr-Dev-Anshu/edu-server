@@ -9,14 +9,17 @@ import { identifyUser, checkPermission } from "../../middlewares/security/index.
 const router = express.Router();
 const ctrl = new SectionController();
 
+// Get Section Options (must come before /:id to avoid route conflicts)
+router.get("/options", identifyUser, ctrl.getOptions);
+
 // Create Section
 router.post("/", identifyUser, checkPermission("create:sections"), createSectionValidator, ctrl.create);
 
 // Get All Sections (pagination + filters)
-router.get("/", identifyUser, ctrl.getAll);
+router.get("/", identifyUser, checkPermission("read:sections"), ctrl.getAll);
 
 // Get Section by ID
-router.get("/:id", identifyUser, ctrl.getOne);
+router.get("/:id", identifyUser, checkPermission("read:sections"), ctrl.getOne);
 
 // Update Section
 router.patch("/:id", identifyUser, checkPermission("update:sections"), updateSectionValidator, ctrl.update);

@@ -28,7 +28,7 @@ export class GuardianRepository extends BaseRepository {
       ],
     });
   }
-  async findByStudentId(studentId, tenantId) {
+  async findByStudentId(studentId, tenantId, options = {}) {
     return await this.model.findAll({
       where: { tenantId },
       include: [
@@ -44,6 +44,7 @@ export class GuardianRepository extends BaseRepository {
           attributes: ["id", "firstName", "lastName", "email", "phone"],
         },
       ],
+      ...options,
     });
   }
 

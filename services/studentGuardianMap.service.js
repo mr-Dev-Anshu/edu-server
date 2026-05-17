@@ -125,7 +125,7 @@ export class StudentGuardianMapService {
 
       if (localTransaction) await transaction.commit();
 
-      return await this.getStudentMappingsFormatted(studentId, tenantId);
+      return await this.getStudentMappingsFormatted(studentId, tenantId, { transaction });
     } catch (error) {
       if (localTransaction && !transaction.finished) await transaction.rollback();
       throw error;
@@ -142,9 +142,9 @@ export class StudentGuardianMapService {
     return result;
   }
 
-  async getStudentMappingsFormatted(studentId, tenantId) {
-    const guardians = await guardianRepo.findByStudentId(studentId, tenantId);
-    if (!guardians.length) throw new AppError("No guardians found for this student", 404);
+  async getStudentMappingsFormatted(studentId, tenantId, options = {}) {
+    const guardians = await guardianRepo.findByStudentId(studentId, tenantId, options);
+    if (!guardians.length) return [];
 
     return guardians.map((g) => {
       const guardianData = g.get ? g.get({ plain: true }) : g;

@@ -7,6 +7,10 @@ const feeStructureRepo = new FeeStructureRepository();
 const feeStructureItemRepo = new FeeStructureItemRepository();
 
 export class FeeStructureService {
+  normalizeRecord(record) {
+    return record?.get ? record.get({ plain: true }) : record;
+  }
+
   /**
    * CREATE: Add a new FeeStructure with optional items
    */
@@ -48,12 +52,12 @@ export class FeeStructureService {
 
       await transaction.commit();
 
-      // Fetch complete structure with items
-      const completeStructure = await feeStructureRepo.findWithItems(
+      // Fetch structure with items
+      const feeStructureWithItems = await feeStructureRepo.findWithItems(
         feeStructure.id,
         tenantId
       );
-      return this.formatFeeStructureResponse(completeStructure);
+      return this.formatFeeStructureResponse(feeStructureWithItems);
     } catch (error) {
       if (!transaction.finished) await transaction.rollback();
       throw error;
@@ -123,7 +127,11 @@ export class FeeStructureService {
       classId: updateData.classId || feeStructure.classId,
     });
 
-    return this.formatFeeStructureResponse(updatedFeeStructure);
+    const feeStructureWithItems = await feeStructureRepo.findWithItems(
+      updatedFeeStructure.id,
+      tenantId
+    );
+    return this.formatFeeStructureResponse(feeStructureWithItems);
   }
 
   /**
@@ -153,24 +161,59 @@ export class FeeStructureService {
    * Helper: Format FeeStructure response
    */
   formatFeeStructureResponse(feeStructure) {
+    const data = this.normalizeRecord(feeStructure);
+    const items = Array.isArray(data.items) ? data.items : [];
+
     return {
-      id: feeStructure.id,
-      name: feeStructure.name,
-      academicYearId: feeStructure.academicYearId,
-      classId: feeStructure.classId,
-      tenantId: feeStructure.tenantId,
-      items: feeStructure.items?.map((item) => ({
-        id: item.id,
-        feeStructureId: item.feeStructureId,
-        feeHeadId: item.feeHeadId,
-        feeHeadName: item.feeHead?.name,
-        amountRaw: item.amountRaw,
-        isOptional: item.isOptional,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-      })) || [],
-      createdAt: feeStructure.createdAt,
-      updatedAt: feeStructure.updatedAt,
+      id: data.id,
+      name: data.name,
+      tenant: data.organization
+        ? {
+            id: data.organization.id,
+            name: data.organization.name,
+            organizationType: data.organization.organizationType,
+            officialEmail: data.organization.officialEmail,
+            subdomain: data.organization.subdomain,
+          }
+        : undefined,
+      academicYear: data.academicYear
+        ? {
+            id: data.academicYear.id,
+            name: data.academicYear.name,
+            isCurrent: data.academicYear.isCurrent,
+            startDate: data.academicYear.startDate,
+            endDate: data.academicYear.endDate,
+          }
+        : undefined,
+      class: data.class
+        ? {
+            id: data.class.id,
+            name: data.class.name,
+            numericLevel: data.class.numericLevel,
+          }
+        : undefined,
+      items: items.map((item) => {
+        const itemData = this.normalizeRecord(item);
+
+        return {
+          id: itemData.id,
+          amountRaw: itemData.amountRaw,
+          isOptional: itemData.isOptional,
+          feeHead: itemData.feeHead
+            ? {
+                id: itemData.feeHead.id,
+                name: itemData.feeHead.name,
+                description: itemData.feeHead.description,
+                createdAt: itemData.feeHead.createdAt,
+                updatedAt: itemData.feeHead.updatedAt,
+              }
+            : undefined,
+          createdAt: itemData.createdAt,
+          updatedAt: itemData.updatedAt,
+        };
+      }),
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     };
   }
 }

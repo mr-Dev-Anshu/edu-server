@@ -2,6 +2,31 @@ import { FeeStructure, FeeStructureItem } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 import { Op } from "sequelize";
 
+const ORGANIZATION_INCLUDE = {
+  association: "organization",
+  attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
+};
+
+const ACADEMIC_YEAR_INCLUDE = {
+  association: "academicYear",
+  attributes: ["id", "name", "isCurrent", "startDate", "endDate"],
+};
+
+const CLASS_INCLUDE = {
+  association: "class",
+  attributes: ["id", "name", "numericLevel"],
+};
+
+const FEE_HEAD_INCLUDE = {
+  association: "feeHead",
+  include: [{ association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }],
+};
+
+const FEE_STRUCTURE_ITEM_INCLUDE = {
+  association: "items",
+  include: [FEE_HEAD_INCLUDE],
+};
+
 export class FeeStructureRepository extends BaseRepository {
   constructor() {
     super(FeeStructure);
@@ -15,10 +40,10 @@ export class FeeStructureRepository extends BaseRepository {
     return await this.model.findOne({
       where: { id, tenantId },
       include: [
-        {
-          association: "items",
-          include: [{ association: "feeHead" }],
-        },
+        ORGANIZATION_INCLUDE,
+        ACADEMIC_YEAR_INCLUDE,
+        CLASS_INCLUDE,
+        FEE_STRUCTURE_ITEM_INCLUDE,
       ],
     });
   }
@@ -32,12 +57,10 @@ export class FeeStructureRepository extends BaseRepository {
       offset,
       limit,
       include: [
-        {
-          association: "items",
-          include: [{ association: "feeHead" }],
-        },
-        { association: "academicYear" },
-        { association: "class" },
+        ORGANIZATION_INCLUDE,
+        ACADEMIC_YEAR_INCLUDE,
+        CLASS_INCLUDE,
+        FEE_STRUCTURE_ITEM_INCLUDE,
       ],
       order: [["createdAt", "DESC"]],
     });
@@ -58,10 +81,10 @@ export class FeeStructureRepository extends BaseRepository {
         name: { [Op.iLike]: `%${searchTerm}%` },
       },
       include: [
-        {
-          association: "items",
-          include: [{ association: "feeHead" }],
-        },
+        ORGANIZATION_INCLUDE,
+        ACADEMIC_YEAR_INCLUDE,
+        CLASS_INCLUDE,
+        FEE_STRUCTURE_ITEM_INCLUDE,
       ],
       order: [["createdAt", "DESC"]],
     });
@@ -71,10 +94,10 @@ export class FeeStructureRepository extends BaseRepository {
     return await this.model.findAll({
       where: { academicYearId, tenantId },
       include: [
-        {
-          association: "items",
-          include: [{ association: "feeHead" }],
-        },
+        ORGANIZATION_INCLUDE,
+        ACADEMIC_YEAR_INCLUDE,
+        CLASS_INCLUDE,
+        FEE_STRUCTURE_ITEM_INCLUDE,
       ],
     });
   }
@@ -83,10 +106,10 @@ export class FeeStructureRepository extends BaseRepository {
     return await this.model.findAll({
       where: { classId, tenantId },
       include: [
-        {
-          association: "items",
-          include: [{ association: "feeHead" }],
-        },
+        ORGANIZATION_INCLUDE,
+        ACADEMIC_YEAR_INCLUDE,
+        CLASS_INCLUDE,
+        FEE_STRUCTURE_ITEM_INCLUDE,
       ],
     });
   }

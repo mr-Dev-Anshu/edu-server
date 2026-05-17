@@ -5,6 +5,10 @@ import { AppError } from "../../utils/AppError.js";
 const feeHeadRepo = new FeeHeadRepository();
 
 export class FeeHeadService {
+  normalizeRecord(record) {
+    return record?.get ? record.get({ plain: true }) : record;
+  }
+
   /**
    * CREATE: Add a new FeeHead
    */
@@ -23,7 +27,8 @@ export class FeeHeadService {
       description: description?.trim() || null,
     });
 
-    return this.formatFeeHeadResponse(feeHead);
+    const feeHeadWithDetails = await feeHeadRepo.findWithItems(feeHead.id, tenantId);
+    return this.formatFeeHeadResponse(feeHeadWithDetails);
   }
 
   /**
@@ -56,7 +61,10 @@ export class FeeHeadService {
    * GET ONE: Retrieve a specific FeeHead by ID
    */
   async getFeeHeadById(id, tenantId) {
-    const feeHead = await feeHeadRepo.findById(id, tenantId);
+    const feeHead = await feeHeadRepo.findWithItems(id, tenantId);
+    if (!feeHead) {
+      throw new AppError("FeeHead not found", 404);
+    }
     return this.formatFeeHeadResponse(feeHead);
   }
 
@@ -79,7 +87,8 @@ export class FeeHeadService {
       description: updateData.description?.trim() || feeHead.description,
     });
 
-    return this.formatFeeHeadResponse(updatedFeeHead);
+    const feeHeadWithDetails = await feeHeadRepo.findWithItems(updatedFeeHead.id, tenantId);
+    return this.formatFeeHeadResponse(feeHeadWithDetails);
   }
 
   /**
@@ -108,13 +117,23 @@ export class FeeHeadService {
    * Helper: Format FeeHead response
    */
   formatFeeHeadResponse(feeHead) {
+    const data = this.normalizeRecord(feeHead);
+
     return {
-      id: feeHead.id,
-      name: feeHead.name,
-      description: feeHead.description,
-      tenantId: feeHead.tenantId,
-      createdAt: feeHead.createdAt,
-      updatedAt: feeHead.updatedAt,
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      tenant: data.organization
+        ? {
+            id: data.organization.id,
+            name: data.organization.name,
+            organizationType: data.organization.organizationType,
+            officialEmail: data.organization.officialEmail,
+            subdomain: data.organization.subdomain,
+          }
+        : undefined,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     };
   }
 }

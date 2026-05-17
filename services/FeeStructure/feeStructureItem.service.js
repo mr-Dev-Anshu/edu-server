@@ -8,6 +8,10 @@ const feeHeadRepo = new FeeHeadRepository();
 const feeStructureRepo = new FeeStructureRepository();
 
 export class FeeStructureItemService {
+  normalizeRecord(record) {
+    return record?.get ? record.get({ plain: true }) : record;
+  }
+
   /**
    * CREATE: Add a new item/mapping to FeeStructure
    */
@@ -146,16 +150,57 @@ export class FeeStructureItemService {
    * Helper: Format FeeStructureItem response
    */
   formatFeeStructureItemResponse(item) {
+    const data = this.normalizeRecord(item);
+    const tenantSource = data.feeStructure?.organization || data.feeHead?.organization;
+
     return {
-      id: item.id,
-      feeStructureId: item.feeStructureId,
-      feeHeadId: item.feeHeadId,
-      feeHeadName: item.feeHead?.name,
-      amountRaw: item.amountRaw,
-      isOptional: item.isOptional,
-      tenantId: item.tenantId,
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt,
+      id: data.id,
+      amountRaw: data.amountRaw,
+      isOptional: data.isOptional,
+      tenant: tenantSource
+        ? {
+            id: tenantSource.id,
+            name: tenantSource.name,
+            organizationType: tenantSource.organizationType,
+            officialEmail: tenantSource.officialEmail,
+            subdomain: tenantSource.subdomain,
+          }
+        : undefined,
+      feeHead: data.feeHead
+        ? {
+            id: data.feeHead.id,
+            name: data.feeHead.name,
+            description: data.feeHead.description,
+            createdAt: data.feeHead.createdAt,
+            updatedAt: data.feeHead.updatedAt,
+          }
+        : undefined,
+      feeStructure: data.feeStructure
+        ? {
+            id: data.feeStructure.id,
+            name: data.feeStructure.name,
+            academicYear: data.feeStructure.academicYear
+              ? {
+                  id: data.feeStructure.academicYear.id,
+                  name: data.feeStructure.academicYear.name,
+                  isCurrent: data.feeStructure.academicYear.isCurrent,
+                  startDate: data.feeStructure.academicYear.startDate,
+                  endDate: data.feeStructure.academicYear.endDate,
+                }
+              : undefined,
+            class: data.feeStructure.class
+              ? {
+                  id: data.feeStructure.class.id,
+                  name: data.feeStructure.class.name,
+                  numericLevel: data.feeStructure.class.numericLevel,
+                }
+              : undefined,
+            createdAt: data.feeStructure.createdAt,
+            updatedAt: data.feeStructure.updatedAt,
+          }
+        : undefined,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
     };
   }
 }

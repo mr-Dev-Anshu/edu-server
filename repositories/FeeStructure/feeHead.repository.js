@@ -2,6 +2,11 @@ import { FeeHead } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 import { Op } from "sequelize";
 
+const FEE_HEAD_ORGANIZATION_INCLUDE = {
+  association: "organization",
+  attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"],
+};
+
 export class FeeHeadRepository extends BaseRepository {
   constructor() {
     super(FeeHead);
@@ -9,6 +14,13 @@ export class FeeHeadRepository extends BaseRepository {
 
   async findByName(name, tenantId) {
     return await this.model.findOne({ where: { name: name.trim(), tenantId } });
+  }
+
+  async findWithItems(id, tenantId) {
+    return await this.model.findOne({
+      where: { id, tenantId },
+      include: [FEE_HEAD_ORGANIZATION_INCLUDE],
+    });
   }
 
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
@@ -19,6 +31,7 @@ export class FeeHeadRepository extends BaseRepository {
       where,
       offset,
       limit,
+      include: [FEE_HEAD_ORGANIZATION_INCLUDE],
       order: [["createdAt", "DESC"]],
     });
 
@@ -40,6 +53,7 @@ export class FeeHeadRepository extends BaseRepository {
           { description: { [Op.iLike]: `%${searchTerm}%` } },
         ],
       },
+      include: [FEE_HEAD_ORGANIZATION_INCLUDE],
       order: [["createdAt", "DESC"]],
     });
   }

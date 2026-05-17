@@ -1,6 +1,20 @@
 import { FeeStructureItem } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
+const FEE_HEAD_INCLUDE = {
+  association: "feeHead",
+  include: [{ association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }],
+};
+
+const FEE_STRUCTURE_INCLUDE = {
+  association: "feeStructure",
+  include: [
+    { association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] },
+    { association: "academicYear", attributes: ["id", "name", "isCurrent", "startDate", "endDate"] },
+    { association: "class", attributes: ["id", "name", "numericLevel"] },
+  ],
+};
+
 export class FeeStructureItemRepository extends BaseRepository {
   constructor() {
     super(FeeStructureItem);
@@ -13,7 +27,7 @@ export class FeeStructureItemRepository extends BaseRepository {
   async findByFeeStructureId(feeStructureId, tenantId) {
     return await this.model.findAll({
       where: { feeStructureId, tenantId },
-      include: [{ association: "feeHead" }],
+      include: [FEE_HEAD_INCLUDE, FEE_STRUCTURE_INCLUDE],
       order: [["createdAt", "DESC"]],
     });
   }
@@ -21,7 +35,7 @@ export class FeeStructureItemRepository extends BaseRepository {
   async findByFeeHeadId(feeHeadId, tenantId) {
     return await this.model.findAll({
       where: { feeHeadId, tenantId },
-      include: [{ association: "feeStructure" }],
+      include: [FEE_HEAD_INCLUDE, FEE_STRUCTURE_INCLUDE],
       order: [["createdAt", "DESC"]],
     });
   }
@@ -29,10 +43,7 @@ export class FeeStructureItemRepository extends BaseRepository {
   async findItemById(id, tenantId) {
     return await this.model.findOne({
       where: { id, tenantId },
-      include: [
-        { association: "feeHead" },
-        { association: "feeStructure" },
-      ],
+      include: [FEE_HEAD_INCLUDE, FEE_STRUCTURE_INCLUDE],
     });
   }
 
@@ -58,10 +69,7 @@ export class FeeStructureItemRepository extends BaseRepository {
       where,
       offset,
       limit,
-      include: [
-        { association: "feeHead" },
-        { association: "feeStructure" },
-      ],
+      include: [FEE_HEAD_INCLUDE, FEE_STRUCTURE_INCLUDE],
       order: [["createdAt", "DESC"]],
     });
 

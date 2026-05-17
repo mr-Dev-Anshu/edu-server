@@ -1,5 +1,4 @@
 import sequelize from "../config/db.js";
-import { GuardianService } from "./guardian.service.js";
 import { StudentRepository } from "../repositories/student.repository.js";
 import { GuardianRepository } from "../repositories/guardian.repository.js";
 import { AppError } from "../utils/AppError.js";
@@ -10,16 +9,19 @@ import { StudentSectionEnrollmentRepository } from "../repositories/studentSecti
 import { SectionRepository } from "../repositories/Academic/section.repository.js";
 import { AcademicYearRepository } from "../repositories/Academic/academicYear.repository.js";
 import { StudentGuardianMap } from "../models/index.js";
+import StudentGuardianMapService from "./studentGuardianMap.service.js";
+import { GuardianService } from "./guardian.service.js";
 
 const studentRepo = new StudentRepository();
 const guardianRepo = new GuardianRepository();
-const guardianService = new GuardianService();
 const userService = new UserService();
 const userRoleService = new UserRoleService();
 const roleService = new RoleService();
 const enrollmentRepo = new StudentSectionEnrollmentRepository();
 const sectionRepo = new SectionRepository();
 const academicYearRepo = new AcademicYearRepository();
+const studentGuardianMapService = new StudentGuardianMapService();
+const guardianService = new GuardianService();
 
 export class StudentService {
   async createStudent(tenantId, payload) {
@@ -132,6 +134,7 @@ export class StudentService {
             ? relation
             : "other");
 
+        // Guardian creation/resolution is GuardianService responsibility
         const guardian = await guardianService.resolveGuardian(
           tenantId,
           {
@@ -148,7 +151,8 @@ export class StudentService {
           { transaction },
         );
 
-        await guardianService.attachStudents(
+        // Mapping is StudentGuardianMapService responsibility
+        await studentGuardianMapService.attachStudents(
           guardian.id,
           tenantId,
           {
@@ -315,92 +319,110 @@ export class StudentService {
       }
     }
 
-    const updated = await studentRepo.update(id, tenantId, {
-      ...(updateData.admissionNumber !== undefined
-        ? { admissionNumber: updateData.admissionNumber }
-        : {}),
-      ...(updateData.rollNumber !== undefined
-        ? { rollNumber: updateData.rollNumber }
-        : {}),
-      ...(updateData.firstName !== undefined
-        ? { firstName: updateData.firstName }
-        : {}),
-      ...(updateData.middleName !== undefined
-        ? { middleName: updateData.middleName }
-        : {}),
-      ...(updateData.lastName !== undefined
-        ? { lastName: updateData.lastName }
-        : {}),
-      ...(updateData.dateOfBirth !== undefined
-        ? { dateOfBirth: updateData.dateOfBirth }
-        : {}),
-      ...(updateData.gender !== undefined ? { gender: updateData.gender } : {}),
-      ...(updateData.bloodGroup !== undefined
-        ? { bloodGroup: updateData.bloodGroup }
-        : {}),
-      ...(updateData.nationality !== undefined
-        ? { nationality: updateData.nationality }
-        : {}),
-      ...(updateData.religion !== undefined
-        ? { religion: updateData.religion }
-        : {}),
-      ...(updateData.caste !== undefined ? { caste: updateData.caste } : {}),
-      ...(updateData.category !== undefined
-        ? { category: updateData.category }
-        : {}),
-      ...(updateData.aadharNumber !== undefined
-        ? { aadharNumber: updateData.aadharNumber }
-        : {}),
-      ...(updateData.photoUrl !== undefined
-        ? { photoUrl: updateData.photoUrl }
-        : {}),
-      ...(updateData.enrollmentDate !== undefined
-        ? { enrollmentDate: updateData.enrollmentDate }
-        : {}),
-      ...(updateData.previousSchool !== undefined
-        ? { previousSchool: updateData.previousSchool }
-        : {}),
-      ...(updateData.previousClass !== undefined
-        ? { previousClass: updateData.previousClass }
-        : {}),
-      ...(updateData.tcNumber !== undefined
-        ? { tcNumber: updateData.tcNumber }
-        : {}),
-      ...(updateData.siblingId !== undefined
-        ? { siblingId: updateData.siblingId }
-        : {}),
-      ...(updateData.isStaffWard !== undefined
-        ? { isStaffWard: updateData.isStaffWard }
-        : {}),
-      ...(updateData.status !== undefined ? { status: updateData.status } : {}),
-      ...(updateData.transportRequired !== undefined
-        ? { transportRequired: updateData.transportRequired }
-        : {}),
-      ...(updateData.hostelRequired !== undefined
-        ? { hostelRequired: updateData.hostelRequired }
-        : {}),
-      ...(updateData.medicalConditions !== undefined
-        ? { medicalConditions: updateData.medicalConditions }
-        : {}),
-      ...(updateData.emergencyContactName !== undefined
-        ? { emergencyContactName: updateData.emergencyContactName }
-        : {}),
-      ...(updateData.emergencyContactPhone !== undefined
-        ? { emergencyContactPhone: updateData.emergencyContactPhone }
-        : {}),
-      ...(updateData.address !== undefined
-        ? { address: updateData.address }
-        : {}),
-      ...(updateData.city !== undefined ? { city: updateData.city } : {}),
-      ...(updateData.pincode !== undefined
-        ? { pincode: updateData.pincode }
-        : {}),
-    });
+    const transaction = await sequelize.transaction();
+    try {
+      const updated = await studentRepo.update(
+        id,
+        tenantId,
+        {
+          ...(updateData.admissionNumber !== undefined
+            ? { admissionNumber: updateData.admissionNumber }
+            : {}),
+          ...(updateData.rollNumber !== undefined
+            ? { rollNumber: updateData.rollNumber }
+            : {}),
+          ...(updateData.firstName !== undefined
+            ? { firstName: updateData.firstName }
+            : {}),
+          ...(updateData.middleName !== undefined
+            ? { middleName: updateData.middleName }
+            : {}),
+          ...(updateData.lastName !== undefined
+            ? { lastName: updateData.lastName }
+            : {}),
+          ...(updateData.dateOfBirth !== undefined
+            ? { dateOfBirth: updateData.dateOfBirth }
+            : {}),
+          ...(updateData.gender !== undefined ? { gender: updateData.gender } : {}),
+          ...(updateData.bloodGroup !== undefined
+            ? { bloodGroup: updateData.bloodGroup }
+            : {}),
+          ...(updateData.nationality !== undefined
+            ? { nationality: updateData.nationality }
+            : {}),
+          ...(updateData.religion !== undefined
+            ? { religion: updateData.religion }
+            : {}),
+          ...(updateData.caste !== undefined ? { caste: updateData.caste } : {}),
+          ...(updateData.category !== undefined
+            ? { category: updateData.category }
+            : {}),
+          ...(updateData.aadharNumber !== undefined
+            ? { aadharNumber: updateData.aadharNumber }
+            : {}),
+          ...(updateData.photoUrl !== undefined
+            ? { photoUrl: updateData.photoUrl }
+            : {}),
+          ...(updateData.enrollmentDate !== undefined
+            ? { enrollmentDate: updateData.enrollmentDate }
+            : {}),
+          ...(updateData.previousSchool !== undefined
+            ? { previousSchool: updateData.previousSchool }
+            : {}),
+          ...(updateData.previousClass !== undefined
+            ? { previousClass: updateData.previousClass }
+            : {}),
+          ...(updateData.tcNumber !== undefined
+            ? { tcNumber: updateData.tcNumber }
+            : {}),
+          ...(updateData.siblingId !== undefined
+            ? { siblingId: updateData.siblingId }
+            : {}),
+          ...(updateData.isStaffWard !== undefined
+            ? { isStaffWard: updateData.isStaffWard }
+            : {}),
+          ...(updateData.status !== undefined ? { status: updateData.status } : {}),
+          ...(updateData.transportRequired !== undefined
+            ? { transportRequired: updateData.transportRequired }
+            : {}),
+          ...(updateData.hostelRequired !== undefined
+            ? { hostelRequired: updateData.hostelRequired }
+            : {}),
+          ...(updateData.medicalConditions !== undefined
+            ? { medicalConditions: updateData.medicalConditions }
+            : {}),
+          ...(updateData.emergencyContactName !== undefined
+            ? { emergencyContactName: updateData.emergencyContactName }
+            : {}),
+          ...(updateData.emergencyContactPhone !== undefined
+            ? { emergencyContactPhone: updateData.emergencyContactPhone }
+            : {}),
+          ...(updateData.address !== undefined
+            ? { address: updateData.address }
+            : {}),
+          ...(updateData.city !== undefined ? { city: updateData.city } : {}),
+          ...(updateData.pincode !== undefined
+            ? { pincode: updateData.pincode }
+            : {}),
+        },
+        { transaction },
+      );
 
-    // Fetch updated record with all details (guardians, user, enrollments)
-    const updatedWithDetails = await studentRepo.findWithDetails(id, tenantId);
-    const updatedData = updatedWithDetails.get ? updatedWithDetails.get({ plain: true }) : updatedWithDetails;
-    return this.formatStudentResponse(updatedData);
+      // Handle guardian sync if provided in updateData
+      if (updateData.guardians !== undefined) {
+        await studentGuardianMapService.syncStudentGuardians(id, tenantId, updateData.guardians, { transaction, requestedBy: updateData.requestedBy });
+      }
+
+      await transaction.commit();
+
+      // Fetch updated record with all details (guardians, user, enrollments)
+      const updatedWithDetails = await studentRepo.findWithDetails(id, tenantId);
+      const updatedData = updatedWithDetails.get ? updatedWithDetails.get({ plain: true }) : updatedWithDetails;
+      return this.formatStudentResponse(updatedData);
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   async deleteStudent(id, tenantId) {

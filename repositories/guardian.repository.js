@@ -28,30 +28,6 @@ export class GuardianRepository extends BaseRepository {
       ],
     });
   }
-
-  async attachStudents(
-    studentIds,
-    guardianId,
-    tenantId,
-    { relationType, isPrimary, canPickup },
-    options = {},
-  ) {
-    if (!studentIds.length) {
-      return [];
-    }
-
-    return await StudentGuardianMap.bulkCreate(
-      studentIds.map((studentId) => ({
-        studentId,
-        guardianId,
-        tenantId,
-        relationType,
-        canPickup,
-        isPrimary,
-      })),
-      options,
-    );
-  }
   async findByStudentId(studentId, tenantId) {
     return await this.model.findAll({
       where: { tenantId },

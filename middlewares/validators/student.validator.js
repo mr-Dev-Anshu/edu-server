@@ -99,6 +99,12 @@ const ensureArray = (value, fieldName) => {
   }
 };
 
+const ensureGuardianMappingFields = (guardian, fieldPrefix) => {
+  ensureOptionalEnum(guardian.relationType, `${fieldPrefix}.relationType`, GUARDIAN_MAP_RELATIONS);
+  ensureBoolean(guardian.isPrimary, `${fieldPrefix}.isPrimary`);
+  ensureBoolean(guardian.canPickup, `${fieldPrefix}.canPickup`);
+};
+
 const ensureGuardianPayload = (guardian, index) => {
   const fieldPrefix = `guardians[${index}]`;
 
@@ -110,13 +116,23 @@ const ensureGuardianPayload = (guardian, index) => {
   ensureString(guardian.password, `${fieldPrefix}.password`, { min: 6, max: 50 });
   ensureString(guardian.firstName, `${fieldPrefix}.firstName`, { min: 1, max: 100 });
   ensureString(guardian.lastName, `${fieldPrefix}.lastName`, { min: 1, max: 100 });
-  ensureRequiredEnum(guardian.relation, `${fieldPrefix}.relation`, GUARDIAN_RELATIONS);
+
+  if (guardian.relation === undefined && guardian.relationType === undefined) {
+    throw new AppError(`${fieldPrefix}.relation or ${fieldPrefix}.relationType is required`, 400);
+  }
+
+  if (guardian.relation !== undefined) {
+    ensureRequiredEnum(guardian.relation, `${fieldPrefix}.relation`, GUARDIAN_RELATIONS);
+  }
+
+  if (guardian.relationType !== undefined) {
+    ensureOptionalEnum(guardian.relationType, `${fieldPrefix}.relationType`, GUARDIAN_MAP_RELATIONS);
+  }
+
   ensureString(guardian.phone, `${fieldPrefix}.phone`, { min: 1, max: 20 });
   ensureOptionalString(guardian.occupation, `${fieldPrefix}.occupation`, { min: 1, max: 150 });
-  ensureOptionalEnum(guardian.relationType, `${fieldPrefix}.relationType`, GUARDIAN_MAP_RELATIONS);
   ensureBoolean(guardian.isPrimaryContact, `${fieldPrefix}.isPrimaryContact`);
-  ensureBoolean(guardian.isPrimary, `${fieldPrefix}.isPrimary`);
-  ensureBoolean(guardian.canPickup, `${fieldPrefix}.canPickup`);
+  ensureGuardianMappingFields(guardian, fieldPrefix);
 };
 
 export const createStudentValidator = createValidator((req) => {
@@ -251,5 +267,17 @@ export const updateStudentValidator = createValidator((req) => {
   }
   if (req.body.pincode !== undefined) {
     ensureOptionalString(req.body.pincode, "pincode", { min: 1, max: 20 });
+  }
+  // Guardians array allowed in update - optional
+  if (req.body.guardians !== undefined) {
+    ensureArray(req.body.guardians, "guardians");
+    req.body.guardians.forEach((guardian, index) => {
+      if (guardian.id) {
+        ensureUuid(guardian.id, `guardians[${index}].id`);
+        ensureGuardianMappingFields(guardian, `guardians[${index}]`);
+      } else {
+        ensureGuardianPayload(guardian, index);
+      }
+    });
   }
 });

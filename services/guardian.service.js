@@ -10,10 +10,20 @@ const guardianRepo = new GuardianRepository();
 const userService = new UserService();
 const userRoleService = new UserRoleService();
 const roleService = new RoleService();
+let studentGuardianMapService = null;
 
 export class GuardianService extends BaseService {
   constructor() {
     super(guardianRepo);
+  }
+
+  getStudentGuardianMapService() {
+    if (!studentGuardianMapService) {
+      // Lazy load to avoid circular imports
+      const { default: StudentGuardianMapService } = require("./studentGuardianMap.service.js");
+      studentGuardianMapService = new StudentGuardianMapService();
+    }
+    return studentGuardianMapService;
   }
 
   async resolveGuardianRole(tenantId) {
@@ -23,33 +33,65 @@ export class GuardianService extends BaseService {
     }
     return roles[0];
   }
+
   async resolveGuardian(tenantId, payload, options = {}) {
     const { email } = payload;
-    
-    // Check if guardian with same email already exists (reuse case)
     const existingGuardian = await guardianRepo.findByEmail(email, tenantId);
     if (existingGuardian) {
-      // Already exists - convert to plain object and return for reuse
       const guardianData = existingGuardian.get ? existingGuardian.get({ plain: true }) : existingGuardian;
+
+      const shouldUpdateGuardian =
+        payload.firstName !== undefined ||
+        payload.lastName !== undefined ||
+        payload.phone !== undefined ||
+        payload.relation !== undefined ||
+        payload.relationType !== undefined ||
+        payload.occupation !== undefined ||
+        payload.isPrimaryContact !== undefined;
+
+      if (shouldUpdateGuardian) {
+        await this.updateGuardian(guardianData.id, tenantId, payload, options);
+        return await guardianRepo.findById(guardianData.id, tenantId, options);
+      }
+
       return guardianData;
     }
-
-    // Doesn't exist - create new guardian
     return await this.createGuardian(tenantId, payload, options);
-  } 
-  async createGuardian(tenantId, payload, options = {}){
-    const {
-      email,
-      password,
-      firstName,
-      lastName,
-      relation,
-      phone,
-      occupation,
-      isPrimaryContact,
-      requestedBy,
-    } = payload
+  }
 
+  async updateGuardian(guardianId, tenantId, payload, options = {}) {
+    const guardian = await guardianRepo.findById(guardianId, tenantId, options);
+    const userPayload = {};
+    const guardianPayload = {};
+
+    if (payload.email !== undefined) userPayload.email = payload.email;
+    if (payload.firstName !== undefined) userPayload.firstName = payload.firstName;
+    if (payload.lastName !== undefined) userPayload.lastName = payload.lastName;
+    if (payload.phone !== undefined) userPayload.phone = payload.phone;
+
+    if (payload.relation !== undefined) {
+      guardianPayload.relation = payload.relation;
+    } else if (payload.relationType !== undefined) {
+      guardianPayload.relation = payload.relationType;
+    }
+
+    if (payload.occupation !== undefined) guardianPayload.occupation = payload.occupation;
+    if (payload.isPrimaryContact !== undefined) guardianPayload.isPrimaryContact = payload.isPrimaryContact;
+
+    if (Object.keys(userPayload).length > 0) {
+      await userService.updateUser(guardian.userId, tenantId, userPayload, options);
+    }
+
+    if (Object.keys(guardianPayload).length > 0) {
+      await guardianRepo.update(guardianId, tenantId, guardianPayload, options);
+    }
+
+    return await guardianRepo.findById(guardianId, tenantId, options);
+  }
+
+  async createGuardian(tenantId, payload, options = {}) {
+    const { email, password, firstName, lastName, relation, phone, occupation, isPrimaryContact, requestedBy } = payload;
+    const effectiveRelation = relation ?? payload.relationType ?? "other";
     let transaction = options.transaction;
     let localTransaction = false;
 
@@ -59,22 +101,22 @@ export class GuardianService extends BaseService {
     }
 
     try {
-          const user = await userService.createUser(
-            {
-              email,
-              password,
-              firstName,
-              lastName,
-              phone,
-              tenantId,
-              status: "active",
-              emailVerified: true,
-            },
-            { transaction },
-          );
-    
-          const guardianRole = await this.resolveGuardianRole(tenantId);
-           await userRoleService.assignRoleToUser(
+      const user = await userService.createUser(
+        {
+          email,
+          password,
+          firstName,
+          lastName,
+          phone,
+          tenantId,
+          status: "active",
+          emailVerified: true,
+        },
+        { transaction },
+      );
+
+      const guardianRole = await this.resolveGuardianRole(tenantId);
+      await userRoleService.assignRoleToUser(
         {
           userId: user.id,
           roleId: guardianRole.id,
@@ -88,7 +130,7 @@ export class GuardianService extends BaseService {
         {
           tenantId,
           userId: user.id,
-          relation,
+          relation: effectiveRelation,
           phone,
           occupation,
           isPrimaryContact,
@@ -99,6 +141,7 @@ export class GuardianService extends BaseService {
       if (localTransaction) {
         await transaction.commit();
       }
+
       const guardianData = guardian.get ? guardian.get({ plain: true }) : guardian;
       return this.formatGuardianResponse(guardianData);
     } catch (error) {
@@ -106,50 +149,8 @@ export class GuardianService extends BaseService {
       throw error;
     }
   }
-  async attachStudents(guardianId, tenantId, payload, options = {}) {
-    const { studentIds, relationType, isPrimary, canPickup } = payload;
-    if (!studentIds?.length) throw new AppError("studentIds are required", 400);
 
-    return await guardianRepo.attachStudents(
-      studentIds,
-      guardianId,
-      tenantId,
-      {
-        relationType,
-        isPrimary: isPrimary ?? false,
-        canPickup: canPickup ?? true,
-      },
-      options,
-    );
-  }
-
-  async getByStudent(studentId, tenantId) {
-    const guardians = await guardianRepo.findByStudentId(studentId, tenantId);
-    if (!guardians.length) throw new AppError("No guardians found for this student", 404);
-    
-    return guardians.map(g => {
-      const guardianData = g.get ? g.get({ plain: true }) : g;
-      return {
-        id: guardianData.id,
-        tenantId: guardianData.tenantId,
-        userId: guardianData.userId,
-        relation: guardianData.relation,
-        phone: guardianData.phone,
-        occupation: guardianData.occupation,
-        isPrimaryContact: guardianData.isPrimaryContact,
-        relationType: guardianData.studentMappings?.[0]?.relationType,
-        isPrimary: guardianData.studentMappings?.[0]?.isPrimary,
-        canPickup: guardianData.studentMappings?.[0]?.canPickup,
-        firstName: guardianData.user?.firstName,
-        lastName: guardianData.user?.lastName,
-        email: guardianData.user?.email,
-        createdAt: guardianData.createdAt,
-        updatedAt: guardianData.updatedAt,
-      };
-    });
-  }
-
-  formatGuardianResponse(guardian){
+  formatGuardianResponse(guardian) {
     return {
       id: guardian.id,
       tenantId: guardian.tenantId,
@@ -160,6 +161,11 @@ export class GuardianService extends BaseService {
       isPrimaryContact: guardian.isPrimaryContact,
       createdAt: guardian.createdAt,
       updatedAt: guardian.updatedAt,
-    }
+    };
+  }
+
+  async getByStudent(studentId, tenantId) {
+    const sgmService = this.getStudentGuardianMapService();
+    return await sgmService.getStudentMappingsFormatted(studentId, tenantId);
   }
 }

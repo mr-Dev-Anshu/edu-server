@@ -17,10 +17,10 @@ export class GuardianService extends BaseService {
     super(guardianRepo);
   }
 
-  getStudentGuardianMapService() {
+  async getStudentGuardianMapService() {
     if (!studentGuardianMapService) {
       // Lazy load to avoid circular imports
-      const { default: StudentGuardianMapService } = require("./studentGuardianMap.service.js");
+      const { default: StudentGuardianMapService } = await import("./studentGuardianMap.service.js");
       studentGuardianMapService = new StudentGuardianMapService();
     }
     return studentGuardianMapService;
@@ -165,7 +165,7 @@ export class GuardianService extends BaseService {
   }
 
   async getByStudent(studentId, tenantId) {
-    const sgmService = this.getStudentGuardianMapService();
+    const sgmService = await this.getStudentGuardianMapService();
     return await sgmService.getStudentMappingsFormatted(studentId, tenantId);
   }
 }

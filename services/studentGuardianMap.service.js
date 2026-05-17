@@ -10,19 +10,24 @@ const guardianRepo = new GuardianRepository();
 const studentRepo = new StudentRepository();
 const guardianService = new GuardianService();
 
-const buildMappingPayload = (guardian) => {
+const buildMappingPayload = (guardian, includeDefaults = false) => {
   const payload = {};
-  if (guardian.relationType !== undefined) payload.relationType = guardian.relationType;
-  if (guardian.isPrimary !== undefined) payload.isPrimary = guardian.isPrimary;
-  if (guardian.canPickup !== undefined) payload.canPickup = guardian.canPickup;
+
+  const relationType = normalizeRelationType(guardian);
+  if (includeDefaults || guardian.relationType !== undefined || guardian.relation !== undefined) {
+    payload.relationType = relationType;
+  }
+
+  if (includeDefaults || guardian.isPrimary !== undefined) {
+    payload.isPrimary = guardian.isPrimary ?? false;
+  }
+
+  if (includeDefaults || guardian.canPickup !== undefined) {
+    payload.canPickup = guardian.canPickup ?? true;
+  }
+
   return payload;
 };
-
-const buildMappingPayloadForCreate = (guardian) => ({
-  relationType: guardian.relationType ?? normalizeRelationType(guardian),
-  isPrimary: guardian.isPrimary ?? false,
-  canPickup: guardian.canPickup ?? true,
-});
 
 const normalizeRelationType = (guardian) =>
   guardian.relationType ??
@@ -104,7 +109,7 @@ export class StudentGuardianMapService {
             await sgmRepo.updateMapping(studentId, guardianId, tenantId, mappingPayload, { transaction });
           }
         } else {
-          const mappingPayload = buildMappingPayloadForCreate(g);
+          const mappingPayload = buildMappingPayload(g, true);
           await sgmRepo.addMapping(studentId, guardianId, tenantId, mappingPayload, { transaction });
         }
       }

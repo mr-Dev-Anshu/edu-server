@@ -147,7 +147,9 @@ export const createStudentValidator = createValidator((req) => {
   ensureString(req.body.email, "email", { min: 5, max: 100 });
   ensureString(req.body.password, "password", { min: 6, max: 50 });
   ensureString(req.body.admissionNumber, "admissionNumber", { min: 1, max: 50 });
-  ensureOptionalString(req.body.rollNumber, "rollNumber", { min: 1, max: 30 });
+  // Allow passing an enrollment-specific roll number when creating a student
+  // (this will be used only to create the enrollment record, not saved on Student)
+  ensureOptionalString(req.body.enrollmentRollNumber, "enrollmentRollNumber", { min: 1, max: 30 });
   ensureString(req.body.firstName, "firstName", { min: 1, max: 100 });
   ensureOptionalString(req.body.middleName, "middleName", { min: 1, max: 100 });
   ensureString(req.body.lastName, "lastName", { min: 1, max: 100 });
@@ -180,12 +182,10 @@ export const createStudentValidator = createValidator((req) => {
 export const updateStudentValidator = createValidator((req) => {
   ensureNoTenantId(req.body);
   ensureDisallowedField(req.body.userId, "userId");
+  ensureDisallowedField(req.body.rollNumber, "rollNumber");
 
   if (req.body.admissionNumber !== undefined) {
     ensureString(req.body.admissionNumber, "admissionNumber", { min: 1, max: 50 });
-  }
-  if (req.body.rollNumber !== undefined) {
-    ensureOptionalString(req.body.rollNumber, "rollNumber", { min: 1, max: 30 });
   }
   if (req.body.firstName !== undefined) {
     ensureString(req.body.firstName, "firstName", { min: 1, max: 100 });

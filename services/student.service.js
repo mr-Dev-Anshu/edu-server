@@ -36,7 +36,7 @@ export class StudentService {
       sectionId,
       academicYearId,
       enrollmentStatus,
-      rollNumber,
+      enrollmentRollNumber,
       siblingId,
       ...studentFields
     } = payload;
@@ -203,14 +203,13 @@ export class StudentService {
           throw new AppError("Section capacity full", 400);
         }
 
-        // Create enrollment
         await enrollmentRepo.create(
           {
             tenantId,
             studentId: student.id,
             sectionId,
             academicYearId,
-            rollNumber: rollNumber || enrolledCount + 1,
+            rollNumber: enrollmentRollNumber || enrolledCount + 1,
             enrollmentStatus: enrollmentStatus || "regular",
             isCurrent: true,
           },
@@ -328,9 +327,6 @@ export class StudentService {
           ...(updateData.admissionNumber !== undefined
             ? { admissionNumber: updateData.admissionNumber }
             : {}),
-          ...(updateData.rollNumber !== undefined
-            ? { rollNumber: updateData.rollNumber }
-            : {}),
           ...(updateData.firstName !== undefined
             ? { firstName: updateData.firstName }
             : {}),
@@ -364,9 +360,6 @@ export class StudentService {
             ? { photoUrl: updateData.photoUrl }
             : {}),
           ...(updateData.enrollmentDate !== undefined
-            ? { enrollmentDate: updateData.enrollmentDate }
-            : {}),
-          ...(updateData.previousSchool !== undefined
             ? { previousSchool: updateData.previousSchool }
             : {}),
           ...(updateData.previousClass !== undefined
@@ -504,7 +497,6 @@ export class StudentService {
     return {
       id: student.id,
       admissionNumber: student.admissionNumber,
-      rollNumber: student.rollNumber,
       firstName: student.firstName,
       middleName: student.middleName,
       lastName: student.lastName,
@@ -559,7 +551,6 @@ export class StudentService {
             id: student.sibling.id,
             firstName: student.sibling.firstName,
             lastName: student.sibling.lastName,
-            rollNumber: student.sibling.rollNumber,
             user: student.sibling.user
               ? {
                   id: student.sibling.user.id,
@@ -603,7 +594,6 @@ export class StudentService {
           }))
         : [],
       enrollment: currentEnrollment ? formatEnrollment(currentEnrollment) : undefined,
-      enrollments: student.enrollments || undefined,
     };
   }
 }

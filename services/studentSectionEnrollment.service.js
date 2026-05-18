@@ -317,7 +317,6 @@ export class StudentSectionEnrollmentService {
         ? {
             id: student.id,
             admissionNumber: student.admissionNumber,
-            rollNumber: student.rollNumber,
             firstName: student.firstName,
             middleName: student.middleName,
             lastName: student.lastName,

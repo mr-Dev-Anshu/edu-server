@@ -15,14 +15,6 @@ export class GuardianController extends BaseController {
     });
     res.status(201).json({ success: true, data });
   });
-  attachStudents = catchAsync(async (req, res) => {
-    const data = await guardianService.attachStudents(
-      req.params.id,
-      req.tenantId,
-      req.body
-    );
-    res.status(201).json({ success: true, data });
-  });
 
   getByStudent = catchAsync(async (req, res) => {
     const data = await guardianService.getByStudent(

@@ -33,7 +33,10 @@ export class StudentController {
     const data = await studentService.updateStudent(
       req.params.id,
       req.tenantId,
-      req.body,
+      {
+        ...req.body,
+        requestedBy: req.user.id,
+      },
     );
     res.status(200).json({ success: true, data });
   });

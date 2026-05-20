@@ -22,10 +22,6 @@ export const Student = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    rollNumber: {
-      type: DataTypes.STRING(30),
-      allowNull: true,
-    },
     firstName: {
       type: DataTypes.STRING(100),
       allowNull: false,

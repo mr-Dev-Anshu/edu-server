@@ -121,17 +121,46 @@ export class FeeStructureService {
       }
     }
 
-    const updatedFeeStructure = await feeStructureRepo.update(id, tenantId, {
-      name: updateData.name?.trim() || feeStructure.name,
-      academicYearId: updateData.academicYearId || feeStructure.academicYearId,
-      classId: updateData.classId || feeStructure.classId,
-    });
+    const transaction = await sequelize.transaction();
+    try {
+      const updatedFeeStructure = await feeStructureRepo.update(
+        id,
+        tenantId,
+        {
+          name: updateData.name?.trim() || feeStructure.name,
+          academicYearId: updateData.academicYearId || feeStructure.academicYearId,
+          classId: updateData.classId || feeStructure.classId,
+        },
+        { transaction }
+      );
 
-    const feeStructureWithItems = await feeStructureRepo.findWithItems(
-      updatedFeeStructure.id,
-      tenantId
-    );
-    return this.formatFeeStructureResponse(feeStructureWithItems);
+      if (Array.isArray(updateData.items)) {
+        await feeStructureItemRepo.deleteByFeeStructure(id, tenantId, { transaction });
+
+        if (updateData.items.length > 0) {
+          const itemPayload = updateData.items.map((item) => ({
+            tenantId,
+            feeStructureId: updatedFeeStructure.id,
+            feeHeadId: item.feeHeadId,
+            amountRaw: item.amountRaw,
+            isOptional: item.isOptional || false,
+          }));
+
+          await feeStructureItemRepo.bulkCreate(itemPayload, { transaction });
+        }
+      }
+
+      await transaction.commit();
+
+      const feeStructureWithItems = await feeStructureRepo.findWithItems(
+        updatedFeeStructure.id,
+        tenantId
+      );
+      return this.formatFeeStructureResponse(feeStructureWithItems);
+    } catch (error) {
+      if (!transaction.finished) await transaction.rollback();
+      throw error;
+    }
   }
 
   /**

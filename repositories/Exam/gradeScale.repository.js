@@ -1,8 +1,16 @@
 import sequelize from "../../config/db.js";
-import { GradeScale } from "../../models/index.js";
-
+import { GradeScale, GradeScaleRule } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 import { AppError } from "../../utils/AppError.js";
+
+const gradeScaleIncludes = [
+  {
+    model: GradeScaleRule,
+    as: "rules",
+    attributes: ["id", "gradeLabel", "minPercentage", "maxPercentage", "gradePoint"],
+    order: [["minPercentage", "ASC"]],
+  },
+];
 
 export class GradeScaleRepository extends BaseRepository {
   constructor() {
@@ -14,7 +22,17 @@ export class GradeScaleRepository extends BaseRepository {
   }
 
   async findDefault(tenantId) {
-    return await this.model.findOne({ where: { tenantId, isDefault: true } });
+    return await this.model.findOne({
+      where: { tenantId, isDefault: true },
+      include: gradeScaleIncludes,
+    });
+  }
+
+  async findByIdPopulated(id, tenantId) {
+    return await this.model.findOne({
+      where: { id, tenantId },
+      include: gradeScaleIncludes,
+    });
   }
 
   async setDefault(id, tenantId) {
@@ -46,6 +64,8 @@ export class GradeScaleRepository extends BaseRepository {
       offset,
       limit,
       order: [["createdAt", "DESC"]],
+      include: gradeScaleIncludes,
+      distinct: true,
     });
 
     return {

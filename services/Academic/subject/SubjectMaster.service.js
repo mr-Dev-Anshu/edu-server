@@ -122,8 +122,19 @@ export class SubjectMasterService extends BaseService {
     const page = Number.parseInt(query.page, 10) > 0 ? Number.parseInt(query.page, 10) : 1;
     const limit = Number.parseInt(query.limit, 10) > 0 ? Number.parseInt(query.limit, 10) : 10;
     const searchTerm = String(query.search || "").trim();
+    const filters = {};
 
-    const result = await subjectRepo.searchSubject(tenantId, searchTerm, page, limit);
+    if (query.type) {
+      filters.type = query.type;
+    }
+
+    const result = await subjectRepo.searchSubject(
+      tenantId,
+      searchTerm,
+      filters,
+      page,
+      limit
+    );
     result.data = result.data.map(subject => this.formatSubjectResponse(subject));
     
     return result;

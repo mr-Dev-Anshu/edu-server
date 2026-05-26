@@ -56,10 +56,11 @@ export class SubjectMasterRepository extends BaseRepository {
     };
   }
 
-  async searchSubject(tenantId, searchTerm, page = 1, limit = 10) {
+  async searchSubject(tenantId, searchTerm, filters = {}, page = 1, limit = 10) {
     return await this.search(tenantId, searchTerm, [
       "name",
     ], {
+      filters,
       page,
       limit,
       order: [["createdAt", "DESC"]],

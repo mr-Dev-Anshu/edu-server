@@ -13,13 +13,19 @@ export const FeeStructureItem = sequelize.define(
     feeStructureId: {
       type: DataTypes.UUID,
       references: { model: "fee_structures", key: "id" },
+      allowNull: false,
     },
     feeHeadId: {
       type: DataTypes.UUID,
       references: { model: "fee_heads", key: "id" },
+      allowNull: false,
     },
     amountRaw: { type: DataTypes.BIGINT, allowNull: false },
     isOptional: { type: DataTypes.BOOLEAN, defaultValue: false },
   }),
-  { tableName: "fee_structure_items", underscored: true, paranoid: true },
+  { tableName: "fee_structure_items", underscored: true, paranoid: true,
+    indexes: [
+      { fields: ["tenant_id", "fee_structure_id", "fee_head_id"], unique: true }
+    ]
+  },
 );

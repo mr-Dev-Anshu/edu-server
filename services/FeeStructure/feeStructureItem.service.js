@@ -31,12 +31,10 @@ export class FeeStructureItemService {
     }
 
     // Check for duplicate mapping
-    const existingItem = await feeStructureItemRepo.model.findOne({
-      where: { feeStructureId, feeHeadId, tenantId },
-    });
+    const existingItem = await feeStructureItemRepo.findByFeeStructureAndFeeHead( feeStructureId, feeHeadId, tenantId );
 
     if (existingItem) {
-      throw new AppError("This FeeHead is already mapped to this FeeStructure", 400);
+      throw new AppError("This fee head is already added to this fee structure. Please select a different fee head.", 400);
     }
 
     const item = await feeStructureItemRepo.create({
@@ -129,7 +127,7 @@ export class FeeStructureItemService {
   async deleteFeeStructureItem(id, tenantId) {
     await feeStructureItemRepo.findItemById(id, tenantId); // Verify exists
     await feeStructureItemRepo.delete(id, tenantId);
-    return { message: "FeeStructureItem deleted successfully" };
+    return { message: "Fee head has been removed from the fee structure" };
   }
 
   /**
@@ -143,7 +141,7 @@ export class FeeStructureItemService {
     }
 
     await feeStructureItemRepo.deleteByFeeStructure(feeStructureId, tenantId);
-    return { message: "All FeeStructure items deleted successfully" };
+    return { message: "All fee heads have been removed from this fee structure" };
   }
 
   /**

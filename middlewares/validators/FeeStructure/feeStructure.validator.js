@@ -78,10 +78,8 @@ export const createFeeStructureValidator = createValidator((req) => {
   if (!academicYearId) throw new AppError("Academic year ID is required", 400);
   ensureUUID(academicYearId, "Academic year ID");
 
-  // Optional fields
-  if (classId) {
-    ensureUUID(classId, "Class ID");
-  }
+  if (!classId) throw new AppError("Class ID is required", 400);
+  ensureUUID(classId, "Class ID");
 
   // Validate items if provided (items are optional)
   if (items !== undefined && items !== null) {

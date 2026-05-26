@@ -113,4 +113,21 @@ export class FeeStructureRepository extends BaseRepository {
       ],
     });
   }
+
+  async findByClassAndAcademicYear(classId, academicYearId, tenantId) {
+    return await this.model.findOne({
+      where: { classId, academicYearId, tenantId },
+    });
+  }
+
+  async findByClassAndAcademicYearExcluding(classId, academicYearId, tenantId, excludeId) {
+    return await this.model.findOne({
+      where: {
+        classId,
+        academicYearId,
+        tenantId,
+        id: { [Op.ne]: excludeId },
+      },
+    });
+  }
 }

@@ -81,4 +81,10 @@ export class FeeStructureItemRepository extends BaseRepository {
       data: rows,
     };
   }
+
+  async findByFeeStructureAndFeeHead(feeStructureId, feeHeadId, tenantId) {
+    return await this.model.findOne({
+      where: { feeStructureId, feeHeadId, tenantId },
+    });
+  }
 }

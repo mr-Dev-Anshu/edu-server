@@ -13,13 +13,18 @@ export const FeeStructure = sequelize.define(
     academicYearId: {
       type: DataTypes.UUID,
       references: { model: "academic_years", key: "id" },
+      allowNull: false,
     },
     classId: {
       type: DataTypes.UUID,
       references: { model: "classes", key: "id" },
-      allowNull: true, 
+      allowNull: false,
     },
     name: { type: DataTypes.STRING, allowNull: false },
   }),
-  { tableName: "fee_structures", underscored: true, paranoid: true },
+  { tableName: "fee_structures", underscored: true, paranoid: true,
+    indexes: [
+      { fields: ["tenant_id", "class_id", "academic_year_id"], unique: true }
+    ]
+  },
 );

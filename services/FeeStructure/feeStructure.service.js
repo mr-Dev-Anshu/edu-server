@@ -20,7 +20,15 @@ export class FeeStructureService {
     // Check if FeeStructure with same name exists
     const existingFeeStructure = await feeStructureRepo.findByName(name, tenantId);
     if (existingFeeStructure) {
-      throw new AppError("FeeStructure with this name already exists for this tenant", 400);
+      throw new AppError("A fee structure with this name already exists. Please use a different name.", 400);
+    }
+
+    // Check if class already has a FeeStructure for this academic year
+    if (classId && academicYearId) {
+      const existingStructureForClassYear = await feeStructureRepo.findByClassAndAcademicYear( classId, academicYearId, tenantId );
+      if (existingStructureForClassYear) {
+        throw new AppError("This class already has a fee structure for this academic year. Please select a different class or academic year.", 400);
+      }
     }
 
     const transaction = await sequelize.transaction();
@@ -117,7 +125,19 @@ export class FeeStructureService {
         tenantId
       );
       if (existingFeeStructure) {
-        throw new AppError("FeeStructure with this name already exists for this tenant", 400);
+        throw new AppError("A fee structure with this name already exists. Please use a different name.", 400);
+      }
+    }
+
+    // Check if updating classId or academicYearId and if combination already exists
+    const newClassId = updateData.classId || feeStructure.classId;
+    const newAcademicYearId = updateData.academicYearId || feeStructure.academicYearId;
+    
+    if ((updateData.classId || updateData.academicYearId) && 
+        (newClassId !== feeStructure.classId || newAcademicYearId !== feeStructure.academicYearId)) {
+      const existingStructureForNewCombo = await feeStructureRepo.findByClassAndAcademicYearExcluding( newClassId, newAcademicYearId, tenantId, id );
+      if (existingStructureForNewCombo) {
+        throw new AppError("This class already has a fee structure for this academic year. Please select a different class or academic year.", 400);
       }
     }
 
@@ -179,7 +199,7 @@ export class FeeStructureService {
       await feeStructureRepo.delete(id, tenantId, { transaction });
 
       await transaction.commit();
-      return { message: "FeeStructure deleted successfully" };
+      return { message: "Fee structure has been deleted successfully" };
     } catch (error) {
       if (!transaction.finished) await transaction.rollback();
       throw error;

@@ -253,7 +253,15 @@ export class ClassSubjectService extends BaseService {
     const limit = Number.parseInt(query.limit, 10) > 0 ? Number.parseInt(query.limit, 10) : 10;
     const searchTerm = String(query.search || "").trim();
 
-    const result = await classSubjectRepo.searchClassSubject(tenantId, searchTerm, page, limit);
+    const filters = {};
+    if (query.classId) {
+      filters.classId = query.classId;
+    }
+    if (query.isElective === "true" || query.isElective === "false") {
+      filters.isElective = query.isElective === "true";
+    }
+
+    const result = await classSubjectRepo.searchClassSubject(tenantId, searchTerm, page, limit, filters);
     result.data = result.data.map(cs => this.formatClassSubjectResponse(cs));
     
     return result;

@@ -115,12 +115,13 @@ export class ClassSubjectRepository extends BaseRepository {
     };
   }
 
-  async searchClassSubject(tenantId, searchTerm, page = 1, limit = 10) {
+  async searchClassSubject(tenantId, searchTerm, page = 1, limit = 10, filters = {}) {
     return await this.search(tenantId, searchTerm, [
       "code",
     ], {
       page,
       limit,
+      filters,
       order: [["createdAt", "DESC"]],
       include: [
         {

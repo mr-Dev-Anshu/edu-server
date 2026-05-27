@@ -82,17 +82,7 @@ export class FeeStructureService {
     const filters = {};
     if (query.academicYearId) filters.academicYearId = query.academicYearId;
     if (query.classId) filters.classId = query.classId;
-
-    if (query.search) {
-      const results = await feeStructureRepo.search(tenantId, query.search);
-      return {
-        total: results.length,
-        page: 1,
-        limit: results.length,
-        totalPages: 1,
-        data: results.map((fs) => this.formatFeeStructureResponse(fs)),
-      };
-    }
+    if (query.search) filters.search = query.search.trim();
 
     const result = await feeStructureRepo.findWithPagination(tenantId, filters, page, limit);
     return {

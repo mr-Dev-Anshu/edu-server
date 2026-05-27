@@ -50,8 +50,12 @@ export class FeeStructureRepository extends BaseRepository {
 
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
     const offset = (page - 1) * limit;
-    const where = { tenantId, ...filters };
-
+    const { search, ...restFilters } = filters;
+    const keyword = String(search ?? "").trim();
+    const where = { tenantId, ...restFilters };
+    if (keyword) {
+      where.name = { [Op.iLike]: `%${keyword}%` };
+    }
     const { count, rows } = await this.model.findAndCountAll({
       where,
       offset,
@@ -72,22 +76,6 @@ export class FeeStructureRepository extends BaseRepository {
       totalPages: Math.ceil(count / limit),
       data: rows,
     };
-  }
-
-  async search(tenantId, searchTerm) {
-    return await this.model.findAll({
-      where: {
-        tenantId,
-        name: { [Op.iLike]: `%${searchTerm}%` },
-      },
-      include: [
-        ORGANIZATION_INCLUDE,
-        ACADEMIC_YEAR_INCLUDE,
-        CLASS_INCLUDE,
-        FEE_STRUCTURE_ITEM_INCLUDE,
-      ],
-      order: [["createdAt", "DESC"]],
-    });
   }
 
   async findByAcademicYear(academicYearId, tenantId) {

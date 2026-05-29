@@ -18,6 +18,7 @@ import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import feeHeadRouter from "./router/FeeStructure/feeHead.router.js";
 import feeStructureRouter from "./router/FeeStructure/feeStructure.router.js";
 import feeStructureItemRouter from "./router/FeeStructure/feeStructureItem.router.js";
+import studentFeesLedgerRouter from "./router/FeeStructure/studentFeesLedger.router.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
 
@@ -73,6 +74,7 @@ app.use('/api/v1/guardians' , guardianRouter)
 app.use('/api/v1/fee-heads', feeHeadRouter);
 app.use('/api/v1/fee-structures', feeStructureRouter);
 app.use('/api/v1/fee-structure-items', feeStructureItemRouter);
+app.use('/api/v1/fees-ledger', studentFeesLedgerRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

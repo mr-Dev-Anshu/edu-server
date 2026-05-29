@@ -44,6 +44,7 @@ import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
 import { FeeHead } from "./FeeStructure/FeeHead.js";
 import { FeeStructure } from "./FeeStructure/FeeStructure.js";
 import { FeeStructureItem } from "./FeeStructure/FeeStructureItem.js";
+import { StudentFeesLedger } from "./FeeStructure/StudentFeesLedger.js";
 
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
@@ -178,6 +179,21 @@ FeeStructureItem.belongsTo(FeeStructure, { foreignKey: "feeStructureId", as: "fe
 FeeHead.hasMany(FeeStructureItem, { foreignKey: "feeHeadId", as: "structures" });
 FeeStructureItem.belongsTo(FeeHead, { foreignKey: "feeHeadId", as: "feeHead" });
 
+// ==========================================
+// 7. STUDENT FEES LEDGER
+// ==========================================
+StudentFeesLedger.belongsTo(StudentSectionEnrollment, { foreignKey: "studentId", as: "student" });
+StudentSectionEnrollment.hasMany(StudentFeesLedger, { foreignKey: "studentId", as: "ledgerEntries" });
+
+StudentFeesLedger.belongsTo(FeeHead, { foreignKey: "feeHeadId", as: "feeHead" });
+FeeHead.hasMany(StudentFeesLedger, { foreignKey: "feeHeadId", as: "ledgerLines" });
+
+StudentFeesLedger.belongsTo(FeeStructureItem, { foreignKey: "feeStructureItemId", as: "feeStructureItem" });
+FeeStructureItem.hasMany(StudentFeesLedger, { foreignKey: "feeStructureItemId", as: "ledgerEntries" });
+
+StudentFeesLedger.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
+AcademicYear.hasMany(StudentFeesLedger, { foreignKey: "academicYearId", as: "ledgerEntries" });
+
 Tenant.addScope("active", { where: { status: "active" } });
 
 export {
@@ -206,4 +222,5 @@ export {
   FeeHead,
   FeeStructure,
   FeeStructureItem,
+  StudentFeesLedger,
 };

@@ -141,6 +141,56 @@ Guardian.belongsToMany(Student, {
   as: "students",
 });
 
+
+GradeScale.hasMany(GradeScaleRule, {
+  foreignKey: "grade_scale_id", // Using your exact database snake_case columns
+  as: "rules",
+  onDelete: "CASCADE",
+});
+
+GradeScaleRule.belongsTo(GradeScale, {
+  foreignKey: "grade_scale_id",
+  as: "gradeScale",
+});
+
+
+GradeScale.hasMany(ExamGroup, {
+  foreignKey: "grading_scheme_id",
+  as: "examGroups",
+});
+
+ExamGroup.belongsTo(GradeScale, {
+  foreignKey: "grading_scheme_id",
+  as: "gradingScheme",
+});
+
+// Connection between ExamGroup and its detailed Schedule allocations
+ExamGroup.hasMany(ExamSchedule, {
+  foreignKey: "exam_group_id",
+  as: "schedules",
+  onDelete: "CASCADE",
+});
+
+ExamSchedule.belongsTo(ExamGroup, {
+  foreignKey: "exam_group_id",
+  as: "examGroup",
+});
+
+// ==========================================
+// 3. EXAM SCHEDULE RELATIONSHIPS
+// ==========================================
+// One scheduled slot has many students marks entries mapped
+ExamSchedule.hasMany(Mark, {
+  foreignKey: "exam_schedule_id",
+  as: "marks",
+  onDelete: "CASCADE",
+});
+
+Mark.belongsTo(ExamSchedule, {
+  foreignKey: "exam_schedule_id",
+  as: "examSchedule",
+});
+
 Tenant.addScope("active", { where: { status: "active" } });
 
 export {

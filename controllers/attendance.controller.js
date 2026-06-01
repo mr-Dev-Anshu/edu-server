@@ -8,7 +8,10 @@ export class AttendanceController {
    * CREATE: Mark attendance for a student
    */
   create = catchAsync(async (req, res) => {
-    const data = await attendanceService.createAttendance(req.tenantId, req.body);
+    const data = await attendanceService.createAttendance(req.tenantId, {
+      ...req.body,
+      markedById: req.user.id,
+    });
     res.status(201).json({ success: true, data });
   });
 

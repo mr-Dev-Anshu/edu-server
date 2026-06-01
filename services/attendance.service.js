@@ -73,7 +73,9 @@ export class AttendanceService extends BaseService {
       remarks: remarks?.trim() || null,
     });
 
-    return this.formatAttendanceResponse(attendance);
+    const createdAttendance = await attendanceRepo.findByIdWithRelations(attendance.id, tenantId);
+
+    return this.formatAttendanceResponse(createdAttendance);
   }
 
   /**
@@ -145,7 +147,9 @@ export class AttendanceService extends BaseService {
 
     const updated = await attendanceRepo.update(id, tenantId, updates);
 
-    return this.formatAttendanceResponse(updated);
+    const refreshedAttendance = await attendanceRepo.findByIdWithRelations(id, tenantId);
+
+    return this.formatAttendanceResponse(refreshedAttendance ?? updated);
   }
 
   /**
@@ -332,10 +336,18 @@ export class AttendanceService extends BaseService {
 
       await transaction.commit();
 
+      const createdIds = createdRecords.map((record) => record.id);
+      const populatedCreatedRecords = await attendanceRepo.findManyByIdsWithRelations(
+        createdIds,
+        tenantId
+      );
+
       return {
-        created: createdRecords.length,
+        created: populatedCreatedRecords.length || createdRecords.length,
         total: records.length,
-        data: createdRecords.map((r) => this.formatAttendanceResponse(r)),
+        data: (populatedCreatedRecords.length ? populatedCreatedRecords : createdRecords).map((r) =>
+          this.formatAttendanceResponse(r)
+        ),
       };
     } catch (error) {
       if (!transaction.finished) await transaction.rollback();

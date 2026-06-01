@@ -7,6 +7,24 @@ export class AttendanceRepository extends BaseRepository {
     super(Attendance);
   }
 
+  async findByIdWithRelations(id, tenantId) {
+    return await this.findById(id, tenantId, {
+      include: this.getDefaultIncludes(),
+    });
+  }
+
+  async findManyByIdsWithRelations(ids, tenantId) {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return [];
+    }
+
+    return await this.model.findAll({
+      where: { tenantId, id: ids },
+      include: this.getDefaultIncludes(),
+      order: [["createdAt", "DESC"]],
+    });
+  }
+
   /**
    * Find attendance by student and date
    */

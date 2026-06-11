@@ -141,7 +141,6 @@ Guardian.belongsToMany(Student, {
   as: "students",
 });
 
-<<<<<<< HEAD
 // ==========================================
 // 6. EXAM GRADING LOGIC
 // ==========================================
@@ -190,7 +189,6 @@ Mark.belongsTo(ExamSchedule, {
   foreignKey: "exam_schedule_id",
   as: "examSchedule",
 });
-
 
 Tenant.addScope("active", { where: { status: "active" } });
 

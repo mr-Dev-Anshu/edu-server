@@ -141,6 +141,18 @@ Guardian.belongsToMany(Student, {
   as: "students",
 });
 
+// ==========================================
+// 6. EXAM GRADING LOGIC
+// ==========================================
+GradeScale.hasMany(GradeScaleRule, {
+  foreignKey: "gradeScaleId",
+  as: "gradeScaleRules",
+});
+GradeScaleRule.belongsTo(GradeScale, {
+  foreignKey: "gradeScaleId",
+  as: "gradeScale",
+});
+
 Tenant.addScope("active", { where: { status: "active" } });
 
 export {

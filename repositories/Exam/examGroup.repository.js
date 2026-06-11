@@ -1,5 +1,19 @@
-import { ExamGroup } from "../../models/index.js";
+import { ExamGroup, AcademicYear, GradeScale } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
+
+// Reusable include for populated exam group responses
+const examGroupIncludes = [
+  {
+    model: AcademicYear,
+    as: "academicYear",
+    attributes: ["id", "name", "startDate", "endDate"],
+  },
+  {
+    model: GradeScale,
+    as: "gradingScheme",
+    attributes: ["id", "name", "scaleType", "isDefault"],
+  },
+];
 
 export class ExamGroupRepository extends BaseRepository {
   constructor() {
@@ -14,6 +28,14 @@ export class ExamGroupRepository extends BaseRepository {
     return await this.model.findAll({
       where: { academicYearId, tenantId },
       order: [["startDate", "ASC"]],
+      include: examGroupIncludes,
+    });
+  }
+
+  async findByIdPopulated(id, tenantId) {
+    return await this.model.findOne({
+      where: { id, tenantId },
+      include: examGroupIncludes,
     });
   }
 
@@ -26,6 +48,8 @@ export class ExamGroupRepository extends BaseRepository {
       offset,
       limit,
       order: [["createdAt", "DESC"]],
+      include: examGroupIncludes,
+      distinct: true,
     });
 
     return {

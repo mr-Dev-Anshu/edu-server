@@ -15,16 +15,13 @@ export class MarkService {
     const schedule = await examScheduleRepo.findById(examScheduleId, tenantId);
     if (!schedule) throw new AppError("Exam schedule not found", 404);
 
-    // FIX — Warning #1: Validate student exists and belongs to tenant
     const student = await studentRepo.findById(studentId, tenantId);
     if (!student) throw new AppError("Student not found", 404);
 
-    // FIX — Warning #2: Cannot set marks if student is marked absent
     if (isAbsent === true && marksObtainedRaw !== undefined) {
       throw new AppError("Cannot set marks if student is marked absent", 400);
     }
 
-    // FIX — Warning #3: Marks cannot exceed maxMarks
     if (!isAbsent && marksObtainedRaw !== undefined) {
       if (parseInt(marksObtainedRaw) > schedule.maxMarks) {
         throw new AppError("Marks cannot exceed maximum marks for this exam", 400);
@@ -33,12 +30,16 @@ export class MarkService {
 
     const existing = await markRepo.findByStudentAndSchedule(studentId, examScheduleId, tenantId);
     if (existing) {
-      throw new AppError("Mark entry already exists for this student and exam schedule", 400);
+      throw new AppError("Mark entry already exists for this student and exam schedule", 409);
     }
 
-    const marksToSave = isAbsent ? null : (marksObtainedRaw !== undefined ? parseInt(marksObtainedRaw) : null);
+    const marksToSave = isAbsent
+      ? null
+      : marksObtainedRaw !== undefined
+      ? parseInt(marksObtainedRaw)
+      : null;
 
-    const mark = await markRepo.create({
+    await markRepo.create({
       tenantId,
       studentId,
       examScheduleId,
@@ -47,12 +48,20 @@ export class MarkService {
       enteredById: enteredById || null,
     });
 
-    return this.formatResponse(mark);
+    // Re-fetch with full population
+    const mark = await markRepo.findByStudentAndSchedule(studentId, examScheduleId, tenantId);
+    const populated = await markRepo.findByIdPopulated(mark.id, tenantId);
+    return this.formatResponse(populated);
   }
 
-  // FIX — Warning #6: Wrapped bulk creation in a transaction to prevent partial data on failure
-  // FIX — Blocker #4: Added tenantId scoping + overwrite protection
-  async bulkCreateMarks(tenantId, marks, enteredById) {
+  /**
+   * Bulk create/upsert marks inside a transaction.
+   * @param {string}  tenantId
+   * @param {Array}   marks
+   * @param {string}  enteredById
+   * @param {boolean} allowOverwrite - default false; pass true to update existing records
+   */
+  async bulkCreateMarks(tenantId, marks, enteredById, allowOverwrite = false) {
     const transaction = await sequelize.transaction();
 
     try {
@@ -60,22 +69,37 @@ export class MarkService {
         tenantId,
         studentId: mark.studentId,
         examScheduleId: mark.examScheduleId,
-        marksObtainedRaw: mark.isAbsent ? null : (mark.marksObtainedRaw !== undefined ? parseInt(mark.marksObtainedRaw) : null),
+        marksObtainedRaw: mark.isAbsent
+          ? null
+          : mark.marksObtainedRaw !== undefined
+          ? parseInt(mark.marksObtainedRaw)
+          : null,
         isAbsent: mark.isAbsent || false,
         enteredById: enteredById || null,
       }));
 
-      // FIX — Blocker #4: Scoped to tenantId, no silent cross-tenant overwrites
-      const created = await markRepo.bulkUpsert(records, { transaction, tenantId });
+      // Pass transaction + tenantId through options; allowOverwrite controls upsert vs insert
+      const created = await markRepo.bulkUpsert(
+        records,
+        { transaction, tenantId },
+        allowOverwrite
+      );
 
       if (!created || created.length === 0) {
         throw new AppError("Bulk mark creation failed", 500);
       }
 
       await transaction.commit();
-      return created.map((m) => this.formatResponse(m));
+
+      // Re-fetch with population after commit
+      const ids = created.map((m) => m.id);
+      const populated = await Promise.all(
+        ids.map((id) => markRepo.findByIdPopulated(id, tenantId))
+      );
+
+      return populated.map((m) => this.formatResponse(m));
     } catch (error) {
-      if (!transaction.finished) await transaction.rollback();
+      if (transaction && !transaction.finished) await transaction.rollback();
       throw error;
     }
   }
@@ -94,28 +118,19 @@ export class MarkService {
   }
 
   async getMarkById(id, tenantId) {
-    const mark = await markRepo.findById(id, tenantId);
-
-    if (!mark) {
-      throw new AppError("Mark not found", 404);
-    }
-
+    const mark = await markRepo.findByIdPopulated(id, tenantId);
+    if (!mark) throw new AppError("Mark not found", 404);
     return this.formatResponse(mark);
   }
 
   async updateMark(id, tenantId, updateData, enteredById) {
     const mark = await markRepo.findById(id, tenantId);
+    if (!mark) throw new AppError("Mark not found", 404);
 
-    if (!mark) {
-      throw new AppError("Mark not found", 404);
-    }
-
-    // FIX — Warning #2: Cannot set marks if student is marked absent
     if (updateData.isAbsent === true && updateData.marksObtainedRaw !== undefined) {
       throw new AppError("Cannot set marks if student is marked absent", 400);
     }
 
-    // FIX — Warning #3: Marks cannot exceed maxMarks on update
     if (!updateData.isAbsent && updateData.marksObtainedRaw !== undefined) {
       const schedule = await examScheduleRepo.findById(mark.examScheduleId, tenantId);
       if (schedule && parseInt(updateData.marksObtainedRaw) > schedule.maxMarks) {
@@ -127,27 +142,24 @@ export class MarkService {
     const marksObtainedRaw = isAbsent
       ? null
       : updateData.marksObtainedRaw !== undefined
-        ? parseInt(updateData.marksObtainedRaw)
-        : undefined;
+      ? parseInt(updateData.marksObtainedRaw)
+      : undefined;
 
-    const updated = await markRepo.update(id, tenantId, {
+    await markRepo.update(id, tenantId, {
       ...(isAbsent !== undefined ? { isAbsent } : {}),
       ...(marksObtainedRaw !== undefined ? { marksObtainedRaw } : {}),
       ...(enteredById ? { enteredById } : {}),
     });
 
+    const updated = await markRepo.findByIdPopulated(id, tenantId);
     return this.formatResponse(updated);
   }
 
   async deleteMark(id, tenantId) {
-    const mark = await markRepo.findById(id, tenantId);
-
-    if (!mark) {
-      throw new AppError("Mark not found", 404);
-    }
+    const mark = await markRepo.findByIdPopulated(id, tenantId);
+    if (!mark) throw new AppError("Mark not found", 404);
 
     await markRepo.delete(id, tenantId);
-
     return {
       message: "Mark deleted successfully",
       data: this.formatResponse(mark),
@@ -158,11 +170,41 @@ export class MarkService {
     return {
       id: mark.id,
       tenantId: mark.tenantId,
-      studentId: mark.studentId,
-      examScheduleId: mark.examScheduleId,
+      student: mark.student
+        ? {
+            id: mark.student.id,
+            firstName: mark.student.firstName,
+            middleName: mark.student.middleName,
+            lastName: mark.student.lastName,
+            admissionNumber: mark.student.admissionNumber,
+            rollNumber: mark.student.rollNumber,
+            email: mark.student.user?.email || null,
+          }
+        : { id: mark.studentId },
+      examSchedule: mark.examSchedule
+        ? {
+            id: mark.examSchedule.id,
+            examDate: mark.examSchedule.examDate,
+            startTime: mark.examSchedule.startTime,
+            endTime: mark.examSchedule.endTime,
+            maxMarks: mark.examSchedule.maxMarks,
+            passingMarks: mark.examSchedule.passingMarks,
+            subject: mark.examSchedule.subject || null,
+            section: mark.examSchedule.section || null,
+          }
+        : { id: mark.examScheduleId },
       marksObtainedRaw: mark.marksObtainedRaw,
       isAbsent: mark.isAbsent,
-      enteredById: mark.enteredById,
+      enteredBy: mark.enteredBy
+        ? {
+            id: mark.enteredBy.id,
+            firstName: mark.enteredBy.firstName,
+            lastName: mark.enteredBy.lastName,
+            email: mark.enteredBy.email,
+          }
+        : mark.enteredById
+        ? { id: mark.enteredById }
+        : null,
       createdAt: mark.createdAt,
       updatedAt: mark.updatedAt,
     };

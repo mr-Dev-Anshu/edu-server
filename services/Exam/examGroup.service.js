@@ -7,14 +7,12 @@ export class ExamGroupService {
   async createExamGroup(tenantId, payload) {
     const { academicYearId, name, examType, gradingSchemeId, startDate, endDate, weightagePercent } = payload;
 
-    // Validate date range if both provided
     if (startDate && endDate) {
       if (new Date(endDate) <= new Date(startDate)) {
         throw new AppError("endDate must be after startDate", 400);
       }
     }
 
-    // Name uniqueness per tenant
     const existing = await examGroupRepo.findByName(name.trim(), tenantId);
     if (existing) {
       throw new AppError("An exam group with this name already exists", 400);
@@ -32,7 +30,8 @@ export class ExamGroupService {
       isResultPublished: false,
     });
 
-    return this.formatResponse(examGroup);
+    const populated = await examGroupRepo.findByIdPopulated(examGroup.id, tenantId);
+    return this.formatResponse(populated);
   }
 
   async getAllExamGroups(tenantId, query) {
@@ -49,22 +48,19 @@ export class ExamGroupService {
   }
 
   async getExamGroupById(id, tenantId) {
-    const examGroup = await examGroupRepo.findById(id, tenantId);
+    const examGroup = await examGroupRepo.findByIdPopulated(id, tenantId);
     if (!examGroup) throw new AppError("Exam group not found", 404);
     return this.formatResponse(examGroup);
   }
 
-  // FIX — Blocker #1 + Warning #7: Uncommented all logic + added date range validation
   async updateExamGroup(id, tenantId, updateData) {
     const examGroup = await examGroupRepo.findById(id, tenantId);
     if (!examGroup) throw new AppError("Exam group not found", 404);
 
-    // If result is published, restrict edits
     if (examGroup.isResultPublished) {
       throw new AppError("Cannot update an exam group after result is published", 400);
     }
 
-    // FIX — Warning #7: Validate date range on update
     const newStart = updateData.startDate ?? examGroup.startDate;
     const newEnd = updateData.endDate ?? examGroup.endDate;
     if (newStart && newEnd) {
@@ -78,7 +74,7 @@ export class ExamGroupService {
       if (existing) throw new AppError("An exam group with this name already exists", 400);
     }
 
-    const updated = await examGroupRepo.update(id, tenantId, {
+    await examGroupRepo.update(id, tenantId, {
       ...(updateData.name !== undefined ? { name: updateData.name.trim() } : {}),
       ...(updateData.examType !== undefined ? { examType: updateData.examType } : {}),
       ...(updateData.academicYearId !== undefined ? { academicYearId: updateData.academicYearId } : {}),
@@ -88,12 +84,12 @@ export class ExamGroupService {
       ...(updateData.weightagePercent !== undefined ? { weightagePercent: updateData.weightagePercent } : {}),
     });
 
+    const updated = await examGroupRepo.findByIdPopulated(id, tenantId);
     return this.formatResponse(updated);
   }
 
-  // FIX — Blocker #1: Uncommented delete logic
   async deleteExamGroup(id, tenantId) {
-    const examGroup = await examGroupRepo.findById(id, tenantId);
+    const examGroup = await examGroupRepo.findByIdPopulated(id, tenantId);
     if (!examGroup) throw new AppError("Exam group not found", 404);
 
     if (examGroup.isResultPublished) {
@@ -107,7 +103,6 @@ export class ExamGroupService {
     };
   }
 
-  // FIX — Blocker #1: Uncommented publishResult logic
   async publishResult(id, tenantId) {
     const examGroup = await examGroupRepo.findById(id, tenantId);
     if (!examGroup) throw new AppError("Exam group not found", 404);
@@ -117,11 +112,10 @@ export class ExamGroupService {
     }
 
     await examGroupRepo.setResultPublished(id, tenantId, true);
-    const updated = await examGroupRepo.findById(id, tenantId);
+    const updated = await examGroupRepo.findByIdPopulated(id, tenantId);
     return this.formatResponse(updated);
   }
 
-  // FIX — Blocker #1: Uncommented unpublishResult logic
   async unpublishResult(id, tenantId) {
     const examGroup = await examGroupRepo.findById(id, tenantId);
     if (!examGroup) throw new AppError("Exam group not found", 404);
@@ -131,7 +125,7 @@ export class ExamGroupService {
     }
 
     await examGroupRepo.setResultPublished(id, tenantId, false);
-    const updated = await examGroupRepo.findById(id, tenantId);
+    const updated = await examGroupRepo.findByIdPopulated(id, tenantId);
     return this.formatResponse(updated);
   }
 
@@ -139,10 +133,25 @@ export class ExamGroupService {
     return {
       id: examGroup.id,
       tenantId: examGroup.tenantId,
-      academicYearId: examGroup.academicYearId,
+      academicYear: examGroup.academicYear
+        ? {
+            id: examGroup.academicYear.id,
+            name: examGroup.academicYear.name,
+            startDate: examGroup.academicYear.startDate,
+            endDate: examGroup.academicYear.endDate,
+          }
+        : { id: examGroup.academicYearId },
       name: examGroup.name,
       examType: examGroup.examType,
-      gradingSchemeId: examGroup.gradingSchemeId,
+      gradingScheme: examGroup.gradingScheme
+        ? {
+            id: examGroup.gradingScheme.id,
+            name: examGroup.gradingScheme.name,
+            scaleType: examGroup.gradingScheme.scaleType,
+          }
+        : examGroup.gradingSchemeId
+        ? { id: examGroup.gradingSchemeId }
+        : null,
       startDate: examGroup.startDate,
       endDate: examGroup.endDate,
       isResultPublished: examGroup.isResultPublished,

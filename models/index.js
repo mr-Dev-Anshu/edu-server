@@ -141,6 +141,7 @@ Guardian.belongsToMany(Student, {
   as: "students",
 });
 
+<<<<<<< HEAD
 // ==========================================
 // 6. EXAM GRADING LOGIC
 // ==========================================
@@ -152,6 +153,44 @@ GradeScaleRule.belongsTo(GradeScale, {
   foreignKey: "gradeScaleId",
   as: "gradeScale",
 });
+
+GradeScale.hasMany(ExamGroup, {
+  foreignKey: "grading_scheme_id",
+  as: "examGroups",
+});
+
+ExamGroup.belongsTo(GradeScale, {
+  foreignKey: "grading_scheme_id",
+  as: "gradingScheme",
+});
+
+// Connection between ExamGroup and its detailed Schedule allocations
+ExamGroup.hasMany(ExamSchedule, {
+  foreignKey: "exam_group_id",
+  as: "schedules",
+  onDelete: "CASCADE",
+});
+
+ExamSchedule.belongsTo(ExamGroup, {
+  foreignKey: "exam_group_id",
+  as: "examGroup",
+});
+
+// ==========================================
+// 7. EXAM SCHEDULE RELATIONSHIPS
+// ==========================================
+// One scheduled slot has many students marks entries mapped
+ExamSchedule.hasMany(Mark, {
+  foreignKey: "exam_schedule_id",
+  as: "marks",
+  onDelete: "CASCADE",
+});
+
+Mark.belongsTo(ExamSchedule, {
+  foreignKey: "exam_schedule_id",
+  as: "examSchedule",
+});
+
 
 Tenant.addScope("active", { where: { status: "active" } });
 

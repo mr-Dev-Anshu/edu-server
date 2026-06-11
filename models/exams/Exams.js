@@ -43,10 +43,6 @@ export const ExamGroup = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "exam_groups",
-    // indexes: [
-    //   ...tenantIndex(["academic_year_id"]),
-    //   ...tenantIndex(["exam_type"]),
-    // ],
   },
 );
 
@@ -84,7 +80,6 @@ export const ExamSchedule = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "exam_schedules",
-    // indexes: [...tenantIndex(["exam_group_id"]), ...tenantIndex(["exam_date"])],
   },
 );
 
@@ -118,7 +113,6 @@ export const Mark = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "marks",
-    // FIX — Blocker #5: Added unique constraint to prevent duplicate mark entries per student per exam
     indexes: [
       { unique: true, fields: ["tenant_id", "student_id", "exam_schedule_id"] },
     ],
@@ -163,4 +157,4 @@ export const GradeScaleRule = sequelize.define(
     gradePoint: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
   }),
   { timestamps: false, underscored: true, tableName: "grade_scale_rules" },
-);  
+);

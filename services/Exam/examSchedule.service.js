@@ -41,7 +41,9 @@ export class ExamScheduleService {
       passingMarks: parseInt(passingMarks),
     });
 
-    return this.formatResponse(schedule);
+    // Re-fetch with full population
+    const populated = await examScheduleRepo.findByIdPopulated(schedule.id, tenantId);
+    return this.formatResponse(populated);
   }
 
   async getAllExamSchedules(tenantId, query) {
@@ -58,12 +60,11 @@ export class ExamScheduleService {
   }
 
   async getExamScheduleById(id, tenantId) {
-    const schedule = await examScheduleRepo.findById(id, tenantId);
+    const schedule = await examScheduleRepo.findByIdPopulated(id, tenantId);
     if (!schedule) throw new AppError("Exam schedule not found", 404);
     return this.formatResponse(schedule);
   }
 
-  // FIX — Blocker #1: Uncommented all updateExamSchedule logic
   async updateExamSchedule(id, tenantId, updateData) {
     const schedule = await examScheduleRepo.findById(id, tenantId);
     if (!schedule) throw new AppError("Exam schedule not found", 404);
@@ -92,7 +93,7 @@ export class ExamScheduleService {
       }
     }
 
-    const updated = await examScheduleRepo.update(id, tenantId, {
+    await examScheduleRepo.update(id, tenantId, {
       ...(updateData.examGroupId !== undefined ? { examGroupId: updateData.examGroupId } : {}),
       ...(updateData.subjectId !== undefined ? { subjectId: updateData.subjectId } : {}),
       ...(updateData.sectionId !== undefined ? { sectionId: updateData.sectionId } : {}),
@@ -103,12 +104,12 @@ export class ExamScheduleService {
       ...(updateData.passingMarks !== undefined ? { passingMarks: parseInt(updateData.passingMarks) } : {}),
     });
 
+    const updated = await examScheduleRepo.findByIdPopulated(id, tenantId);
     return this.formatResponse(updated);
   }
 
-  // FIX — Blocker #2: Added 404 guard before delete
   async deleteExamSchedule(id, tenantId) {
-    const schedule = await examScheduleRepo.findById(id, tenantId);
+    const schedule = await examScheduleRepo.findByIdPopulated(id, tenantId);
     if (!schedule) throw new AppError("Exam schedule not found", 404);
 
     await examScheduleRepo.delete(id, tenantId);
@@ -122,9 +123,25 @@ export class ExamScheduleService {
     return {
       id: schedule.id,
       tenantId: schedule.tenantId,
-      examGroupId: schedule.examGroupId,
-      subjectId: schedule.subjectId,
-      sectionId: schedule.sectionId,
+      examGroup: schedule.examGroup
+        ? {
+            id: schedule.examGroup.id,
+            name: schedule.examGroup.name,
+            examType: schedule.examGroup.examType,
+            startDate: schedule.examGroup.startDate,
+            endDate: schedule.examGroup.endDate,
+            isResultPublished: schedule.examGroup.isResultPublished,
+          }
+        : { id: schedule.examGroupId },
+      subject: schedule.subject || { id: schedule.subjectId },
+      section: schedule.section
+        ? {
+            id: schedule.section.id,
+            name: schedule.section.name,
+            class: schedule.section.class || null,
+            academicYear: schedule.section.academicYear || null,
+          }
+        : { id: schedule.sectionId },
       examDate: schedule.examDate,
       startTime: schedule.startTime,
       endTime: schedule.endTime,

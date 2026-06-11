@@ -1,8 +1,16 @@
 import sequelize from "../../config/db.js";
 import { GradeScale, GradeScaleRule } from "../../models/index.js";
-
 import { BaseRepository } from "../base.repository.js";
 import { AppError } from "../../utils/AppError.js";
+
+const gradeScaleIncludes = [
+  {
+    model: GradeScaleRule,
+    as: "gradeScaleRules",
+    separate: true,
+    order: [["minPercentage", "ASC"]],
+  },
+];
 
 export class GradeScaleRepository extends BaseRepository {
   constructor() {
@@ -69,6 +77,8 @@ export class GradeScaleRepository extends BaseRepository {
       offset,
       limit,
       order: [["createdAt", "DESC"]],
+      include: gradeScaleIncludes,
+      distinct: true,
     });
 
     const data = rows;

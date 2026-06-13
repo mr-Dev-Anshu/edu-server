@@ -143,12 +143,13 @@ export class GradeScaleService {
   async getAllGradeScales(tenantId, query) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
+    const search = query.search ? query.search.trim() : "";
 
     const filters = {};
     if (query.scaleType) filters.scaleType = query.scaleType;
     if (query.isDefault === "true") filters.isDefault = true;
 
-    return await gradeScaleRepo.findWithPagination(tenantId, filters, page, limit);
+    return await gradeScaleRepo.findWithPaginationAndSearch(tenantId, filters, search, page, limit);
   }
 
   async getGradeScaleById(id, tenantId) {

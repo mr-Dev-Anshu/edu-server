@@ -1,4 +1,5 @@
 import sequelize from "../../config/db.js";
+import { Op } from "sequelize";
 import { GradeScale, GradeScaleRule } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 import { AppError } from "../../utils/AppError.js";
@@ -69,8 +70,18 @@ export class GradeScaleRepository extends BaseRepository {
   }
 
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
+    return this.findWithPaginationAndSearch(tenantId, filters, "", page, limit);
+  }
+
+  async findWithPaginationAndSearch(tenantId, filters = {}, search = "", page = 1, limit = 10) {
     const offset = (page - 1) * limit;
+    
     const where = { tenantId, ...filters };
+    
+    // Add search condition for name field
+    if (search) {
+      where.name = { [Op.iLike]: `%${search}%` };
+    }
 
     const { count, rows } = await this.model.findAndCountAll({
       where,

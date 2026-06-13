@@ -17,7 +17,7 @@ const STUDENT_DETAILS_INCLUDES = [
   {
     model: Student,
     as: "sibling",
-    attributes: ["id", "firstName", "lastName"],
+    attributes: ["id", "firstName", "lastName", "rollNumber"],
     include: [
       {
         model: User,

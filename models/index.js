@@ -40,6 +40,11 @@ import Subject from './Academic/Subject.js';
 // // --- Infrastructure ---
 import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
 
+// --- Fee Management ---
+import { FeeHead } from "./FeeStructure/FeeHead.js";
+import { FeeStructure } from "./FeeStructure/FeeStructure.js";
+import { FeeStructureItem } from "./FeeStructure/FeeStructureItem.js";
+
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
 // ==========================================
@@ -152,6 +157,27 @@ Guardian.hasMany(StudentGuardianMap, {
   as: 'studentMappings',
 });
 
+// ==========================================
+// 6. FEE MANAGEMENT
+// ==========================================
+// FeeHead relations
+Tenant.hasMany(FeeHead, { foreignKey: "tenantId", as: "feeHeads" });
+FeeHead.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+
+// FeeStructure relations
+Tenant.hasMany(FeeStructure, { foreignKey: "tenantId", as: "feeStructures" });
+FeeStructure.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+FeeStructure.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
+AcademicYear.hasMany(FeeStructure, { foreignKey: "academicYearId", as: "feeStructures" });
+FeeStructure.belongsTo(Class, { foreignKey: "classId", as: "class" });
+Class.hasMany(FeeStructure, { foreignKey: "classId", as: "feeStructures" });
+
+// FeeStructureItem (Mapping) relations
+FeeStructure.hasMany(FeeStructureItem, { foreignKey: "feeStructureId", as: "items" });
+FeeStructureItem.belongsTo(FeeStructure, { foreignKey: "feeStructureId", as: "feeStructure" });
+FeeHead.hasMany(FeeStructureItem, { foreignKey: "feeHeadId", as: "structures" });
+FeeStructureItem.belongsTo(FeeHead, { foreignKey: "feeHeadId", as: "feeHead" });
+
 Tenant.addScope("active", { where: { status: "active" } });
 
 export {
@@ -177,4 +203,7 @@ export {
   Room,
   Timetable,
   TimetableSlot,
+  FeeHead,
+  FeeStructure,
+  FeeStructureItem,
 };

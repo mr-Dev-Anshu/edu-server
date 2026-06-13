@@ -33,10 +33,21 @@ export class ClassRepository extends BaseRepository {
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
     const offset = (page - 1) * limit;
 
+    const { search, ...restFilters } = filters;
+    const keyword = String(search ?? "").trim();
+
     const where = {
       tenantId,
-      ...filters,
+      ...restFilters,
     };
+
+    if (keyword) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${keyword}%` } },
+        { description: { [Op.iLike]: `%${keyword}%` } },
+        ...(Number.isInteger(Number(keyword)) ? [{ numericLevel: Number(keyword) }] : []),
+      ];
+    }
 
     const { count, rows } = await this.model.findAndCountAll({
       where,

@@ -57,17 +57,15 @@ export class AcademicYearService {
   async getAllAcademicYears(tenantId, query) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
+    const search = String(query.search || "").trim();
 
     const filters = {};
     if (query.isCurrent === "true") filters.isCurrent = true;
     if (query.isLocked === "true") filters.isLocked = true;
 
-    return await academicYearRepo.findWithPagination(
-      tenantId,
-      filters,
-      page,
-      limit,
-    );
+    if (search) filters.search = search;
+
+    return await academicYearRepo.findWithPagination(tenantId, filters, page, limit);
   }
 
   async getAcademicYearById(id, tenantId) {

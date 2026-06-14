@@ -44,6 +44,11 @@ import {
 // // --- Infrastructure ---
 import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
 
+// --- Fee Management ---
+import { FeeHead } from "./FeeStructure/FeeHead.js";
+import { FeeStructure } from "./FeeStructure/FeeStructure.js";
+import { FeeStructureItem } from "./FeeStructure/FeeStructureItem.js";
+
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
 // ==========================================
@@ -100,7 +105,14 @@ User.hasOne(Staff, { foreignKey: "userId", as: "staffProfile" });
 Staff.belongsTo(User, { foreignKey: "userId", as: "user" });
 Staff.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 
+User.hasOne(Guardian, { foreignKey: "userId", as: "guardianProfile" });
+Guardian.belongsTo(User, { foreignKey: "userId", as: "user" });
+Guardian.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+
 Student.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+
+// Student -> Sibling (self-referential)
+Student.belongsTo(Student, { foreignKey: "siblingId", as: "sibling" });
 
 // ==========================================
 // 4. ACADEMIC & ENROLLMENT LOGIC
@@ -112,6 +124,10 @@ AcademicYear.belongsTo(Tenant, { foreignKey: "tenantId" });
 // Class -> Section
 Class.hasMany(Section, { foreignKey: "classId", as: "sections" });
 Section.belongsTo(Class, { foreignKey: "classId", as: "class" });
+
+// Class Teacher (User) -> Section
+Section.belongsTo(User, { foreignKey: "classTeacherId", as: "classTeacher" });
+User.hasMany(Section, { foreignKey: "classTeacherId", as: "sectionsAssigned" });
 
 // Academic Year -> Section
 Section.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
@@ -140,6 +156,31 @@ Guardian.belongsToMany(Student, {
   foreignKey: "guardianId",
   as: "students",
 });
+Guardian.hasMany(StudentGuardianMap, {
+  foreignKey: 'guardianId',
+  as: 'studentMappings',
+});
+
+// ==========================================
+// 6. FEE MANAGEMENT
+// ==========================================
+// FeeHead relations
+Tenant.hasMany(FeeHead, { foreignKey: "tenantId", as: "feeHeads" });
+FeeHead.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+
+// FeeStructure relations
+Tenant.hasMany(FeeStructure, { foreignKey: "tenantId", as: "feeStructures" });
+FeeStructure.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+FeeStructure.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
+AcademicYear.hasMany(FeeStructure, { foreignKey: "academicYearId", as: "feeStructures" });
+FeeStructure.belongsTo(Class, { foreignKey: "classId", as: "class" });
+Class.hasMany(FeeStructure, { foreignKey: "classId", as: "feeStructures" });
+
+// FeeStructureItem (Mapping) relations
+FeeStructure.hasMany(FeeStructureItem, { foreignKey: "feeStructureId", as: "items" });
+FeeStructureItem.belongsTo(FeeStructure, { foreignKey: "feeStructureId", as: "feeStructure" });
+FeeHead.hasMany(FeeStructureItem, { foreignKey: "feeHeadId", as: "structures" });
+FeeStructureItem.belongsTo(FeeHead, { foreignKey: "feeHeadId", as: "feeHead" });
 
 // ==========================================
 // 6. EXAM GRADING LOGIC
@@ -216,8 +257,11 @@ export {
   Timetable,
   TimetableSlot,
   ExamGroup,
-ExamSchedule,
-Mark,
-GradeScale,
-GradeScaleRule,
+  ExamSchedule,
+  Mark,
+  GradeScale,
+  GradeScaleRule,
+  FeeHead,
+  FeeStructure,
+  FeeStructureItem,
 };

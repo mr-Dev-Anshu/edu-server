@@ -20,7 +20,7 @@ const StudentGuardianMap = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
       references: { model: "guardians", key: "id" },
-      onDelete: "CASCADE",
+      onDelete: "RESTRICT",
     },
     relationType: {
       type: DataTypes.ENUM("father", "mother", "guardian", "other"),

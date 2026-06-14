@@ -74,23 +74,47 @@ const ensureDisallowedField = (value, fieldName) => {
   }
 };
 
-// Create Enrollment Validator
+// Validate single enrollment payload
+const validateSingleEnrollment = (payload, index = null) => {
+  const prefix = index !== null ? `[${index}]` : "";
+  
+  if (!payload || typeof payload !== 'object') {
+    throw new AppError(`${prefix} Enrollment must be an object`, 400);
+  }
+
+  ensureUuid(payload.studentId, `${prefix}studentId`);
+  ensureUuid(payload.sectionId, `${prefix}sectionId`);
+  ensureUuid(payload.academicYearId, `${prefix}academicYearId`);
+
+  ensureOptionalString(payload.rollNumber, `${prefix}rollNumber`, { min: 1, max: 30 });
+  ensureOptionalStatus(payload.enrollmentStatus, `${prefix}enrollmentStatus`);
+
+  if (payload.isCurrent !== undefined) {
+    ensureBoolean(payload.isCurrent, `${prefix}isCurrent`);
+  }
+};
+
+// Create Enrollment Validator (handles both single and bulk)
 export const createEnrollmentValidator = createValidator((req) => {
   const { body } = req;
 
-  ensureNoTenantId(body);
-
-  // Required fields
-  ensureUuid(body.studentId, "studentId");
-  ensureUuid(body.sectionId, "sectionId");
-  ensureUuid(body.academicYearId, "academicYearId");
-
-  // Optional
-  ensureOptionalString(body.rollNumber, "rollNumber", { min: 1, max: 30 });
-  ensureOptionalStatus(body.enrollmentStatus, "enrollmentStatus");
-
-  if (body.isCurrent !== undefined) {
-    ensureBoolean(body.isCurrent, "isCurrent");
+  // Check if it's an array (bulk) or single object
+  if (Array.isArray(body)) {
+    if (body.length === 0) {
+      throw new AppError("Enrollment array cannot be empty", 400);
+    }
+    
+    // Validate each enrollment in array
+    body.forEach((enrollment, index) => {
+      if (enrollment.tenantId !== undefined || enrollment.tenant_id !== undefined) {
+        throw new AppError(`[${index}] tenantId may not be provided in request body`, 400);
+      }
+      validateSingleEnrollment(enrollment, index);
+    });
+  } else {
+    // Single enrollment
+    ensureNoTenantId(body);
+    validateSingleEnrollment(body);
   }
 });
 

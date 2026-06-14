@@ -18,7 +18,9 @@ import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
 
-import guardianRouter from './router/guardian.router.js'
+import guardianRouter from './router/guardian.router.js';
+import webhookEndpointRouter from './router/webhook-endpoint.router.js';
+import biometricPunchRouter from './router/biometric-punch.router.js';
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -66,7 +68,9 @@ app.use('/api/v1/classes', classRouter);
 app.use('/api/v1/sections', sectionRouter);
 app.use('/api/v1/students', studentRouter);
 app.use('/api/v1/enrollments', enrollmentRouter);
-app.use('/api/v1/guardians' , guardianRouter)
+app.use('/api/v1/guardians' , guardianRouter);
+app.use('/api/v1/webhook-endpoints', webhookEndpointRouter);
+app.use('/api/v1/biometric-punches', biometricPunchRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

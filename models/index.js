@@ -39,6 +39,7 @@ import Subject from './Academic/Subject.js';
 
 // // --- Infrastructure ---
 import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
+import { WebhookEndpoint, BiometricPunch } from "./platform/Infrastructure.js";
 
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
@@ -95,6 +96,8 @@ Student.belongsTo(User, { foreignKey: "userId", as: "user" });
 User.hasOne(Staff, { foreignKey: "userId", as: "staffProfile" });
 Staff.belongsTo(User, { foreignKey: "userId", as: "user" });
 Staff.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+Staff.hasMany(BiometricPunch, { foreignKey: "staffId", as: "biometricPunches" });
+BiometricPunch.belongsTo(Staff, { foreignKey: "staffId", as: "staff" });
 
 User.hasOne(Guardian, { foreignKey: "userId", as: "guardianProfile" });
 Guardian.belongsTo(User, { foreignKey: "userId", as: "user" });
@@ -177,4 +180,6 @@ export {
   Room,
   Timetable,
   TimetableSlot,
+  WebhookEndpoint,
+  BiometricPunch,
 };

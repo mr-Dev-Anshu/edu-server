@@ -29,6 +29,10 @@ import StudentGuardianMap from "./StudentGaurdianMap.js";
 // import Section from './Academic/Section.js';
 import Subject from './Academic/Subject.js';
 
+import {
+ ExamGroup, ExamSchedule, Mark, GradeScale, GradeScaleRule,
+} from "./exams/Exams.js"
+
 // // --- Users & Relationships ---
 // import Student from './Students.js';
 // import Staff from './Staff.js';
@@ -178,6 +182,55 @@ FeeStructureItem.belongsTo(FeeStructure, { foreignKey: "feeStructureId", as: "fe
 FeeHead.hasMany(FeeStructureItem, { foreignKey: "feeHeadId", as: "structures" });
 FeeStructureItem.belongsTo(FeeHead, { foreignKey: "feeHeadId", as: "feeHead" });
 
+// ==========================================
+// 6. EXAM GRADING LOGIC
+// ==========================================
+GradeScale.hasMany(GradeScaleRule, {
+  foreignKey: "gradeScaleId",
+  as: "gradeScaleRules",
+});
+GradeScaleRule.belongsTo(GradeScale, {
+  foreignKey: "gradeScaleId",
+  as: "gradeScale",
+});
+
+GradeScale.hasMany(ExamGroup, {
+  foreignKey: "grading_scheme_id",
+  as: "examGroups",
+});
+
+ExamGroup.belongsTo(GradeScale, {
+  foreignKey: "grading_scheme_id",
+  as: "gradingScheme",
+});
+
+// Connection between ExamGroup and its detailed Schedule allocations
+ExamGroup.hasMany(ExamSchedule, {
+  foreignKey: "exam_group_id",
+  as: "schedules",
+  onDelete: "CASCADE",
+});
+
+ExamSchedule.belongsTo(ExamGroup, {
+  foreignKey: "exam_group_id",
+  as: "examGroup",
+});
+
+// ==========================================
+// 7. EXAM SCHEDULE RELATIONSHIPS
+// ==========================================
+// One scheduled slot has many students marks entries mapped
+ExamSchedule.hasMany(Mark, {
+  foreignKey: "exam_schedule_id",
+  as: "marks",
+  onDelete: "CASCADE",
+});
+
+Mark.belongsTo(ExamSchedule, {
+  foreignKey: "exam_schedule_id",
+  as: "examSchedule",
+});
+
 Tenant.addScope("active", { where: { status: "active" } });
 
 export {
@@ -203,6 +256,11 @@ export {
   Room,
   Timetable,
   TimetableSlot,
+  ExamGroup,
+  ExamSchedule,
+  Mark,
+  GradeScale,
+  GradeScaleRule,
   FeeHead,
   FeeStructure,
   FeeStructureItem,

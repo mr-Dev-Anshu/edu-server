@@ -1,0 +1,70 @@
+import { ExamGroup, AcademicYear, GradeScale } from "../../models/index.js";
+import { BaseRepository } from "../base.repository.js";
+
+// Reusable include for populated exam group responses
+const examGroupIncludes = [
+  {
+    model: AcademicYear,
+    as: "academicYear",
+    attributes: ["id", "name", "startDate", "endDate"],
+  },
+  {
+    model: GradeScale,
+    as: "gradingScheme",
+    attributes: ["id", "name", "scaleType", "isDefault"],
+  },
+];
+
+export class ExamGroupRepository extends BaseRepository {
+  constructor() {
+    super(ExamGroup);
+  }
+
+  async findByName(name, tenantId) {
+    return await this.model.findOne({ where: { name, tenantId } });
+  }
+
+  async findByAcademicYear(academicYearId, tenantId) {
+    return await this.model.findAll({
+      where: { academicYearId, tenantId },
+      order: [["startDate", "ASC"]],
+      include: examGroupIncludes,
+    });
+  }
+
+  async findByIdPopulated(id, tenantId) {
+    return await this.model.findOne({
+      where: { id, tenantId },
+      include: examGroupIncludes,
+    });
+  }
+
+  async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    const where = { tenantId, ...filters };
+
+    const { count, rows } = await this.model.findAndCountAll({
+      where,
+      offset,
+      limit,
+      order: [["createdAt", "DESC"]],
+      include: examGroupIncludes,
+      distinct: true,
+    });
+
+    return {
+      total: count,
+      page,
+      limit,
+      pages: Math.ceil(count / limit),
+      data: rows,
+    };
+  }
+
+  async setResultPublished(id, tenantId, value) {
+    return await this.model.update(
+      { isResultPublished: value },
+      { where: { id, tenantId } }
+    );
+  }
+}

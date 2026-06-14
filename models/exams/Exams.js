@@ -43,6 +43,10 @@ export const ExamGroup = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "exam_groups",
+    // indexes: [
+    //   ...tenantIndex(["academic_year_id"]),
+    //   ...tenantIndex(["exam_type"]),
+    // ],
   },
 );
 
@@ -80,6 +84,7 @@ export const ExamSchedule = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "exam_schedules",
+    // indexes: [...tenantIndex(["exam_group_id"]), ...tenantIndex(["exam_date"])],
   },
 );
 

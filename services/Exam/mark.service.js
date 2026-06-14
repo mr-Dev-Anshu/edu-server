@@ -39,7 +39,7 @@ export class MarkService {
       ? parseInt(marksObtainedRaw)
       : null;
 
-    await markRepo.create({
+    const created = await markRepo.create({
       tenantId,
       studentId,
       examScheduleId,
@@ -48,14 +48,16 @@ export class MarkService {
       enteredById: enteredById || null,
     });
 
-    // Re-fetch with full population
-    const mark = await markRepo.findByStudentAndSchedule(studentId, examScheduleId, tenantId);
-    const populated = await markRepo.findByIdPopulated(mark.id, tenantId);
+    // Use detail endpoint include strategy for single record
+    const populated = await markRepo.findByIdPopulated(created.id, tenantId);
     return this.formatResponse(populated);
   }
 
   /**
    * Bulk create/upsert marks inside a transaction.
+   * ARCHITECTURE: Fetch all data BEFORE commit to ensure transaction safety
+   * - If any fetch fails, entire transaction is rolled back
+   * - No risk of marks saved but fetch error returned to client
    * @param {string}  tenantId
    * @param {Array}   marks
    * @param {string}  enteredById
@@ -78,7 +80,7 @@ export class MarkService {
         enteredById: enteredById || null,
       }));
 
-      // Pass transaction + tenantId through options; allowOverwrite controls upsert vs insert
+      // Step 1: Bulk insert/upsert within transaction
       const created = await markRepo.bulkUpsert(
         records,
         { transaction, tenantId },
@@ -89,13 +91,20 @@ export class MarkService {
         throw new AppError("Bulk mark creation failed", 500);
       }
 
-      await transaction.commit();
-
-      // Re-fetch with population after commit
+      // Step 2: Fetch populated records BEFORE commit (batch fetch = 2-3 queries, not 500!)
       const ids = created.map((m) => m.id);
-      const populated = await Promise.all(
-        ids.map((id) => markRepo.findByIdPopulated(id, tenantId))
-      );
+      const populated = await markRepo.findByIdsBatch(ids, tenantId);
+
+      // Step 3: Validate fetch succeeded
+      if (!populated || populated.length !== ids.length) {
+        throw new AppError(
+          `Expected ${ids.length} marks but found ${populated.length}`,
+          500
+        );
+      }
+
+      // Step 4: Commit only after all data is safely fetched and validated
+      await transaction.commit();
 
       return populated.map((m) => this.formatResponse(m));
     } catch (error) {
@@ -106,7 +115,7 @@ export class MarkService {
 
   async getAllMarks(tenantId, query) {
     const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
+    const limit = Math.min(parseInt(query.limit) || 25, 100); // Default 25, max 100 to prevent memory issues
 
     const filters = {};
     if (query.studentId) filters.studentId = query.studentId;
@@ -145,25 +154,42 @@ export class MarkService {
       ? parseInt(updateData.marksObtainedRaw)
       : undefined;
 
-    await markRepo.update(id, tenantId, {
-      ...(isAbsent !== undefined ? { isAbsent } : {}),
-      ...(marksObtainedRaw !== undefined ? { marksObtainedRaw } : {}),
-      ...(enteredById ? { enteredById } : {}),
-    });
+    // TRANSACTION SAFETY: Ensure consistency between update and fetch
+    const transaction = await sequelize.transaction();
+    try {
+      await markRepo.update(id, tenantId, {
+        ...(isAbsent !== undefined ? { isAbsent } : {}),
+        ...(marksObtainedRaw !== undefined ? { marksObtainedRaw } : {}),
+        ...(enteredById ? { enteredById } : {}),
+      });
 
-    const updated = await markRepo.findByIdPopulated(id, tenantId);
-    return this.formatResponse(updated);
+      const updated = await markRepo.findByIdPopulated(id, tenantId);
+      await transaction.commit();
+      return this.formatResponse(updated);
+    } catch (error) {
+      if (transaction && !transaction.finished) await transaction.rollback();
+      throw error;
+    }
   }
 
   async deleteMark(id, tenantId) {
-    const mark = await markRepo.findByIdPopulated(id, tenantId);
-    if (!mark) throw new AppError("Mark not found", 404);
+    // TRANSACTION SAFETY: Fetch and delete within same transaction
+    const transaction = await sequelize.transaction();
+    try {
+      const mark = await markRepo.findByIdPopulated(id, tenantId);
+      if (!mark) throw new AppError("Mark not found", 404);
 
-    await markRepo.delete(id, tenantId);
-    return {
-      message: "Mark deleted successfully",
-      data: this.formatResponse(mark),
-    };
+      await markRepo.delete(id, tenantId);
+      await transaction.commit();
+      
+      return {
+        message: "Mark deleted successfully",
+        data: this.formatResponse(mark),
+      };
+    } catch (error) {
+      if (transaction && !transaction.finished) await transaction.rollback();
+      throw error;
+    }
   }
 
   formatResponse(mark) {

@@ -2,8 +2,49 @@ import { Op } from "sequelize";
 import { Mark, Student, User, ExamSchedule, Subject, Section } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
-// Reusable include for populated mark responses
-const markIncludes = [
+// Lightweight includes for list endpoints (prevents N+1 with separate: true)
+const markIncludesLight = [
+  {
+    model: Student,
+    as: "student",
+    attributes: ["id", "firstName", "middleName", "lastName", "admissionNumber", "rollNumber"],
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["id", "email"],
+      },
+    ],
+    separate: true,
+  },
+  {
+    model: ExamSchedule,
+    as: "examSchedule",
+    attributes: ["id", "examDate", "startTime", "endTime", "maxMarks", "passingMarks"],
+    include: [
+      {
+        model: Subject,
+        as: "subject",
+        attributes: ["id", "name", "code"],
+      },
+      {
+        model: Section,
+        as: "section",
+        attributes: ["id", "name"],
+      },
+    ],
+    separate: true,
+  },
+  {
+    model: User,
+    as: "enteredBy",
+    attributes: ["id", "firstName", "lastName", "email"],
+    separate: true,
+  },
+];
+
+// Full includes for detail endpoints
+const markIncludesFull = [
   {
     model: Student,
     as: "student",
@@ -48,20 +89,37 @@ export class MarkRepository extends BaseRepository {
   async findByStudentAndSchedule(studentId, examScheduleId, tenantId) {
     return await this.model.findOne({
       where: { studentId, examScheduleId, tenantId },
+      attributes: ["id"],
     });
   }
 
   async findByExamSchedule(examScheduleId, tenantId) {
     return await this.model.findAll({
       where: { examScheduleId, tenantId },
-      include: markIncludes,
+      include: markIncludesLight,
+      order: [["createdAt", "DESC"]],
     });
   }
 
   async findByStudent(studentId, tenantId) {
     return await this.model.findAll({
       where: { studentId, tenantId },
-      include: markIncludes,
+      include: markIncludesLight,
+      order: [["createdAt", "DESC"]],
+    });
+  }
+
+  /**
+   * Batch fetch multiple marks by IDs (efficient for bulk operations)
+   * Uses separate: true to prevent N+1 queries
+   * Fetches in single query with efficient include strategy
+   */
+  async findByIdsBatch(ids, tenantId) {
+    if (!ids || ids.length === 0) return [];
+    return await this.model.findAll({
+      where: { id: ids, tenantId },
+      include: markIncludesLight,
+      order: [["createdAt", "DESC"]],
     });
   }
 
@@ -120,12 +178,13 @@ export class MarkRepository extends BaseRepository {
     const offset = (page - 1) * limit;
     const where = { tenantId, ...filters };
 
+    // Use lightweight includes for pagination to prevent N+1
     const { count, rows } = await this.model.findAndCountAll({
       where,
       offset,
       limit,
       order: [["createdAt", "DESC"]],
-      include: markIncludes,
+      include: markIncludesLight,
       distinct: true,
     });
 
@@ -139,9 +198,10 @@ export class MarkRepository extends BaseRepository {
   }
 
   async findByIdPopulated(id, tenantId) {
+    // Use full includes for detail endpoint
     return await this.model.findOne({
       where: { id, tenantId },
-      include: markIncludes,
+      include: markIncludesFull,
     });
   }
 }

@@ -1,12 +1,24 @@
 import { MarkRepository } from "../../repositories/Exam/mark.repository.js";
 import { ExamScheduleRepository } from "../../repositories/Exam/examSchedule.repository.js";
 import { StudentRepository } from "../../repositories/student.repository.js";
+import { StudentSectionEnrollmentRepository } from "../../repositories/studentSectionEnrollment.repository.js";
+import { ExamGroupRepository } from "../../repositories/Exam/examGroup.repository.js";
+import { AcademicYearRepository } from "../../repositories/Academic/academicYear.repository.js";
+import { ClassRepository } from "../../repositories/Academic/class.repository.js";
+import { SectionRepository } from "../../repositories/Academic/section.repository.js";
+import { ClassSubjectRepository } from "../../repositories/Academic/subject/ClassSubject.repository.js";
 import { AppError } from "../../utils/AppError.js";
 import sequelize from "../../config/db.js";
 
 const markRepo = new MarkRepository();
 const examScheduleRepo = new ExamScheduleRepository();
 const studentRepo = new StudentRepository();
+const enrollmentRepo = new StudentSectionEnrollmentRepository();
+const examGroupRepo = new ExamGroupRepository();
+const academicYearRepo = new AcademicYearRepository();
+const classRepo = new ClassRepository();
+const sectionRepo = new SectionRepository();
+const classSubjectRepo = new ClassSubjectRepository();
 
 export class MarkService {
   async createMark(tenantId, payload, enteredById) {
@@ -126,6 +138,150 @@ export class MarkService {
     return await markRepo.findWithPagination(tenantId, filters, page, limit);
   }
 
+  /**
+   * Get marks entry data with students and existing marks.
+   * 
+   * Query parameters:
+   * - academicYearId (required)
+   * - examGroupId (required)
+   * - classId (required)
+   * - sectionId (required)
+   * - subjectId (required)
+   * 
+   * Returns:
+   * {
+   *   examSchedule: { id, examDate, maxMarks, passingMarks },
+   *   students: [
+   *     {
+   *       studentId, admissionNumber, rollNumber, studentName,
+   *       markId, marksObtainedRaw, isAbsent,
+   *       status: "entered|not_entered|absent"
+   *     }
+   *   ]
+   * }
+   */
+  async getMarksEntryData(tenantId, filters) {
+    const { academicYearId, examGroupId, classId, sectionId, subjectId } = filters;
+
+    // Validate all required parameters
+    if (!academicYearId) throw new AppError("academicYearId is required", 400);
+    if (!examGroupId) throw new AppError("examGroupId is required", 400);
+    if (!classId) throw new AppError("classId is required", 400);
+    if (!sectionId) throw new AppError("sectionId is required", 400);
+    if (!subjectId) throw new AppError("subjectId is required", 400);
+
+    // FIX 1: Validate Academic Year exists
+    const academicYear = await academicYearRepo.findById(academicYearId, tenantId);
+    if (!academicYear) {
+      throw new AppError("Academic year not found", 404);
+    }
+
+    // FIX 1: Validate Exam Group exists and belongs to Academic Year
+    const examGroup = await examGroupRepo.findById(examGroupId, tenantId);
+    if (!examGroup) {
+      throw new AppError("Exam group not found", 404);
+    }
+    if (examGroup.academicYearId !== academicYearId) {
+      throw new AppError("Exam group does not belong to the selected academic year", 400);
+    }
+
+    // FIX 2: Validate Class exists
+    const cls = await classRepo.findById(classId, tenantId);
+    if (!cls) {
+      throw new AppError("Class not found", 404);
+    }
+
+    // FIX 2: Validate Section exists and belongs to Class
+    const section = await sectionRepo.findById(sectionId, tenantId);
+    if (!section) {
+      throw new AppError("Section not found", 404);
+    }
+    if (section.classId !== classId) {
+      throw new AppError("Section does not belong to the selected class", 400);
+    }
+
+    // Validate ClassSubject exists and belongs to Class
+    const classSubject = await classSubjectRepo.findById(subjectId, tenantId);
+    if (!classSubject) {
+      throw new AppError("Subject not found", 404);
+    }
+    if (classSubject.classId !== classId) {
+      throw new AppError("Subject is not assigned to the selected class", 400);
+    }
+
+    // FIX 3: Use repository method instead of direct model access
+    const schedule = await examScheduleRepo.findScheduleForMarksEntry(
+      examGroupId,
+      sectionId,
+      subjectId,
+      tenantId
+    );
+
+    if (!schedule) {
+      throw new AppError(
+        "Exam schedule not found for the selected exam group, section, and subject",
+        404
+      );
+    }
+
+    // Step 2: Fetch all students in the section
+    const enrollments = await enrollmentRepo.findStudentsBySection(sectionId, tenantId);
+
+    if (enrollments.length === 0) {
+      // No students in section, but this is valid - return empty marks entry
+      return {
+        examSchedule: {
+          id: schedule.id,
+          examDate: schedule.examDate,
+          maxMarks: schedule.maxMarks,
+          passingMarks: schedule.passingMarks,
+        },
+        students: [],
+      };
+    }
+
+    // Step 3: Fetch existing marks for this exam schedule
+    const marks = await markRepo.findByExamScheduleLight(schedule.id, tenantId);
+
+    // Create a map for O(1) mark lookup
+    const markMap = new Map();
+    marks.forEach((mark) => {
+      markMap.set(mark.studentId, mark);
+    });
+
+    // Step 4: Merge students and marks
+    const students = enrollments.map((enrollment) => {
+      const student = enrollment.student;
+      const mark = markMap.get(student.id);
+
+      let status = "not_entered";
+      if (mark) {
+        status = mark.isAbsent ? "absent" : "entered";
+      }
+
+      return {
+        studentId: student.id,
+        admissionNumber: student.admissionNumber,
+        rollNumber: enrollment.rollNumber,
+        studentName: `${student.firstName} ${student.middleName ? student.middleName + " " : ""}${student.lastName}`.trim(),
+        markId: mark?.id || null,
+        marksObtainedRaw: mark?.marksObtainedRaw || null,
+        isAbsent: mark?.isAbsent || false,
+        status,
+      };
+    });
+
+    return {
+      examSchedule: {
+        id: schedule.id,
+        examDate: schedule.examDate,
+        maxMarks: schedule.maxMarks,
+        passingMarks: schedule.passingMarks,
+      },
+      students,
+    };
+  }
+
   async getMarkById(id, tenantId) {
     const mark = await markRepo.findByIdPopulated(id, tenantId);
     if (!mark) throw new AppError("Mark not found", 404);
@@ -154,16 +310,21 @@ export class MarkService {
       ? parseInt(updateData.marksObtainedRaw)
       : undefined;
 
-    // TRANSACTION SAFETY: Ensure consistency between update and fetch
+    // FIX 4: Pass transaction options through repository methods
     const transaction = await sequelize.transaction();
     try {
-      await markRepo.update(id, tenantId, {
-        ...(isAbsent !== undefined ? { isAbsent } : {}),
-        ...(marksObtainedRaw !== undefined ? { marksObtainedRaw } : {}),
-        ...(enteredById ? { enteredById } : {}),
-      });
+      await markRepo.update(
+        id,
+        tenantId,
+        {
+          ...(isAbsent !== undefined ? { isAbsent } : {}),
+          ...(marksObtainedRaw !== undefined ? { marksObtainedRaw } : {}),
+          ...(enteredById ? { enteredById } : {}),
+        },
+        { transaction }
+      );
 
-      const updated = await markRepo.findByIdPopulated(id, tenantId);
+      const updated = await markRepo.findByIdPopulated(id, tenantId, { transaction });
       await transaction.commit();
       return this.formatResponse(updated);
     } catch (error) {
@@ -173,13 +334,13 @@ export class MarkService {
   }
 
   async deleteMark(id, tenantId) {
-    // TRANSACTION SAFETY: Fetch and delete within same transaction
+    // FIX 4: Pass transaction options through repository methods
     const transaction = await sequelize.transaction();
     try {
-      const mark = await markRepo.findByIdPopulated(id, tenantId);
+      const mark = await markRepo.findByIdPopulated(id, tenantId, { transaction });
       if (!mark) throw new AppError("Mark not found", 404);
 
-      await markRepo.delete(id, tenantId);
+      await markRepo.delete(id, tenantId, { transaction });
       await transaction.commit();
       
       return {
@@ -215,7 +376,17 @@ export class MarkService {
             endTime: mark.examSchedule.endTime,
             maxMarks: mark.examSchedule.maxMarks,
             passingMarks: mark.examSchedule.passingMarks,
-            subject: mark.examSchedule.subject || null,
+            subject: mark.examSchedule.subject
+              ? (mark.examSchedule.subject.subject
+                ? {
+                    id: mark.examSchedule.subject.subject.id,
+                    name: mark.examSchedule.subject.subject.name,
+                    type: mark.examSchedule.subject.subject.type,
+                    code: mark.examSchedule.subject.code || null,
+                    classSubjectId: mark.examSchedule.subject.id,
+                  }
+                : mark.examSchedule.subject)
+              : null,
             section: mark.examSchedule.section || null,
           }
         : { id: mark.examScheduleId },

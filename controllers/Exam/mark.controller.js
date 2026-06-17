@@ -48,6 +48,16 @@ export class MarkController {
     res.status(200).json({ success: true, ...result });
   });
 
+  /**
+   * GET /marks/entry
+   * Query params: academicYearId, examGroupId, classId, sectionId, subjectId
+   * Returns students and existing marks for marks entry form
+   */
+  getEntry = catchAsync(async (req, res) => {
+    const data = await markService.getMarksEntryData(req.tenantId, req.query);
+    res.status(200).json({ success: true, data });
+  });
+
   getOne = catchAsync(async (req, res) => {
     const data = await markService.getMarkById(req.params.id, req.tenantId);
     res.status(200).json({ success: true, data });

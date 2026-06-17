@@ -67,7 +67,7 @@ export const ExamSchedule = sequelize.define(
     subjectId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: "subjects", key: "id" },
+      references: { model: "class_subjects", key: "id" },
     },
     sectionId: {
       type: DataTypes.UUID,
@@ -85,7 +85,13 @@ export const ExamSchedule = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "exam_schedules",
-    // indexes: [...tenantIndex(["exam_group_id"]), ...tenantIndex(["exam_date"])],
+    indexes: [
+      {
+        unique: true,
+        fields: ["tenant_id", "exam_group_id", "subject_id", "section_id"],
+        name: "unique_exam_schedule_per_group_subject_section",
+      },
+    ],
   },
 );
 

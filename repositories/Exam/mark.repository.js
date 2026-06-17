@@ -1,8 +1,8 @@
 import { Op } from "sequelize";
-import { Mark, Student, User, ExamSchedule, Subject, Section } from "../../models/index.js";
+import { Mark, Student, User, ExamSchedule, SubjectMaster, ClassSubject, Section } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
-// Lightweight includes for list endpoints (prevents N+1 with separate: true)
+// Lightweight includes for list endpoints (prevents N+1 with proper eager loading)
 const markIncludesLight = [
   {
     model: Student,
@@ -15,7 +15,6 @@ const markIncludesLight = [
         attributes: ["id", "email"],
       },
     ],
-    separate: true,
   },
   {
     model: ExamSchedule,
@@ -23,9 +22,16 @@ const markIncludesLight = [
     attributes: ["id", "examDate", "startTime", "endTime", "maxMarks", "passingMarks"],
     include: [
       {
-        model: Subject,
+        model: ClassSubject,
         as: "subject",
-        attributes: ["id", "name", "code"],
+        attributes: ["id", "code"],
+        include: [
+          {
+            model: SubjectMaster,
+            as: "subject",
+            attributes: ["id", "name", "type"],
+          },
+        ],
       },
       {
         model: Section,
@@ -33,13 +39,11 @@ const markIncludesLight = [
         attributes: ["id", "name"],
       },
     ],
-    separate: true,
   },
   {
     model: User,
     as: "enteredBy",
     attributes: ["id", "firstName", "lastName", "email"],
-    separate: true,
   },
 ];
 
@@ -63,9 +67,16 @@ const markIncludesFull = [
     attributes: ["id", "examDate", "startTime", "endTime", "maxMarks", "passingMarks"],
     include: [
       {
-        model: Subject,
+        model: ClassSubject,
         as: "subject",
-        attributes: ["id", "name", "code"],
+        attributes: ["id", "code"],
+        include: [
+          {
+            model: SubjectMaster,
+            as: "subject",
+            attributes: ["id", "name", "type"],
+          },
+        ],
       },
       {
         model: Section,
@@ -111,8 +122,7 @@ export class MarkRepository extends BaseRepository {
 
   /**
    * Batch fetch multiple marks by IDs (efficient for bulk operations)
-   * Uses separate: true to prevent N+1 queries
-   * Fetches in single query with efficient include strategy
+   * Fetches in single query with efficient eager loading strategy
    */
   async findByIdsBatch(ids, tenantId) {
     if (!ids || ids.length === 0) return [];
@@ -202,6 +212,19 @@ export class MarkRepository extends BaseRepository {
     return await this.model.findOne({
       where: { id, tenantId },
       include: markIncludesFull,
+    });
+  }
+
+  /**
+   * Fetch all marks for a specific exam schedule.
+   * Used by marks entry endpoint to load existing marks.
+   * Avoids N+1 by fetching all marks in single query.
+   */
+  async findByExamScheduleLight(examScheduleId, tenantId) {
+    return await this.model.findAll({
+      where: { examScheduleId, tenantId },
+      attributes: ["id", "studentId", "marksObtainedRaw", "isAbsent"],
+      raw: true,
     });
   }
 }

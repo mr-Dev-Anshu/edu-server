@@ -13,6 +13,7 @@ import staffRouter from './router/staff.router.js';
 import academicYearRouter from './router/Academic/academicYear.routes.js';
 import classRouter from './router/Academic/class.routes.js';
 import sectionRouter from "./router/Academic/section.routes.js";
+import subjectRouter from "./router/Academic/subject.router.js";
 import studentRouter from "./router/student.routes.js";
 import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
 import feeHeadRouter from "./router/FeeStructure/feeHead.router.js";
@@ -21,6 +22,12 @@ import feeStructureItemRouter from "./router/FeeStructure/feeStructureItem.route
 import studentFeesLedgerRouter from "./router/FeeStructure/studentFeesLedger.router.js";
 import { globalErrorHandler } from './middlewares/error/error.middleware.js';
 import cookieParser from 'cookie-parser';
+
+import examGroupRoutes from "./router/Exam/examGroup.routes.js";
+import examScheduleRoutes from "./router/Exam/examSchedule.routes.js";
+import markRoutes from "./router/Exam/mark.routes.js";
+import gradeScaleRoutes from "./router/Exam/gradeScale.routes.js";
+import gradeScaleRuleRoutes from "./router/Exam/gradeScaleRule.routes.js";
 
 import guardianRouter from './router/guardian.router.js'
 
@@ -68,6 +75,7 @@ app.use('/api/v1/staff', staffRouter);
 app.use('/api/v1/academic-years', academicYearRouter);
 app.use('/api/v1/classes', classRouter);
 app.use('/api/v1/sections', sectionRouter);
+app.use('/api/v1/subjects', subjectRouter);
 app.use('/api/v1/students', studentRouter);
 app.use('/api/v1/enrollments', enrollmentRouter);
 app.use('/api/v1/guardians' , guardianRouter)
@@ -75,6 +83,12 @@ app.use('/api/v1/fee-heads', feeHeadRouter);
 app.use('/api/v1/fee-structures', feeStructureRouter);
 app.use('/api/v1/fee-structure-items', feeStructureItemRouter);
 app.use('/api/v1/fees-ledger', studentFeesLedgerRouter);
+
+app.use("/api/v1/exam-groups", examGroupRoutes);
+app.use("/api/v1/exam-schedules", examScheduleRoutes);
+app.use("/api/v1/marks", markRoutes);
+app.use("/api/v1/grade-scales", gradeScaleRoutes);
+app.use("/api/v1/grade-scale-rules", gradeScaleRuleRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

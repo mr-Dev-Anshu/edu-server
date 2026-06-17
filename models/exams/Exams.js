@@ -119,10 +119,9 @@ export const Mark = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "marks",
-    // indexes: [
-    //   { unique: true, fields: ["tenant_id", "student_id", "exam_schedule_id"] },
-    //   ...tenantIndex(["student_id"]),
-    // ],
+    indexes: [
+      { unique: true, fields: ["tenant_id", "student_id", "exam_schedule_id"] },
+    ],
   },
 );
 

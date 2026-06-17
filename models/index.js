@@ -27,7 +27,11 @@ import StudentGuardianMap from "./StudentGaurdianMap.js";
 // import AcademicYear from './Academic/AcademicYear.js';
 // import Class from './Academic/Class.js';
 // import Section from './Academic/Section.js';
-import Subject from './Academic/Subject.js';
+import { SubjectMaster, ClassSubject } from './Academic/Subject.js';
+
+import {
+ ExamGroup, ExamSchedule, Mark, GradeScale, GradeScaleRule,
+} from "./exams/Exams.js"
 
 // // --- Users & Relationships ---
 // import Student from './Students.js';
@@ -141,7 +145,18 @@ StudentSectionEnrollment.belongsTo(AcademicYear, { foreignKey: "academicYearId",
 TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId" });
 
 // ==========================================
-// 5. FAMILY TREE (Guardians)
+// 6. SUBJECT & CLASS SUBJECT MAPPINGS
+// ==========================================
+// SubjectMaster -> ClassSubject
+SubjectMaster.hasMany(ClassSubject, { foreignKey: "subjectMasterId", as: "classSubjects" });
+ClassSubject.belongsTo(SubjectMaster, { foreignKey: "subjectMasterId", as: "subject" });
+
+// Class -> ClassSubject
+Class.hasMany(ClassSubject, { foreignKey: "classId", as: "subjects" });
+ClassSubject.belongsTo(Class, { foreignKey: "classId", as: "class" });
+
+// ==========================================
+// 7. FAMILY TREE (Guardians)
 // ==========================================
 Student.belongsToMany(Guardian, {
   through: StudentGuardianMap,
@@ -180,6 +195,55 @@ FeeHead.hasMany(FeeStructureItem, { foreignKey: "feeHeadId", as: "structures" })
 FeeStructureItem.belongsTo(FeeHead, { foreignKey: "feeHeadId", as: "feeHead" });
 
 // ==========================================
+// 6. EXAM GRADING LOGIC
+// ==========================================
+GradeScale.hasMany(GradeScaleRule, {
+  foreignKey: "gradeScaleId",
+  as: "gradeScaleRules",
+});
+GradeScaleRule.belongsTo(GradeScale, {
+  foreignKey: "gradeScaleId",
+  as: "gradeScale",
+});
+
+GradeScale.hasMany(ExamGroup, {
+  foreignKey: "grading_scheme_id",
+  as: "examGroups",
+});
+
+ExamGroup.belongsTo(GradeScale, {
+  foreignKey: "grading_scheme_id",
+  as: "gradingScheme",
+});
+
+// Connection between ExamGroup and its detailed Schedule allocations
+ExamGroup.hasMany(ExamSchedule, {
+  foreignKey: "exam_group_id",
+  as: "schedules",
+  onDelete: "CASCADE",
+});
+
+ExamSchedule.belongsTo(ExamGroup, {
+  foreignKey: "exam_group_id",
+  as: "examGroup",
+});
+
+// ==========================================
+// 7. EXAM SCHEDULE RELATIONSHIPS
+// ==========================================
+// One scheduled slot has many students marks entries mapped
+ExamSchedule.hasMany(Mark, {
+  foreignKey: "exam_schedule_id",
+  as: "marks",
+  onDelete: "CASCADE",
+});
+
+Mark.belongsTo(ExamSchedule, {
+  foreignKey: "exam_schedule_id",
+  as: "examSchedule",
+});
+
+// ==========================================
 // 7. STUDENT FEES LEDGER
 // ==========================================
 StudentFeesLedger.belongsTo(StudentSectionEnrollment, { foreignKey: "studentId", as: "student" });
@@ -209,7 +273,8 @@ export {
   AcademicYear,
   Class,
   Section,
-  Subject,
+  SubjectMaster,
+  ClassSubject,
   Student,
   Staff,
   Guardian,
@@ -219,6 +284,11 @@ export {
   Room,
   Timetable,
   TimetableSlot,
+  ExamGroup,
+  ExamSchedule,
+  Mark,
+  GradeScale,
+  GradeScaleRule,
   FeeHead,
   FeeStructure,
   FeeStructureItem,

@@ -215,6 +215,17 @@ ExamGroup.belongsTo(GradeScale, {
   as: "gradingScheme",
 });
 
+AcademicYear.hasMany(ExamGroup, {
+  foreignKey: "academicYearId",
+  as: "examGroups",
+});
+
+ExamGroup.belongsTo(AcademicYear, {
+  foreignKey: "academicYearId",
+  as: "academicYear",
+});
+
+
 // Connection between ExamGroup and its detailed Schedule allocations
 ExamGroup.hasMany(ExamSchedule, {
   foreignKey: "exam_group_id",
@@ -240,6 +251,47 @@ ExamSchedule.hasMany(Mark, {
 Mark.belongsTo(ExamSchedule, {
   foreignKey: "exam_schedule_id",
   as: "examSchedule",
+});
+
+Student.hasMany(Mark, {
+  foreignKey: "studentId",
+  as: "marks",
+  onDelete: "CASCADE",
+});
+
+Mark.belongsTo(Student, {
+  foreignKey: "studentId",
+  as: "student",
+});
+
+User.hasMany(Mark, {
+  foreignKey: "enteredById",
+  as: "enteredMarks",
+});
+
+Mark.belongsTo(User, {
+  foreignKey: "enteredById",
+  as: "enteredBy",
+});
+
+ExamSchedule.belongsTo(ClassSubject, {
+  foreignKey: "subjectId",
+  as: "subject",
+});
+
+ClassSubject.hasMany(ExamSchedule, {
+  foreignKey: "subjectId",
+  as: "examSchedules",
+});
+
+ExamSchedule.belongsTo(Section, {
+  foreignKey: "sectionId",
+  as: "section",
+});
+
+Section.hasMany(ExamSchedule, {
+  foreignKey: "sectionId",
+  as: "examSchedules",
 });
 
 Tenant.addScope("active", { where: { status: "active" } });

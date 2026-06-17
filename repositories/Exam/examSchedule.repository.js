@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { ExamSchedule, ExamGroup, Subject, Section, Class, AcademicYear } from "../../models/index.js";
+import { ExamSchedule, ExamGroup, SubjectMaster, ClassSubject, Section, Class, AcademicYear } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
 // Reusable include for fully populated schedule responses
@@ -10,9 +10,16 @@ const scheduleIncludes = [
     attributes: ["id", "name", "examType", "startDate", "endDate", "isResultPublished"],
   },
   {
-    model: Subject,
+    model: ClassSubject,
     as: "subject",
-    attributes: ["id", "name", "code"],
+    attributes: ["id", "code", "isElective", "passingMarks"],
+    include: [
+      {
+        model: SubjectMaster,
+        as: "subject",
+        attributes: ["id", "name", "type"],
+      },
+    ],
   },
   {
     model: Section,
@@ -79,5 +86,23 @@ export class ExamScheduleRepository extends BaseRepository {
       pages: Math.ceil(count / limit),
       data: rows,
     };
+  }
+
+  /**
+   * Find exam schedule for marks entry (minimal data)
+   * Used by marks entry endpoint to validate schedule exists
+   * and fetch required metadata (maxMarks, passingMarks, etc.)
+   */
+  async findScheduleForMarksEntry(examGroupId, sectionId, subjectId, tenantId) {
+    return await this.model.findOne({
+      where: {
+        examGroupId,
+        sectionId,
+        subjectId,
+        tenantId,
+      },
+      attributes: ["id", "examDate", "maxMarks", "passingMarks"],
+      raw: true,
+    });
   }
 }

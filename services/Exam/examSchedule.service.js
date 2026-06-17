@@ -1,9 +1,13 @@
 import { ExamGroupRepository } from "../../repositories/Exam/examGroup.repository.js";
 import { ExamScheduleRepository } from "../../repositories/Exam/examSchedule.repository.js";
+import { SectionRepository } from "../../repositories/Academic/section.repository.js";
+import { ClassSubjectRepository } from "../../repositories/Academic/subject/ClassSubject.repository.js";
 import { AppError } from "../../utils/AppError.js";
 
 const examScheduleRepo = new ExamScheduleRepository();
 const examGroupRepo = new ExamGroupRepository();
+const sectionRepo = new SectionRepository();
+const classSubjectRepo = new ClassSubjectRepository();
 
 export class ExamScheduleService {
   async createExamSchedule(tenantId, payload) {
@@ -22,6 +26,16 @@ export class ExamScheduleService {
 
     if (startTime && endTime && startTime >= endTime) {
       throw new AppError("endTime must be after startTime", 400);
+    }
+
+    const section = await sectionRepo.findById(sectionId, tenantId);
+    if (!section) throw new AppError("Section not found", 404);
+
+    const classSubject = await classSubjectRepo.findById(subjectId, tenantId);
+    if (!classSubject) throw new AppError("Subject not assigned to any class", 404);
+
+    if (classSubject.classId !== section.classId) {
+      throw new AppError("The selected subject is not assigned to the class of the selected section", 400);
     }
 
     const conflict = await examScheduleRepo.findConflict(sectionId, subjectId, examDate, tenantId);
@@ -80,6 +94,21 @@ export class ExamScheduleService {
       throw new AppError("endTime must be after startTime", 400);
     }
 
+    if (updateData.sectionId !== undefined || updateData.subjectId !== undefined) {
+      const targetSectionId = updateData.sectionId !== undefined ? updateData.sectionId : schedule.sectionId;
+      const targetSubjectId = updateData.subjectId !== undefined ? updateData.subjectId : schedule.subjectId;
+
+      const section = await sectionRepo.findById(targetSectionId, tenantId);
+      if (!section) throw new AppError("Section not found", 404);
+
+      const classSubject = await classSubjectRepo.findById(targetSubjectId, tenantId);
+      if (!classSubject) throw new AppError("Subject not assigned to any class", 404);
+
+      if (classSubject.classId !== section.classId) {
+        throw new AppError("The selected subject is not assigned to the class of the selected section", 400);
+      }
+    }
+
     if (updateData.examDate || updateData.sectionId || updateData.subjectId) {
       const conflict = await examScheduleRepo.findConflict(
         updateData.sectionId || schedule.sectionId,
@@ -133,7 +162,17 @@ export class ExamScheduleService {
             isResultPublished: schedule.examGroup.isResultPublished,
           }
         : { id: schedule.examGroupId },
-      subject: schedule.subject || { id: schedule.subjectId },
+      subject: schedule.subject
+        ? (schedule.subject.subject
+          ? {
+              id: schedule.subject.subject.id,
+              name: schedule.subject.subject.name,
+              type: schedule.subject.subject.type,
+              code: schedule.subject.code || null,
+              classSubjectId: schedule.subject.id,
+            }
+          : schedule.subject)
+        : { id: schedule.subjectId },
       section: schedule.section
         ? {
             id: schedule.section.id,

@@ -1,0 +1,383 @@
+{
+  "info": {
+    "_postman_id": "marks-entry-collection",
+    "name": "Marks Entry Routes",
+    "description": "Marks Entry API endpoints for marking students",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Marks Entry Data",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "description": "JWT token for authentication"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/marks/entry?academicYearId={{academicYearId}}&examGroupId={{examGroupId}}&classId={{classId}}&sectionId={{sectionId}}&subjectId={{subjectId}}",
+          "protocol": "http",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "marks",
+            "entry"
+          ],
+          "query": [
+            {
+              "key": "academicYearId",
+              "value": "{{academicYearId}}",
+              "description": "Academic Year ID (required)"
+            },
+            {
+              "key": "examGroupId",
+              "value": "{{examGroupId}}",
+              "description": "Exam Group ID (required)"
+            },
+            {
+              "key": "classId",
+              "value": "{{classId}}",
+              "description": "Class ID (required)"
+            },
+            {
+              "key": "sectionId",
+              "value": "{{sectionId}}",
+              "description": "Section ID (required)"
+            },
+            {
+              "key": "subjectId",
+              "value": "{{subjectId}}",
+              "description": "Subject ID (required)"
+            }
+          ]
+        },
+        "description": "Fetch students and existing marks for marks entry form.\n\nReturns:\n- Exam Schedule metadata (id, examDate, maxMarks, passingMarks)\n- All students in the section\n- Existing marks for each student\n- Status indicator (entered, not_entered, absent)"
+      },
+      "response": [
+        {
+          "name": "Success Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/marks/entry?academicYearId=1&examGroupId=1&classId=1&sectionId=1&subjectId=1",
+              "protocol": "http",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marks",
+                "entry"
+              ],
+              "query": [
+                {
+                  "key": "academicYearId",
+                  "value": "1"
+                },
+                {
+                  "key": "examGroupId",
+                  "value": "1"
+                },
+                {
+                  "key": "classId",
+                  "value": "1"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "1"
+                },
+                {
+                  "key": "subjectId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "body": {
+            "string": "{\"success\":true,\"data\":{\"examSchedule\":{\"id\":\"exam-schedule-uuid\",\"examDate\":\"2024-06-20\",\"maxMarks\":100,\"passingMarks\":33},\"students\":[{\"studentId\":\"student-uuid-1\",\"admissionNumber\":\"ADM001\",\"rollNumber\":\"01\",\"studentName\":\"John Doe\",\"markId\":\"mark-uuid-1\",\"marksObtainedRaw\":78,\"isAbsent\":false,\"status\":\"entered\"},{\"studentId\":\"student-uuid-2\",\"admissionNumber\":\"ADM002\",\"rollNumber\":\"02\",\"studentName\":\"Jane Smith\",\"markId\":null,\"marksObtainedRaw\":null,\"isAbsent\":false,\"status\":\"not_entered\"}]}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Single Mark",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"examScheduleId\": \"{{examScheduleId}}\",\n  \"marksObtainedRaw\": 85,\n  \"isAbsent\": false\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/marks",
+          "protocol": "http",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "marks"
+          ]
+        },
+        "description": "Create a single mark entry for a student.\n\nValidation:\n- marksObtainedRaw must be >= 0\n- marksObtainedRaw must be <= maxMarks (from exam schedule)\n- Cannot set marks if student is marked absent\n- Prevents duplicate marks (unique per student + exam schedule)"
+      }
+    },
+    {
+      "name": "Bulk Create/Update Marks",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"marks\": [\n    {\n      \"studentId\": \"student-uuid-1\",\n      \"examScheduleId\": \"schedule-uuid\",\n      \"marksObtainedRaw\": 78,\n      \"isAbsent\": false\n    },\n    {\n      \"studentId\": \"student-uuid-2\",\n      \"examScheduleId\": \"schedule-uuid\",\n      \"marksObtainedRaw\": null,\n      \"isAbsent\": true\n    },\n    {\n      \"studentId\": \"student-uuid-3\",\n      \"examScheduleId\": \"schedule-uuid\",\n      \"marksObtainedRaw\": 92,\n      \"isAbsent\": false\n    }\n  ],\n  \"allowOverwrite\": false\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/marks/bulk",
+          "protocol": "http",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "marks",
+            "bulk"
+          ]
+        },
+        "description": "Bulk create or update marks for multiple students in a transaction.\n\nParameters:\n- marks: Array of mark objects (max 500 per request)\n- allowOverwrite: false = return 409 if duplicate exists, true = update existing\n\nValidation:\n- Each mark validated for marksObtainedRaw >= 0 and <= maxMarks\n- Cannot set marks if isAbsent = true\n- Transaction ensures all-or-nothing behavior"
+      }
+    },
+    {
+      "name": "Update Mark",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"marksObtainedRaw\": 88,\n  \"isAbsent\": false\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/marks/{{markId}}",
+          "protocol": "http",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "marks",
+            "{{markId}}"
+          ]
+        },
+        "description": "Update an existing mark entry.\n\nValidation:\n- marksObtainedRaw must be >= 0 and <= maxMarks\n- Cannot set marks if isAbsent = true\n- Partial updates supported (send only fields to update)"
+      }
+    },
+    {
+      "name": "Get Mark by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/marks/{{markId}}",
+          "protocol": "http",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "marks",
+            "{{markId}}"
+          ]
+        },
+        "description": "Fetch a single mark with full details including student and exam schedule information."
+      }
+    },
+    {
+      "name": "Get All Marks (Paginated)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/marks?page=1&limit=25&studentId=&examScheduleId=&isAbsent=",
+          "protocol": "http",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "marks"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number (default: 1)"
+            },
+            {
+              "key": "limit",
+              "value": "25",
+              "description": "Results per page (default: 25, max: 100)"
+            },
+            {
+              "key": "studentId",
+              "value": "",
+              "description": "Filter by student ID (optional)"
+            },
+            {
+              "key": "examScheduleId",
+              "value": "",
+              "description": "Filter by exam schedule ID (optional)"
+            },
+            {
+              "key": "isAbsent",
+              "value": "",
+              "description": "Filter by absence (true/false, optional)"
+            }
+          ]
+        },
+        "description": "Fetch paginated list of marks with optional filters."
+      }
+    },
+    {
+      "name": "Delete Mark",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/marks/{{markId}}",
+          "protocol": "http",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "marks",
+            "{{markId}}"
+          ]
+        },
+        "description": "Delete a mark entry."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "academicYearId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "examGroupId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sectionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "subjectId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "examScheduleId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "markId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -242,4 +242,25 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
       ],
     });
   }
+
+  /**
+   * Fetch all students in a section with minimal data for marks entry.
+   * Only includes student identification fields to avoid N+1 queries.
+   */
+  async findStudentsBySection(sectionId, tenantId) {
+    return await this.model.findAll({
+      where: { sectionId, tenantId, isCurrent: true },
+      attributes: ["id", "studentId", "rollNumber"],
+      include: [
+        {
+          model: Student,
+          as: "student",
+          attributes: ["id", "firstName", "middleName", "lastName", "admissionNumber"],
+          required: true,
+        },
+      ],
+      order: [["rollNumber", "ASC"]],
+      raw: false,
+    });
+  }
 }

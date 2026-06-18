@@ -1,3 +1,7 @@
+import { DataTypes } from "sequelize";
+import sequelize from "../../config/db.js";
+import { withTenant } from "../withTenant.js";
+
 export const FeeHead = sequelize.define(
   "FeeHead",
   withTenant({
@@ -9,5 +13,5 @@ export const FeeHead = sequelize.define(
     name: { type: DataTypes.STRING, allowNull: false }, 
     description: { type: DataTypes.STRING },
   }),
-  { tableName: "fee_heads", underscored: true },
+  { tableName: "fee_heads", underscored: true, paranoid: true },
 );

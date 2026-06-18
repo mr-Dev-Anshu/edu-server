@@ -1,0 +1,90 @@
+import { FeeStructureItem } from "../../models/index.js";
+import { BaseRepository } from "../base.repository.js";
+
+const FEE_HEAD_INCLUDE = {
+  association: "feeHead",
+  include: [{ association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] }],
+};
+
+const FEE_STRUCTURE_INCLUDE = {
+  association: "feeStructure",
+  include: [
+    { association: "organization", attributes: ["id", "name", "organizationType", "officialEmail", "subdomain"] },
+    { association: "academicYear", attributes: ["id", "name", "isCurrent", "startDate", "endDate"] },
+    { association: "class", attributes: ["id", "name", "numericLevel"] },
+  ],
+};
+
+export class FeeStructureItemRepository extends BaseRepository {
+  constructor() {
+    super(FeeStructureItem);
+  }
+
+  async bulkCreate(items, options = {}) {
+    return await this.model.bulkCreate(items, options);
+  }
+
+  async findByFeeStructureId(feeStructureId, tenantId) {
+    return await this.model.findAll({
+      where: { feeStructureId, tenantId },
+      include: [FEE_HEAD_INCLUDE, FEE_STRUCTURE_INCLUDE],
+      order: [["createdAt", "DESC"]],
+    });
+  }
+
+  async findByFeeHeadId(feeHeadId, tenantId) {
+    return await this.model.findAll({
+      where: { feeHeadId, tenantId },
+      include: [FEE_HEAD_INCLUDE, FEE_STRUCTURE_INCLUDE],
+      order: [["createdAt", "DESC"]],
+    });
+  }
+
+  async findItemById(id, tenantId) {
+    return await this.model.findOne({
+      where: { id, tenantId },
+      include: [FEE_HEAD_INCLUDE, FEE_STRUCTURE_INCLUDE],
+    });
+  }
+
+  async deleteByFeeStructure(feeStructureId, tenantId, options = {}) {
+    return await this.model.destroy({
+      where: { feeStructureId, tenantId },
+      ...options,
+    });
+  }
+
+  async deleteByFeeHead(feeHeadId, tenantId, options = {}) {
+    return await this.model.destroy({
+      where: { feeHeadId, tenantId },
+      ...options,
+    });
+  }
+
+  async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    const where = { tenantId, ...filters };
+
+    const { count, rows } = await this.model.findAndCountAll({
+      where,
+      offset,
+      limit,
+      include: [FEE_HEAD_INCLUDE, FEE_STRUCTURE_INCLUDE],
+      order: [["createdAt", "DESC"]],
+    });
+
+    return {
+      total: count,
+      page,
+      limit,
+      totalPages: Math.ceil(count / limit),
+      data: rows,
+    };
+  }
+
+  async findByFeeStructureAndFeeHead(feeStructureId, feeHeadId, tenantId) {
+    return await this.model.findOne({
+      where: { feeStructureId, feeHeadId, tenantId },
+    });
+  }
+}

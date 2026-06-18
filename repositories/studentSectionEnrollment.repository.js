@@ -45,6 +45,7 @@ const STUDENT_DETAILS_INCLUDE = {
   attributes: [
     "id",
     "admissionNumber",
+    "rollNumber",
     "firstName",
     "middleName",
     "lastName",
@@ -208,6 +209,7 @@ export class StudentSectionEnrollmentRepository extends BaseRepository {
                   { middleName: { [Op.iLike]: `%${search}%` } },
                   { lastName: { [Op.iLike]: `%${search}%` } },
                   { admissionNumber: { [Op.iLike]: `%${search}%` } },
+                  { rollNumber: { [Op.iLike]: `%${search}%` } },
                 ],
               }
             : undefined,

@@ -100,9 +100,11 @@ export class ClassService {
   async getAllClasses(tenantId, query) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
+    const search = String(query.search || "").trim();
 
     const filters = {};
     if (query.numericLevel) filters.numericLevel = query.numericLevel;
+    if (search) filters.search = search;
 
     return await classRepo.findWithPagination(tenantId, filters, page, limit);
   }

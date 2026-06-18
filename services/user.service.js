@@ -82,8 +82,8 @@ export class UserService {
     return users.map((user) => this.formatUserResponse(user));
   }
 
-  async updateUser(userId, tenantId, payload, options = {}) {
-    const user = await userRepo.findById(userId, tenantId, options);
+  async updateUser(userId, tenantId, payload) {
+    const user = await userRepo.findById(userId, tenantId);
 
     // Check email uniqueness if updating email
     if (payload.email && payload.email.toLowerCase().trim() !== user.email) {
@@ -106,9 +106,9 @@ export class UserService {
     if (payload.preferences) updateData.preferences = payload.preferences;
     if (payload.cognitoSub) updateData.cognitoSub = payload.cognitoSub;
 
-    await userRepo.update(userId, tenantId, updateData, options);
+    await userRepo.update(userId, tenantId, updateData);
     const updated = await userRepo.findByIdWithAssociations(userId, tenantId);
-    return this.formatUserResponse(updated);
+    return this.formatUserResponse(updated); 
   }
 
   async updateUserStatus(userId, tenantId, status) {

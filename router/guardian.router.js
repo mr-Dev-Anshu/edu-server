@@ -9,5 +9,6 @@ router.get("/",identifyUser, ctrl.getAll);
 router.get("/student/:studentId",identifyUser, ctrl.getByStudent);
 router.get("/:id",identifyUser, ctrl.getOne);
 router.post("/",identifyUser, ctrl.createGuardian);
+router.post("/:id/attach-students",identifyUser, ctrl.attachStudents);
 
 export default router;

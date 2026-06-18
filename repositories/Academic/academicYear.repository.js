@@ -33,7 +33,14 @@ export class AcademicYearRepository extends BaseRepository {
 
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {
     const offset = (page - 1) * limit;
-    const where = { tenantId, ...filters };
+    const { search, ...restFilters } = filters;
+    const keyword = String(search ?? "").trim();
+
+    const where = { tenantId, ...restFilters };
+
+    if (keyword) {
+      where.name = { [Op.iLike]: `%${keyword}%` };
+    }
 
     const { count, rows } = await this.model.findAndCountAll({
       where,

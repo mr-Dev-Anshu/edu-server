@@ -1,0 +1,331 @@
+{
+  "info": {
+    "_postman_id": "class-subject-collection",
+    "name": "Class Subject APIs",
+    "description": "APIs for managing Class Subject mappings (assigning subjects to classes)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Assign Subjects to Class (Bulk)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "if (!pm.environment.get('base_url')) {",
+              "    pm.environment.set('base_url', 'http://localhost:5000');",
+              "}",
+              "if (!pm.environment.get('tenant_id')) {",
+              "    pm.environment.set('tenant_id', '');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"classId\": \"class-uuid-here\",\n  \"subjects\": [\n    {\n      \"subjectMasterId\": \"subject-uuid-1\",\n      \"code\": \"MATH101\",\n      \"isElective\": false,\n      \"weeklyPeriods\": 5,\n      \"passingMarks\": 33\n    },\n    {\n      \"subjectMasterId\": \"subject-uuid-2\",\n      \"code\": \"ENG102\",\n      \"isElective\": false,\n      \"weeklyPeriods\": 4,\n      \"passingMarks\": 35\n    },\n    {\n      \"subjectMasterId\": \"subject-uuid-3\",\n      \"code\": \"SCI103\",\n      \"isElective\": true,\n      \"weeklyPeriods\": 3,\n      \"passingMarks\": 40\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/subjects/class-subject/assign",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "subjects",
+            "class-subject",
+            "assign"
+          ]
+        },
+        "description": "Assign multiple subjects to a class in bulk"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Subjects by Class ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/subjects/class-subject/by-class/{{class_id}}?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "subjects",
+            "class-subject",
+            "by-class",
+            "{{class_id}}"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "isElective",
+              "value": "false",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Get all subjects assigned to a specific class"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Classes by Subject ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/subjects/class-subject/by-subject/{{subject_id}}?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "subjects",
+            "class-subject",
+            "by-subject",
+            "{{subject_id}}"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Get all classes that have a specific subject assigned"
+      },
+      "response": []
+    },
+    {
+      "name": "Search Class Subjects",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/subjects/class-subject/search?search=MATH&page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "subjects",
+            "class-subject",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "MATH"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Search class subjects by code or other fields"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Class Subject by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/subjects/class-subject/{{class_subject_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "subjects",
+            "class-subject",
+            "{{class_subject_id}}"
+          ]
+        },
+        "description": "Get a specific Class Subject mapping by ID"
+      },
+      "response": []
+    },
+    {
+      "name": "Update Class Subject",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"MATH101-UPDATED\",\n  \"isElective\": false,\n  \"weeklyPeriods\": 6,\n  \"passingMarks\": 35\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/subjects/class-subject/{{class_subject_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "subjects",
+            "class-subject",
+            "{{class_subject_id}}"
+          ]
+        },
+        "description": "Update details of a Class Subject mapping"
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Class Subject",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/subjects/class-subject/{{class_subject_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "subjects",
+            "class-subject",
+            "{{class_subject_id}}"
+          ]
+        },
+        "description": "Delete a specific Class Subject mapping"
+      },
+      "response": []
+    },
+    {
+      "name": "Remove All Subjects from Class",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "x-tenant-id",
+            "value": "{{tenant_id}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/subjects/class-subject/remove-all/{{class_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "subjects",
+            "class-subject",
+            "remove-all",
+            "{{class_id}}"
+          ]
+        },
+        "description": "Remove all subjects from a class (batch delete)"
+      },
+      "response": []
+    }
+  ]
+}

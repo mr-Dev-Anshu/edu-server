@@ -27,7 +27,7 @@ import StudentGuardianMap from "./StudentGaurdianMap.js";
 // import AcademicYear from './Academic/AcademicYear.js';
 // import Class from './Academic/Class.js';
 // import Section from './Academic/Section.js';
-import { SubjectMaster, ClassSubject } from './Academic/Subject.js';
+import { SubjectMaster, ClassSubject } from "./Academic/Subject.js";
 
 // // --- Users & Relationships ---
 // import Student from './Students.js';
@@ -39,6 +39,7 @@ import { SubjectMaster, ClassSubject } from './Academic/Subject.js';
 
 // // --- Infrastructure ---
 import { Room, Timetable, TimetableSlot } from "./Infrastructure.js";
+import { WebhookEndpoint, BiometricPunch } from "./platform/Infrastructure.js";
 
 // --- Fee Management ---
 import { FeeHead } from "./FeeStructure/FeeHead.js";
@@ -88,7 +89,10 @@ User.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 // ==========================================
 UserRole.belongsTo(User, { foreignKey: "userId", as: "user" });
 UserRole.belongsTo(Role, { foreignKey: "roleId", as: "role" });
-UserRole.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
+UserRole.belongsTo(AcademicYear, {
+  foreignKey: "academicYearId",
+  as: "academicYear",
+});
 UserRole.belongsTo(User, { foreignKey: "assignedById", as: "assignedBy" });
 
 // ==========================================
@@ -100,6 +104,11 @@ Student.belongsTo(User, { foreignKey: "userId", as: "user" });
 User.hasOne(Staff, { foreignKey: "userId", as: "staffProfile" });
 Staff.belongsTo(User, { foreignKey: "userId", as: "user" });
 Staff.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+Staff.hasMany(BiometricPunch, {
+  foreignKey: "staffId",
+  as: "biometricPunches",
+});
+BiometricPunch.belongsTo(Staff, { foreignKey: "staffId", as: "staff" });
 
 User.hasOne(Guardian, { foreignKey: "userId", as: "guardianProfile" });
 Guardian.belongsTo(User, { foreignKey: "userId", as: "user" });
@@ -126,15 +135,29 @@ Section.belongsTo(User, { foreignKey: "classTeacherId", as: "classTeacher" });
 User.hasMany(Section, { foreignKey: "classTeacherId", as: "sectionsAssigned" });
 
 // Academic Year -> Section
-Section.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
-AcademicYear.hasMany(Section, { foreignKey: "academicYearId", as: "sections"});
+Section.belongsTo(AcademicYear, {
+  foreignKey: "academicYearId",
+  as: "academicYear",
+});
+AcademicYear.hasMany(Section, { foreignKey: "academicYearId", as: "sections" });
 
 // Student Enrollment (History)
-Student.hasMany(StudentSectionEnrollment, { foreignKey: "studentId", as: "enrollments"});
-StudentSectionEnrollment.belongsTo(Student, { foreignKey: "studentId", as: "student"});
-StudentSectionEnrollment.belongsTo(Section, { foreignKey: "sectionId", as: "section"});
-StudentSectionEnrollment.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear"});
-
+Student.hasMany(StudentSectionEnrollment, {
+  foreignKey: "studentId",
+  as: "enrollments",
+});
+StudentSectionEnrollment.belongsTo(Student, {
+  foreignKey: "studentId",
+  as: "student",
+});
+StudentSectionEnrollment.belongsTo(Section, {
+  foreignKey: "sectionId",
+  as: "section",
+});
+StudentSectionEnrollment.belongsTo(AcademicYear, {
+  foreignKey: "academicYearId",
+  as: "academicYear",
+});
 
 // Teacher Assignments
 TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId" });
@@ -143,8 +166,14 @@ TeacherSubjectAssignment.belongsTo(Staff, { foreignKey: "staffId" });
 // 6. SUBJECT & CLASS SUBJECT MAPPINGS
 // ==========================================
 // SubjectMaster -> ClassSubject
-SubjectMaster.hasMany(ClassSubject, { foreignKey: "subjectMasterId", as: "classSubjects" });
-ClassSubject.belongsTo(SubjectMaster, { foreignKey: "subjectMasterId", as: "subject" });
+SubjectMaster.hasMany(ClassSubject, {
+  foreignKey: "subjectMasterId",
+  as: "classSubjects",
+});
+ClassSubject.belongsTo(SubjectMaster, {
+  foreignKey: "subjectMasterId",
+  as: "subject",
+});
 
 // Class -> ClassSubject
 Class.hasMany(ClassSubject, { foreignKey: "classId", as: "subjects" });
@@ -164,8 +193,8 @@ Guardian.belongsToMany(Student, {
   as: "students",
 });
 Guardian.hasMany(StudentGuardianMap, {
-  foreignKey: 'guardianId',
-  as: 'studentMappings',
+  foreignKey: "guardianId",
+  as: "studentMappings",
 });
 
 // ==========================================
@@ -178,15 +207,30 @@ FeeHead.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
 // FeeStructure relations
 Tenant.hasMany(FeeStructure, { foreignKey: "tenantId", as: "feeStructures" });
 FeeStructure.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
-FeeStructure.belongsTo(AcademicYear, { foreignKey: "academicYearId", as: "academicYear" });
-AcademicYear.hasMany(FeeStructure, { foreignKey: "academicYearId", as: "feeStructures" });
+FeeStructure.belongsTo(AcademicYear, {
+  foreignKey: "academicYearId",
+  as: "academicYear",
+});
+AcademicYear.hasMany(FeeStructure, {
+  foreignKey: "academicYearId",
+  as: "feeStructures",
+});
 FeeStructure.belongsTo(Class, { foreignKey: "classId", as: "class" });
 Class.hasMany(FeeStructure, { foreignKey: "classId", as: "feeStructures" });
 
 // FeeStructureItem (Mapping) relations
-FeeStructure.hasMany(FeeStructureItem, { foreignKey: "feeStructureId", as: "items" });
-FeeStructureItem.belongsTo(FeeStructure, { foreignKey: "feeStructureId", as: "feeStructure" });
-FeeHead.hasMany(FeeStructureItem, { foreignKey: "feeHeadId", as: "structures" });
+FeeStructure.hasMany(FeeStructureItem, {
+  foreignKey: "feeStructureId",
+  as: "items",
+});
+FeeStructureItem.belongsTo(FeeStructure, {
+  foreignKey: "feeStructureId",
+  as: "feeStructure",
+});
+FeeHead.hasMany(FeeStructureItem, {
+  foreignKey: "feeHeadId",
+  as: "structures",
+});
 FeeStructureItem.belongsTo(FeeHead, { foreignKey: "feeHeadId", as: "feeHead" });
 
 Tenant.addScope("active", { where: { status: "active" } });
@@ -215,6 +259,8 @@ export {
   Room,
   Timetable,
   TimetableSlot,
+  WebhookEndpoint,
+  BiometricPunch,
   FeeHead,
   FeeStructure,
   FeeStructureItem,

@@ -3,3 +3,4 @@ export const catchAsync = (fn) => {
     fn(req, res, next).catch(next); // Sends error to Global Handler
   };
 };
+

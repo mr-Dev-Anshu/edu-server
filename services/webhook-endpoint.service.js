@@ -41,23 +41,17 @@ export class WebhookEndpointService extends BaseService {
   }
 
   async deleteWebhook(id, tenantId) {
-    let webhook;
     try {
-      webhook = await webhookRepo.findById(id, tenantId);
+      await webhookRepo.delete(id, tenantId);
+      return { message: "Webhook endpoint deleted successfully" };
     } catch (error) {
-      if (error.message.includes("not found")) {
+      if (error.statusCode === 404 || error.message.includes("not found")) {
         throw new AppError("Webhook endpoint not found", 404);
       }
       throw error;
     }
-
-    if (!webhook) {
-      throw new AppError("Webhook endpoint not found", 404);
-    }
-
-    await webhookRepo.delete(id, tenantId);
-    return { message: "Webhook endpoint deleted successfully" };
   }
+
 
   formatResponse(webhook) {
     return {

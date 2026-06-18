@@ -163,8 +163,6 @@ export class BiometricPunchService extends BaseService {
         throw new AppError("punchTime cannot be in the future", 400);
       }
       updateData.punchTime = punchDate;
-
-      updateData.punchTime = new Date(payload.punchTime);
     }
 
     if (payload.isProcessed !== undefined) {
@@ -176,22 +174,15 @@ export class BiometricPunchService extends BaseService {
   }
 
   async deletePunch(id, tenantId) {
-    let punch;
     try {
-      punch = await biometricPunchRepo.findById(id, tenantId);
+      await biometricPunchRepo.delete(id, tenantId);
+      return { message: "Biometric punch deleted successfully" };
     } catch (error) {
-      if (error.message.includes("not found")) {
-        throw new AppError("Biometric punch not found", 404); // ✅ AppError with 404
+      if (error.statusCode === 404 || error.message.includes("not found")) {
+        throw new AppError("Biometric punch not found", 404);
       }
       throw error;
     }
-
-    if (!punch) {
-      throw new AppError("Biometric punch not found", 404); // ✅ AppError with 404
-    }
-
-    await biometricPunchRepo.delete(id, tenantId);
-    return { message: "Biometric punch deleted successfully" };
   }
 
   formatResponse(punch) {

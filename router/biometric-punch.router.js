@@ -35,6 +35,6 @@ router
     updateBiometricPunchValidator,
     ctrl.update,
   )
-  .delete(identifyUser, ctrl.delete);
+  .delete(identifyUser, validateUUID("id"), ctrl.delete);
 
 export default router;

@@ -23,17 +23,29 @@ export class WebhookEndpointController extends BaseController {
   });
 
   getOne = catchAsync(async (req, res) => {
-    const data = await webhookService.getWebhookById(req.params.id, req.tenantId);
+    const data = await webhookService.getWebhookById(
+      req.params.id,
+      req.tenantId,
+    );
     res.status(200).json({ success: true, data });
   });
 
   update = catchAsync(async (req, res) => {
-    const data = await webhookService.updateWebhook(req.params.id, req.tenantId, req.body);
+    const data = await webhookService.updateWebhook(
+      req.params.id,
+      req.tenantId,
+      req.body,
+    );
     res.status(200).json({ success: true, data });
   });
 
   delete = catchAsync(async (req, res) => {
-    await webhookService.delete(req.params.id, req.tenantId);
-    res.status(200).json({ success: true, message: "Webhook endpoint deleted successfully" });
+    await webhookService.deleteWebhook(req.params.id, req.tenantId);
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Webhook endpoint deleted successfully",
+      });
   });
 }

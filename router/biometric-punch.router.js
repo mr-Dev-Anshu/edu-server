@@ -5,20 +5,36 @@ import {
   updateBiometricPunchValidator,
   bulkCreateBiometricPunchValidator,
 } from "../middlewares/validators/biometric-punch.validator.js";
-import { identifyUser, checkPermission } from "../middlewares/security/index.js";
+import {
+  identifyUser,
+  checkPermission,
+} from "../middlewares/security/index.js";
+import { validateUUID } from "../middlewares/validators/uuid.validator.js";
 
 const router = express.Router();
 const ctrl = new BiometricPunchController();
 
-router.post("/bulk", identifyUser, checkPermission("create:biometric_punches"), bulkCreateBiometricPunchValidator, ctrl.bulkCreate);
+router.post(
+  "/bulk",
+  identifyUser,
+  bulkCreateBiometricPunchValidator,
+  ctrl.bulkCreate,
+);
 
-router.route("/")
-  .post(identifyUser, checkPermission("create:biometric_punches"), createBiometricPunchValidator, ctrl.create)
-  .get(identifyUser, checkPermission("read:biometric_punches"), ctrl.getAll);
+router
+  .route("/")
+  .post(identifyUser, createBiometricPunchValidator, ctrl.create)
+  .get(identifyUser, ctrl.getAll);
 
-router.route("/:id")
-  .get(identifyUser, checkPermission("read:biometric_punches"), ctrl.getOne)
-  .patch(identifyUser, checkPermission("update:biometric_punches"), updateBiometricPunchValidator, ctrl.update)
-  .delete(identifyUser, checkPermission("delete:biometric_punches"), ctrl.delete);
+router
+  .route("/:id")
+  .get(identifyUser, validateUUID("id"), ctrl.getOne)
+  .patch(
+    identifyUser,
+    validateUUID("id"),
+    updateBiometricPunchValidator,
+    ctrl.update,
+  )
+  .delete(identifyUser, ctrl.delete);
 
 export default router;

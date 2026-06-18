@@ -1,5 +1,6 @@
 import { WebhookEndpointRepository } from "../repositories/webhook-endpoint.repository.js";
 import { BaseService } from "./base.service.js";
+import { AppError } from "../utils/AppError.js";
 
 const webhookRepo = new WebhookEndpointRepository();
 
@@ -21,7 +22,8 @@ export class WebhookEndpointService extends BaseService {
   async updateWebhook(id, tenantId, payload) {
     const updateData = {};
     if (payload.url !== undefined) updateData.url = payload.url.trim();
-    if (payload.secretHash !== undefined) updateData.secretHash = payload.secretHash.trim();
+    if (payload.secretHash !== undefined)
+      updateData.secretHash = payload.secretHash.trim();
     if (payload.isActive !== undefined) updateData.isActive = payload.isActive;
 
     const webhook = await webhookRepo.update(id, tenantId, updateData);
@@ -36,6 +38,25 @@ export class WebhookEndpointService extends BaseService {
   async getWebhookById(id, tenantId) {
     const webhook = await webhookRepo.findById(id, tenantId);
     return this.formatResponse(webhook);
+  }
+
+  async deleteWebhook(id, tenantId) {
+    let webhook;
+    try {
+      webhook = await webhookRepo.findById(id, tenantId);
+    } catch (error) {
+      if (error.message.includes("not found")) {
+        throw new AppError("Webhook endpoint not found", 404);
+      }
+      throw error;
+    }
+
+    if (!webhook) {
+      throw new AppError("Webhook endpoint not found", 404);
+    }
+
+    await webhookRepo.delete(id, tenantId);
+    return { message: "Webhook endpoint deleted successfully" };
   }
 
   formatResponse(webhook) {

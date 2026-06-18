@@ -16,6 +16,13 @@ export class BiometricPunchService extends BaseService {
   async createPunch(payload) {
     const { tenantId, staffId, punchTime, isProcessed } = payload;
 
+    // Future date validation
+    const punchDate = new Date(punchTime);
+    const now = new Date();
+    if (punchDate > now) {
+      throw new AppError("punchTime cannot be in the future", 400);
+    }
+
     // Validate staff exists for this tenant
     await staffRepo.findById(staffId, tenantId);
 
@@ -30,6 +37,14 @@ export class BiometricPunchService extends BaseService {
   }
 
   async bulkCreatePunches(tenantId, punches) {
+    const now = new Date();
+    for (const p of punches) {
+      const punchDate = new Date(p.punchTime);
+      if (punchDate > now) {
+        throw new AppError("punchTime cannot be in the future", 400);
+      }
+    }
+
     // Extract unique staff IDs
     const staffIds = [...new Set(punches.map((p) => p.staffId))];
 
@@ -42,7 +57,10 @@ export class BiometricPunchService extends BaseService {
     });
 
     if (staffRecords.length !== staffIds.length) {
-      throw new AppError("One or more staffIds are invalid or do not belong to this tenant", 400);
+      throw new AppError(
+        "One or more staffIds are invalid or do not belong to this tenant",
+        400,
+      );
     }
 
     const transaction = await sequelize.transaction();
@@ -55,9 +73,12 @@ export class BiometricPunchService extends BaseService {
         isProcessed: p.isProcessed ?? false,
       }));
 
-      const createdPunches = await biometricPunchRepo.model.bulkCreate(recordsToCreate, {
-        transaction,
-      });
+      const createdPunches = await biometricPunchRepo.model.bulkCreate(
+        recordsToCreate,
+        {
+          transaction,
+        },
+      );
 
       await transaction.commit();
       return createdPunches.map((punch) => this.formatResponse(punch));
@@ -77,7 +98,8 @@ export class BiometricPunchService extends BaseService {
     }
 
     if (query.isProcessed !== undefined) {
-      filter.isProcessed = query.isProcessed === "true" || query.isProcessed === true;
+      filter.isProcessed =
+        query.isProcessed === "true" || query.isProcessed === true;
     }
 
     if (query.fromDate || query.toDate) {
@@ -135,6 +157,13 @@ export class BiometricPunchService extends BaseService {
     }
 
     if (payload.punchTime !== undefined) {
+      const punchDate = new Date(payload.punchTime);
+      const now = new Date();
+      if (punchDate > now) {
+        throw new AppError("punchTime cannot be in the future", 400);
+      }
+      updateData.punchTime = punchDate;
+
       updateData.punchTime = new Date(payload.punchTime);
     }
 
@@ -144,6 +173,25 @@ export class BiometricPunchService extends BaseService {
 
     const punch = await biometricPunchRepo.update(id, tenantId, updateData);
     return this.formatResponse(punch);
+  }
+
+  async deletePunch(id, tenantId) {
+    let punch;
+    try {
+      punch = await biometricPunchRepo.findById(id, tenantId);
+    } catch (error) {
+      if (error.message.includes("not found")) {
+        throw new AppError("Biometric punch not found", 404); // ✅ AppError with 404
+      }
+      throw error;
+    }
+
+    if (!punch) {
+      throw new AppError("Biometric punch not found", 404); // ✅ AppError with 404
+    }
+
+    await biometricPunchRepo.delete(id, tenantId);
+    return { message: "Biometric punch deleted successfully" };
   }
 
   formatResponse(punch) {

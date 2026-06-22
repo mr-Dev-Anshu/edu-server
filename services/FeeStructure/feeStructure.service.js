@@ -145,18 +145,90 @@ export class FeeStructureService {
       );
 
       if (Array.isArray(updateData.items)) {
-        await feeStructureItemRepo.deleteByFeeStructure(id, tenantId, { transaction });
+        // Fetch current items from the database
+        const currentItems = await feeStructureItemRepo.findByFeeStructureId(id, tenantId);
 
-        if (updateData.items.length > 0) {
-          const itemPayload = updateData.items.map((item) => ({
-            tenantId,
-            feeStructureId: updatedFeeStructure.id,
-            feeHeadId: item.feeHeadId,
-            amountRaw: item.amountRaw,
-            isOptional: item.isOptional || false,
-          }));
+        // Map current items by feeHeadId for O(1) lookup
+        const currentItemsMap = new Map(
+          currentItems.map((item) => [item.feeHeadId, item])
+        );
 
-          await feeStructureItemRepo.bulkCreate(itemPayload, { transaction });
+        const incomingItems = updateData.items;
+        const incomingFeeHeadIds = new Set(incomingItems.map((item) => item.feeHeadId));
+
+        const itemsToCreate = [];
+        const itemsToUpdate = [];
+
+        // Identify items to create or update
+        for (const incomingItem of incomingItems) {
+          const existingItem = currentItemsMap.get(incomingItem.feeHeadId);
+          if (existingItem) {
+            // Check if amountRaw or isOptional changed
+            const amountChanged = Number(incomingItem.amountRaw) !== Number(existingItem.amountRaw);
+            const optionalChanged = (incomingItem.isOptional || false) !== (existingItem.isOptional || false);
+
+            if (amountChanged || optionalChanged) {
+              itemsToUpdate.push({
+                id: existingItem.id,
+                amountRaw: incomingItem.amountRaw,
+                isOptional: incomingItem.isOptional || false,
+              });
+            }
+          } else {
+            itemsToCreate.push({
+              tenantId,
+              feeStructureId: updatedFeeStructure.id,
+              feeHeadId: incomingItem.feeHeadId,
+              amountRaw: incomingItem.amountRaw,
+              isOptional: incomingItem.isOptional || false,
+            });
+          }
+        }
+
+        // Identify items to delete (present in DB but not in incoming payload)
+        const itemsToDeleteIds = [];
+        for (const currentItem of currentItems) {
+          if (!incomingFeeHeadIds.has(currentItem.feeHeadId)) {
+            itemsToDeleteIds.push(currentItem.id);
+          }
+        }
+
+        // Execute DB operations
+        if (itemsToDeleteIds.length > 0) {
+          // Hard delete the removed items to avoid unique key conflicts if added back later
+          await feeStructureItemRepo.model.destroy({
+            where: { id: itemsToDeleteIds, tenantId },
+            force: true,
+            transaction,
+          });
+        }
+
+        if (itemsToCreate.length > 0) {
+          // Hard-delete any existing records (active or soft-deleted) for these fee heads to prevent unique index conflicts
+          const feeHeadIdsToCreate = itemsToCreate.map((item) => item.feeHeadId);
+          await feeStructureItemRepo.model.destroy({
+            where: {
+              feeStructureId: updatedFeeStructure.id,
+              feeHeadId: feeHeadIdsToCreate,
+              tenantId,
+            },
+            force: true,
+            paranoid: false,
+            transaction,
+          });
+
+          await feeStructureItemRepo.bulkCreate(itemsToCreate, { transaction });
+        }
+
+        if (itemsToUpdate.length > 0) {
+          for (const item of itemsToUpdate) {
+            await feeStructureItemRepo.update(
+              item.id,
+              tenantId,
+              { amountRaw: item.amountRaw, isOptional: item.isOptional },
+              { transaction }
+            );
+          }
         }
       }
 

@@ -50,6 +50,7 @@ export class FeeStructureItemRepository extends BaseRepository {
   async deleteByFeeStructure(feeStructureId, tenantId, options = {}) {
     return await this.model.destroy({
       where: { feeStructureId, tenantId },
+      force: true,
       ...options,
     });
   }
@@ -57,8 +58,14 @@ export class FeeStructureItemRepository extends BaseRepository {
   async deleteByFeeHead(feeHeadId, tenantId, options = {}) {
     return await this.model.destroy({
       where: { feeHeadId, tenantId },
+      force: true,
       ...options,
     });
+  }
+
+  async delete(id, tenantId, options = {}) {
+    const record = await this.findById(id, tenantId, options);
+    return await record.destroy({ force: true, ...options });
   }
 
   async findWithPagination(tenantId, filters = {}, page = 1, limit = 10) {

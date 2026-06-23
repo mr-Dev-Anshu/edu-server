@@ -66,6 +66,35 @@ const ensureOptionalArray = (value, fieldName) => {
   ensureArray(value, fieldName);
 };
 
+const validateFeeStructureItems = (items) => {
+  if (items === undefined || items === null) return;
+
+  ensureOptionalArray(items, "Items");
+  if (Array.isArray(items) && items.length > 0) {
+    const seenFeeHeads = new Set();
+    items.forEach((item, index) => {
+      if (!item.feeHeadId) {
+        throw new AppError(`Item ${index}: FeeHead ID is required`, 400);
+      }
+      ensureUUID(item.feeHeadId, `Item ${index}: FeeHead ID`);
+
+      if (seenFeeHeads.has(item.feeHeadId)) {
+        throw new AppError("Duplicate fee head selected in the fee structure items.", 400);
+      }
+      seenFeeHeads.add(item.feeHeadId);
+
+      if (item.amountRaw === undefined) {
+        throw new AppError(`Item ${index}: Amount is required`, 400);
+      }
+      ensureNumber(item.amountRaw, `Item ${index}: Amount`);
+
+      if (item.isOptional !== undefined) {
+        ensureBoolean(item.isOptional, `Item ${index}: isOptional`);
+      }
+    });
+  }
+};
+
 // --- FeeStructure Validators ---
 
 export const createFeeStructureValidator = createValidator((req) => {
@@ -81,31 +110,11 @@ export const createFeeStructureValidator = createValidator((req) => {
   if (!classId) throw new AppError("Class ID is required", 400);
   ensureUUID(classId, "Class ID");
 
-  // Validate items if provided (items are optional)
-  if (items !== undefined && items !== null) {
-    ensureOptionalArray(items, "Items");
-    if (Array.isArray(items) && items.length > 0) {
-      items.forEach((item, index) => {
-        if (!item.feeHeadId) {
-          throw new AppError(`Item ${index}: FeeHead ID is required`, 400);
-        }
-        ensureUUID(item.feeHeadId, `Item ${index}: FeeHead ID`);
-
-        if (item.amountRaw === undefined) {
-          throw new AppError(`Item ${index}: Amount is required`, 400);
-        }
-        ensureNumber(item.amountRaw, `Item ${index}: Amount`);
-
-        if (item.isOptional !== undefined) {
-          ensureBoolean(item.isOptional, `Item ${index}: isOptional`);
-        }
-      });
-    }
-  }
+  validateFeeStructureItems(items);
 });
 
 export const updateFeeStructureValidator = createValidator((req) => {
-  const { name, academicYearId, classId } = req.body;
+  const { name, academicYearId, classId, items } = req.body;
 
   if (name) {
     ensureString(name, "FeeStructure name", { min: 2, max: 100 });
@@ -118,6 +127,8 @@ export const updateFeeStructureValidator = createValidator((req) => {
   if (classId) {
     ensureUUID(classId, "Class ID");
   }
+
+  validateFeeStructureItems(items);
 });
 
 export const feeStructureIdValidator = createValidator((req) => {

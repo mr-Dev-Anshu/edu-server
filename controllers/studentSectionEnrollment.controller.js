@@ -9,12 +9,17 @@ export class StudentSectionEnrollmentController extends BaseController {
     super(enrollmentService);
   }
 
-  // Enroll Student
+  // Enroll Student (handles both single and bulk)
   create = catchAsync(async (req, res) => {
     const data = await enrollmentService.enrollStudent(req.tenantId, req.body);
 
-    res.status(201).json({
-      success: true,
+    // For bulk enrollments, return 207 Multi-Status if there are partial failures
+    const hasErrors = data.errors && data.errors.length > 0;
+    const statusCode = hasErrors && (data.enrolled?.length === 0 || !data.enrolled) ? 400 : hasErrors ? 207 : 201;
+    const success = !hasErrors || (data.enrolled?.length > 0);
+
+    res.status(statusCode).json({
+      success,
       data,
     });
   });

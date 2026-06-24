@@ -17,9 +17,9 @@ const ctrl = new UserController();
 router.route("/").get(identifyUser, checkPermission("read:user"),ctrl.getAll);
 router.route("/").post(identifyUser, createUserValidator, checkPermission("create:user"), ctrl.create);
 router.route("/login").post(loginValidator, ctrl.login);
-router.route("/logout").post( identifyUser ,  ctrl.logout);
-router.route("/active").get(identifyUser, ctrl.getActive);
-router.route("/type/:userType").get(identifyUser, ctrl.getByType);
+router.route("/logout").post(identifyUser, checkPermission("read:user"), ctrl.logout);
+router.route("/active").get(identifyUser, checkPermission("read:user"), ctrl.getActive);
+router.route("/type/:userType").get(identifyUser, checkPermission("read:user"), ctrl.getByType);
 
 // ✅ Dynamic routes LAST
 router.route("/:id").get(identifyUser, checkPermission("read:user"),ctrl.getById);
@@ -27,7 +27,7 @@ router.route("/:id").put(identifyUser, checkPermission("update:user"),updateUser
 router.route("/:id").delete(identifyUser, checkPermission("delete:user"),ctrl.delete);
 router.route("/:id/restore").post(identifyUser, checkPermission("create:user"),ctrl.restore);
 router.route("/:id/status").put(identifyUser, checkPermission("read:user"),updateUserStatusValidator, ctrl.updateStatus);
-router.route("/:id/verify-email").post(identifyUser, ctrl.verifyEmail);
+router.route("/:id/verify-email").post(identifyUser, checkPermission("update:user"), ctrl.verifyEmail);
 
 
 export default router;

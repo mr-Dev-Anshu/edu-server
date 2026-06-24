@@ -12,14 +12,22 @@ const ctrl = new ClassController();
 // Create Class
 router.post("/", identifyUser, checkPermission("create:classes"), createClassValidator, ctrl.create);
 
-// Get All Classes (pagination supported)
-router.get("/", identifyUser, ctrl.getAll);
+// NEW: Get classes with sections (filtered by academic year, search, and paginated)
+// Placed before /:id to avoid route conflicts
+router.get("/with-sections", identifyUser, checkPermission("read:classes"), ctrl.getWithSectionsFiltered);
 
-// Extra: Get classes with sections
-router.get("/with-sections/all", identifyUser, ctrl.getWithSections);
+// Get All Classes (pagination supported)
+router.get("/", identifyUser, checkPermission("read:classes"), ctrl.getAll);
+
+// Extra: Get classes with sections (legacy - full fetch without pagination)
+router.get("/with-sections/all", identifyUser, checkPermission("read:classes"), ctrl.getWithSections);
+
+// NEW: Get sections for a specific class (optional academic year filter)
+// Placed before /:id to avoid route conflicts with :id parameter
+router.get("/:id/sections", identifyUser, checkPermission("read:classes"), ctrl.getClassSections);
 
 // Get Class by ID
-router.get("/:id", identifyUser, ctrl.getOne);
+router.get("/:id", identifyUser, checkPermission("read:classes"), ctrl.getOne);
 
 // Update Class
 router.patch("/:id", identifyUser, checkPermission("update:classes"), updateClassValidator, ctrl.update);

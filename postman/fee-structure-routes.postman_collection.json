@@ -1,0 +1,652 @@
+{
+  "info": {
+    "_postman_id": "fee-structure-collection",
+    "name": "Edu Server Fee Structure CRUD Routes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Postman collection for testing Fee Management CRUD operations (FeeHead, FeeStructure, FeeStructureItem)."
+  },
+  "item": [
+    {
+      "name": "FeeHead",
+      "item": [
+        {
+          "name": "Create FeeHead",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('feeHeadId', json.data.id);",
+                  "  }",
+                  "  console.log('FeeHead created successfully:', json.data);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tuition Fee\",\n  \"description\": \"Basic tuition fee for all classes\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-heads",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-heads"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All FeeHeads",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-heads?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-heads"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "tuition",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get FeeHead by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-heads/{{feeHeadId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-heads", "{{feeHeadId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update FeeHead",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Tuition Fee\",\n  \"description\": \"Updated description for tuition fee\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-heads/{{feeHeadId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-heads", "{{feeHeadId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete FeeHead",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-heads/{{feeHeadId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-heads", "{{feeHeadId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "FeeStructure",
+      "item": [
+        {
+          "name": "Create FeeStructure (Simple)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('feeStructureId', json.data.id);",
+                  "  }",
+                  "  console.log('FeeStructure created successfully:', json.data);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Class 10 Fee Structure 2024\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"classId\": \"{{classId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structures",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structures"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create FeeStructure with Items",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('feeStructureId', json.data.id);",
+                  "  }",
+                  "  console.log('FeeStructure created with items:', json.data);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Class 10 Fee Structure 2024 with Items\",\n  \"academicYearId\": \"{{academicYearId}}\",\n  \"classId\": \"{{classId}}\",\n  \"items\": [\n    {\n      \"feeHeadId\": \"{{feeHeadId}}\",\n      \"amountRaw\": 50000,\n      \"isOptional\": false\n    },\n    {\n      \"feeHeadId\": \"{{feeHeadId2}}\",\n      \"amountRaw\": 10000,\n      \"isOptional\": true\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structures",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structures"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All FeeStructures",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structures?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structures"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "academicYearId",
+                  "value": "{{academicYearId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "classId",
+                  "value": "{{classId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "class 10",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get FeeStructure by ID (with Items)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structures/{{feeStructureId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structures", "{{feeStructureId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update FeeStructure",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Class 10 Fee Structure 2024\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structures/{{feeStructureId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structures", "{{feeStructureId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete FeeStructure",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structures/{{feeStructureId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structures", "{{feeStructureId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "FeeStructureItem (Mapping)",
+      "item": [
+        {
+          "name": "Create Mapping (Add FeeHead to FeeStructure)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.data && json.data.id) {",
+                  "    pm.environment.set('feeStructureItemId', json.data.id);",
+                  "  }",
+                  "  console.log('Mapping created successfully:', json.data);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"feeStructureId\": \"{{feeStructureId}}\",\n  \"feeHeadId\": \"{{feeHeadId}}\",\n  \"amountRaw\": 75000,\n  \"isOptional\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structure-items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structure-items"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Mappings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structure-items?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structure-items"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "feeStructureId",
+                  "value": "{{feeStructureId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "feeHeadId",
+                  "value": "{{feeHeadId}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Items for a FeeStructure",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structure-items/by-structure/{{feeStructureId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structure-items", "by-structure", "{{feeStructureId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Mapping by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structure-items/{{feeStructureItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structure-items", "{{feeStructureItemId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Mapping (Amount & Optional)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amountRaw\": 80000,\n  \"isOptional\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structure-items/{{feeStructureItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structure-items", "{{feeStructureItemId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Mapping",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structure-items/{{feeStructureItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structure-items", "{{feeStructureItemId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete All Mappings for FeeStructure",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-tenant-id",
+                "value": "{{tenantId}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fee-structure-items/by-structure/{{feeStructureId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fee-structure-items", "by-structure", "{{feeStructureId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "tenantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "feeHeadId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "feeHeadId2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "feeStructureId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "feeStructureItemId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "academicYearId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

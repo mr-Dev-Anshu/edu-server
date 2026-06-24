@@ -13,10 +13,10 @@ const ctrl = new StudentSectionEnrollmentController();
 router.post("/", identifyUser, checkPermission("create:enrollments"), createEnrollmentValidator, ctrl.create);
 
 // Get All
-router.get("/", identifyUser, ctrl.getAll);
+router.get("/", identifyUser, checkPermission("read:enrollments"), ctrl.getAll);
 
 // Get One
-router.get("/:id", identifyUser, ctrl.getOne);
+router.get("/:id", identifyUser, checkPermission("read:enrollments"), ctrl.getOne);
 
 // Update (transfer)
 router.patch("/:id", identifyUser, checkPermission("update:enrollments"), updateEnrollmentValidator, ctrl.update);

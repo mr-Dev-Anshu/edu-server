@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../../config/db.js";
-import { withTenant } from "../../utils/withTenant.js";
+import { withTenant } from "../withTenant.js";
 
 export const WebhookEndpoint = sequelize.define(
   "WebhookEndpoint",

@@ -1,0 +1,142 @@
+{
+  "info": {
+    "_postman_id": "attendance-periods-api-collection",
+    "name": "AttendancePeriod API",
+    "description": "Complete CRUD API for Period-wise Attendance Management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "AttendancePeriod - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"studentId\": \"{{studentId}}\",\n  \"timetableSlotId\": \"{{timetableSlotId}}\",\n  \"date\": \"{{date}}\",\n  \"status\": \"present\",\n  \"remarks\": \"Attended full period\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods"] },
+        "description": "Mark period attendance for a student"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Get All",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods?page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods"], "query": [ { "key": "page", "value": "1" }, { "key": "limit", "value": "10" } ] },
+        "description": "Get period attendance records with pagination and filters"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Get One",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods/{{attendancePeriodId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods", "{{attendancePeriodId}}"] },
+        "description": "Get a specific period attendance record"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Update",
+      "request": {
+        "method": "PATCH",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"late\",\n  \"remarks\": \"Late to class\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods/{{attendancePeriodId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods", "{{attendancePeriodId}}"] },
+        "description": "Update period attendance status or remarks"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods/{{attendancePeriodId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods", "{{attendancePeriodId}}"] },
+        "description": "Delete a period attendance record"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Search",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods/search?q={{searchTerm}}&page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods", "search"], "query": [ { "key": "q", "value": "{{searchTerm}}" }, { "key": "page", "value": "1" }, { "key": "limit", "value": "10" } ] },
+        "description": "Search period attendance records"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Get Date Attendance",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods/date/{{date}}?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods", "date", "{{date}}"], "query": [ { "key": "page", "value": "1" }, { "key": "limit", "value": "20" } ] },
+        "description": "Get all period attendance for a specific date"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Daily Summary",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods/date/{{date}}/daily-summary", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods", "date", "{{date}}", "daily-summary"] },
+        "description": "Get grouped period attendance summary by timetable slot for a date"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Get Student Summary",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods/student/{{studentId}}/summary?startDate={{startDate}}&endDate={{endDate}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods", "student", "{{studentId}}", "summary"], "query": [ { "key": "startDate", "value": "{{startDate}}" }, { "key": "endDate", "value": "{{endDate}}" } ] },
+        "description": "Get period attendance summary for a student"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Get Timetable Slot Summary",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods/timetable-slot/{{timetableSlotId}}/summary?startDate={{startDate}}&endDate={{endDate}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods", "timetable-slot", "{{timetableSlotId}}", "summary"], "query": [ { "key": "startDate", "value": "{{startDate}}" }, { "key": "endDate", "value": "{{endDate}}" } ] },
+        "description": "Get attendance summary for a timetable slot"
+      },
+      "response": []
+    },
+    {
+      "name": "AttendancePeriod - Bulk Mark",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{token}}" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId1}}\",\n      \"timetableSlotId\": \"{{timetableSlotId}}\",\n      \"date\": \"{{date}}\",\n      \"status\": \"present\"\n    },\n    {\n      \"studentId\": \"{{studentId2}}\",\n      \"timetableSlotId\": \"{{timetableSlotId}}\",\n      \"date\": \"{{date}}\",\n      \"status\": \"absent\",\n      \"remarks\": \"Sick\"\n    }\n  ]\n}" },
+        "url": { "raw": "{{baseUrl}}/api/v1/attendance-periods/bulk-mark", "host": ["{{baseUrl}}"], "path": ["api", "v1", "attendance-periods", "bulk-mark"] },
+        "description": "Bulk mark period attendance"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "token", "value": "your-jwt-token-here", "type": "string" },
+    { "key": "studentId", "value": "", "type": "string" },
+    { "key": "studentId1", "value": "", "type": "string" },
+    { "key": "studentId2", "value": "", "type": "string" },
+    { "key": "attendancePeriodId", "value": "", "type": "string" },
+    { "key": "timetableSlotId", "value": "", "type": "string" },
+    { "key": "date", "value": "", "type": "string" },
+    { "key": "startDate", "value": "", "type": "string" },
+    { "key": "endDate", "value": "", "type": "string" },
+    { "key": "searchTerm", "value": "", "type": "string" }
+  ]
+}

@@ -122,7 +122,7 @@ export class UserService {
       throw new AppError("Invalid status value", 400);
     }
 
-    const user = await userRepo.updateStatus(userId, tenantId, status);
+    const user = await userRepo.updateStatus(userId, tenantId, status);j
     return this.formatUserResponse(user);
   }
 

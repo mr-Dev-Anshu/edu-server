@@ -84,11 +84,11 @@ export const Attendance = sequelize.define(
         }
       }
     },
-    // indexes: [
-    //   { unique: true, fields: ["tenant_id", "student_id", "date"] },
-    //   { fields: ["tenant_id", "section_id", "date"] },
-    //   { fields: ["tenant_id", "academic_year_id"] },
-    //   { fields: ["tenant_id", "date", "status"] },
-    // ],
+    indexes: [
+      { unique: true, fields: ["tenant_id", "student_id", "date"] },
+      { fields: ["tenant_id", "section_id", "date"] },
+      { fields: ["tenant_id", "academic_year_id"] },
+      { fields: ["tenant_id", "date", "status"] },
+    ],
   }
 );

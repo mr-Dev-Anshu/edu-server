@@ -60,7 +60,11 @@ export class AttendancePeriodService extends BaseService {
       remarks: remarks?.trim() || null,
     });
 
-    return this.formatAttendancePeriodResponse(attendancePeriod);
+    const populatedRecord = await attendancePeriodRepo.findById(attendancePeriod.id, tenantId, {
+      include: attendancePeriodRepo.getDefaultIncludes(),
+    });
+
+    return this.formatAttendancePeriodResponse(populatedRecord);
   }
 
   /**
@@ -311,20 +315,27 @@ export class AttendancePeriodService extends BaseService {
 
     try {
       const createdRecords = [];
+      const processedKeys = new Set();
 
       for (const record of records) {
         const { studentId, timetableSlotId, date, status, remarks } = record;
+
+        // Skip duplicates within the same payload
+        const key = `${studentId}_${timetableSlotId}_${date}`;
+        if (processedKeys.has(key)) continue;
+        processedKeys.add(key);
 
         // Validate student exists
         const student = await studentRepo.findById(studentId, tenantId);
         if (!student) continue; // Skip invalid student
 
-        // Check if period attendance already exists
+        // Check if period attendance already exists (passing transaction)
         const existing = await attendancePeriodRepo.findByStudentSlotAndDate(
           studentId,
           timetableSlotId,
           date,
-          tenantId
+          tenantId,
+          { transaction }
         );
 
         if (!existing) {
@@ -347,10 +358,21 @@ export class AttendancePeriodService extends BaseService {
 
       await transaction.commit();
 
+      const createdIds = createdRecords.map((record) => record.id);
+      const populatedCreatedRecords = createdIds.length
+        ? await attendancePeriodRepo.model.findAll({
+            where: { tenantId, id: createdIds },
+            include: attendancePeriodRepo.getDefaultIncludes(),
+            order: [["createdAt", "DESC"]],
+          })
+        : [];
+
       return {
-        created: createdRecords.length,
+        created: populatedCreatedRecords.length || createdRecords.length,
         total: records.length,
-        data: createdRecords.map((r) => this.formatAttendancePeriodResponse(r)),
+        data: (populatedCreatedRecords.length ? populatedCreatedRecords : createdRecords).map((r) =>
+          this.formatAttendancePeriodResponse(r)
+        ),
       };
     } catch (error) {
       if (!transaction.finished) await transaction.rollback();

@@ -302,16 +302,22 @@ export class AttendanceService extends BaseService {
 
     try {
       const createdRecords = [];
+      const processedKeys = new Set();
 
       for (const record of records) {
         const { studentId, sectionId, academicYearId, date, status, inTime, outTime, remarks } = record;
+
+        // Skip duplicates within the same payload
+        const key = `${studentId}_${date}`;
+        if (processedKeys.has(key)) continue;
+        processedKeys.add(key);
 
         // Validate student exists
         const student = await studentRepo.findById(studentId, tenantId);
         if (!student) continue; // Skip invalid student
 
-        // Check if attendance already exists
-        const existing = await attendanceRepo.findByStudentAndDate(studentId, date, tenantId);
+        // Check if attendance already exists (passing transaction)
+        const existing = await attendanceRepo.findByStudentAndDate(studentId, date, tenantId, { transaction });
         if (!existing) {
           const created = await attendanceRepo.create(
             {

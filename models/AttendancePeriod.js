@@ -42,21 +42,21 @@ export const AttendancePeriod = sequelize.define(
     timestamps: true,
     underscored: true,
     tableName: "attendance_periods",
-    // indexes: [
-    //   /**
-    //    * Principal's Optimization: 
-    //    * Prevents a student from having two attendance records for the same lecture/slot on the same day.
-    //    */
-    //   { 
-    //     unique: true, 
-    //     fields: ["tenant_id", "student_id", "timetable_slot_id", "date"],
-    //     name: "unique_student_period_attendance" 
-    //   },
-    //   // Fast lookup for a student's daily period-wise summary
-    //   { fields: ["tenant_id", "student_id", "date"] },
-    //   // Fast lookup for the teacher/admin to see who marked it
-    //   { fields: ["tenant_id", "timetable_slot_id", "date"] },
-    // ],
+    indexes: [
+      /**
+       * Principal's Optimization: 
+       * Prevents a student from having two attendance records for the same lecture/slot on the same day.
+       */
+      { 
+        unique: true, 
+        fields: ["tenant_id", "student_id", "timetable_slot_id", "date"],
+        name: "unique_student_period_attendance" 
+      },
+      // Fast lookup for a student's daily period-wise summary
+      { fields: ["tenant_id", "student_id", "date"] },
+      // Fast lookup for the teacher/admin to see who marked it
+      { fields: ["tenant_id", "timetable_slot_id", "date"] },
+    ],
   }
 );
 

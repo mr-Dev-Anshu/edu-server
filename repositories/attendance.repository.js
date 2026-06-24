@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, fn, col } from "sequelize";
 import { Attendance, Student, Section, AcademicYear, User } from "../models/index.js";
 import { BaseRepository } from "./base.repository.js";
 
@@ -28,10 +28,11 @@ export class AttendanceRepository extends BaseRepository {
   /**
    * Find attendance by student and date
    */
-  async findByStudentAndDate(studentId, date, tenantId) {
+  async findByStudentAndDate(studentId, date, tenantId, options = {}) {
     return await this.model.findOne({
       where: { studentId, date, tenantId },
       include: this.getDefaultIncludes(),
+      ...options,
     });
   }
 
@@ -166,7 +167,7 @@ export class AttendanceRepository extends BaseRepository {
     const attendanceRecords = await this.model.findAll({
       attributes: [
         "status",
-        [require("sequelize").fn("COUNT", require("sequelize").col("id")), "count"],
+        [fn("COUNT", col("id")), "count"],
       ],
       where: {
         sectionId,
@@ -193,7 +194,7 @@ export class AttendanceRepository extends BaseRepository {
     const summary = await this.model.findAll({
       attributes: [
         "status",
-        [require("sequelize").fn("COUNT", require("sequelize").col("id")), "count"],
+        [fn("COUNT", col("id")), "count"],
       ],
       where: {
         studentId,
@@ -247,8 +248,8 @@ export class AttendanceRepository extends BaseRepository {
       where: {
         tenantId,
         [Op.or]: [
-          { "$student.user.first_name$": { [Op.iLike]: `%${searchTerm}%` } },
-          { "$student.user.last_name$": { [Op.iLike]: `%${searchTerm}%` } },
+          { "$student.user.firstName$": { [Op.iLike]: `%${searchTerm}%` } },
+          { "$student.user.lastName$": { [Op.iLike]: `%${searchTerm}%` } },
           { remarks: { [Op.iLike]: `%${searchTerm}%` } },
         ],
       },

@@ -16,89 +16,37 @@ import { identifyUser, checkPermission } from "../middlewares/security/index.js"
 const router = express.Router();
 const ctrl = new AttendanceController();
 
-// ==========================================
-// BASIC CRUD OPERATIONS
-// ==========================================
+// Create: Mark daily attendance
+router.post("/", identifyUser, checkPermission("create:attendance"), createAttendanceValidator, ctrl.create);
 
-/**
- * POST /api/attendance
- * Create: Mark attendance for a student
- * Permission: create:attendance
- */
-router.post( "/", identifyUser, checkPermission("create:attendance"), createAttendanceValidator, ctrl.create);
+// Get all daily attendance records
+router.get("/", identifyUser, ctrl.getAll);
 
-/**
- * GET /api/attendance
- * Get All: Retrieve attendance with pagination and filters
- */
-router.get( "/", identifyUser, ctrl.getAll);
+// Search daily attendance records
+router.get("/search", identifyUser, searchAttendanceValidator, ctrl.search);
 
-/**
- * GET /api/attendance/search
- * Search: Search attendance records by student name or remarks
- */
-router.get( "/search", identifyUser, searchAttendanceValidator, ctrl.search);
+// Bulk mark daily attendance
+router.post("/bulk-mark", identifyUser, checkPermission("create:attendance"), bulkMarkAttendanceValidator, ctrl.bulkMark);
 
-/**
- * GET /api/attendance/:id
- * Get One: Get specific attendance record
- */
-router.get( "/:id", identifyUser, attendanceIdValidator, ctrl.getOne);
+// Get student daily attendance summary
+router.get("/student/:studentId/summary", identifyUser, studentIdValidator, dateRangeValidator, ctrl.getStudentSummary);
 
-/**
- * PATCH /api/attendance/:id
- * Update: Update attendance status or mark as corrected
- * Permission: update:attendance
- */
-router.patch( "/:id", identifyUser, checkPermission("update:attendance"), attendanceIdValidator, updateAttendanceValidator, ctrl.update);
+// Get section daily attendance summary
+router.get("/section/:sectionId/summary", identifyUser, sectionIdValidator, dateRangeValidator, ctrl.getSectionSummary);
 
-/**
- * DELETE /api/attendance/:id
- * Delete: Remove attendance record
- * Permission: delete:attendance
- */
-router.delete( "/:id", identifyUser, checkPermission("delete:attendance"), attendanceIdValidator, ctrl.delete);
+// Get daily attendance for a specific date
+router.get("/date/:date", identifyUser, dateParamValidator, ctrl.getDateAttendance);
 
-// ==========================================
-// BULK OPERATIONS
-// ==========================================
+// Get all uncorrected daily attendance records
+router.get("/uncorrected", identifyUser, ctrl.getUncorrected);
 
-/**
- * POST /api/attendance/bulk-mark
- * Bulk Mark: Mark attendance for multiple students at once
- * Permission: create:attendance
- */
-router.post( "/bulk-mark", identifyUser, checkPermission("create:attendance"), bulkMarkAttendanceValidator, ctrl.bulkMark);
+// Get specific daily attendance record by ID
+router.get("/:id", identifyUser, attendanceIdValidator, ctrl.getOne);
 
-// ==========================================
-// SUMMARY & ANALYTICS
-// ==========================================
+// Update daily attendance record by ID
+router.patch("/:id", identifyUser, checkPermission("update:attendance"), attendanceIdValidator, updateAttendanceValidator, ctrl.update);
 
-/**
- * GET /api/attendance/student/:studentId/summary
- * Get Student Summary: Attendance summary for a student in a date range
- * Query Params: startDate, endDate (required)
- */
-router.get( "/student/:studentId/summary", identifyUser, studentIdValidator, dateRangeValidator, ctrl.getStudentSummary);
-
-/**
- * GET /api/attendance/section/:sectionId/summary
- * Get Section Summary: Attendance summary for an entire section
- * Query Params: startDate, endDate (required)
- */
-router.get( "/section/:sectionId/summary", identifyUser, sectionIdValidator, dateRangeValidator, ctrl.getSectionSummary);
-
-/**
- * GET /api/attendance/date/:date
- * Get Date Attendance: Get all attendance marked on a specific date
- * Param: date (YYYY-MM-DD)
- */
-router.get( "/date/:date", identifyUser, dateParamValidator, ctrl.getDateAttendance);
-
-/**
- * GET /api/attendance/uncorrected
- * Get Uncorrected: Get all attendance records that need correction
- */
-router.get( "/uncorrected", identifyUser, ctrl.getUncorrected);
+// Delete daily attendance record by ID
+router.delete("/:id", identifyUser, checkPermission("delete:attendance"), attendanceIdValidator, ctrl.delete);
 
 export default router;

@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { Mark, Student, User, ExamSchedule, Subject, Section } from "../../models/index.js";
+import { Mark, Student, User, ExamSchedule, SubjectMaster, Section } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
 // Lightweight includes for list endpoints (prevents N+1 with separate: true)
@@ -23,9 +23,9 @@ const markIncludesLight = [
     attributes: ["id", "examDate", "startTime", "endTime", "maxMarks", "passingMarks"],
     include: [
       {
-        model: Subject,
+        model: SubjectMaster,
         as: "subject",
-        attributes: ["id", "name", "code"],
+        attributes: ["id", "name"],
       },
       {
         model: Section,
@@ -63,9 +63,9 @@ const markIncludesFull = [
     attributes: ["id", "examDate", "startTime", "endTime", "maxMarks", "passingMarks"],
     include: [
       {
-        model: Subject,
+        model: SubjectMaster,
         as: "subject",
-        attributes: ["id", "name", "code"],
+        attributes: ["id", "name"],
       },
       {
         model: Section,

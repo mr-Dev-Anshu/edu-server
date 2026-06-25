@@ -295,6 +295,15 @@ ExamSchedule.belongsTo(ExamGroup, {
 // ==========================================
 // 8. EXAM SCHEDULE RELATIONSHIPS
 // ==========================================
+ExamSchedule.belongsTo(SubjectMaster, {
+  foreignKey: "subjectId",
+  as: "subject",
+});
+SubjectMaster.hasMany(ExamSchedule, {
+  foreignKey: "subjectId",
+  as: "examSchedules",
+});
+
 // One scheduled slot has many students marks entries mapped
 ExamSchedule.hasMany(Mark, {
   foreignKey: "exam_schedule_id",

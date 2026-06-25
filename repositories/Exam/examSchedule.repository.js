@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { ExamSchedule, ExamGroup, Subject, Section, Class, AcademicYear } from "../../models/index.js";
+import { ExamSchedule, ExamGroup, SubjectMaster, Section, Class, AcademicYear } from "../../models/index.js";
 import { BaseRepository } from "../base.repository.js";
 
 // Reusable include for fully populated schedule responses
@@ -10,9 +10,9 @@ const scheduleIncludes = [
     attributes: ["id", "name", "examType", "startDate", "endDate", "isResultPublished"],
   },
   {
-    model: Subject,
+    model: SubjectMaster,
     as: "subject",
-    attributes: ["id", "name", "code"],
+    attributes: ["id", "name"],
   },
   {
     model: Section,

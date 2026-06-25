@@ -29,6 +29,10 @@ import StudentGuardianMap from "./StudentGaurdianMap.js";
 // import Section from './Academic/Section.js';
 import { SubjectMaster, ClassSubject } from "./Academic/Subject.js";
 
+import {
+ ExamGroup, ExamSchedule, Mark, GradeScale, GradeScaleRule,
+} from "./exams/Exams.js"
+
 // // --- Users & Relationships ---
 // import Student from './Students.js';
 // import Staff from './Staff.js';
@@ -254,6 +258,55 @@ AttendancePeriod.belongsTo(Student, { foreignKey: "studentId", as: "student" });
 AttendancePeriod.belongsTo(TimetableSlot, { foreignKey: "timetableSlotId", as: "timetableSlot" });
 AttendancePeriod.belongsTo(User, { foreignKey: "markedById", as: "markedBy" });
 
+// ==========================================
+// 7. EXAM GRADING LOGIC
+// ==========================================
+GradeScale.hasMany(GradeScaleRule, {
+  foreignKey: "gradeScaleId",
+  as: "gradeScaleRules",
+});
+GradeScaleRule.belongsTo(GradeScale, {
+  foreignKey: "gradeScaleId",
+  as: "gradeScale",
+});
+
+GradeScale.hasMany(ExamGroup, {
+  foreignKey: "grading_scheme_id",
+  as: "examGroups",
+});
+
+ExamGroup.belongsTo(GradeScale, {
+  foreignKey: "grading_scheme_id",
+  as: "gradingScheme",
+});
+
+// Connection between ExamGroup and its detailed Schedule allocations
+ExamGroup.hasMany(ExamSchedule, {
+  foreignKey: "exam_group_id",
+  as: "schedules",
+  onDelete: "CASCADE",
+});
+
+ExamSchedule.belongsTo(ExamGroup, {
+  foreignKey: "exam_group_id",
+  as: "examGroup",
+});
+
+// ==========================================
+// 8. EXAM SCHEDULE RELATIONSHIPS
+// ==========================================
+// One scheduled slot has many students marks entries mapped
+ExamSchedule.hasMany(Mark, {
+  foreignKey: "exam_schedule_id",
+  as: "marks",
+  onDelete: "CASCADE",
+});
+
+Mark.belongsTo(ExamSchedule, {
+  foreignKey: "exam_schedule_id",
+  as: "examSchedule",
+});
+
 Tenant.addScope("active", { where: { status: "active" } });
 
 export {
@@ -284,6 +337,11 @@ export {
   AttendancePeriod,
   WebhookEndpoint,
   BiometricPunch,
+  ExamGroup,
+  ExamSchedule,
+  Mark,
+  GradeScale,
+  GradeScaleRule,
   FeeHead,
   FeeStructure,
   FeeStructureItem,

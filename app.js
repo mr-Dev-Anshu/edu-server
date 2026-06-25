@@ -27,6 +27,11 @@ import cookieParser from "cookie-parser";
 import guardianRouter from "./router/guardian.router.js";
 import webhookEndpointRouter from "./router/webhook-endpoint.router.js";
 import biometricPunchRouter from "./router/biometric-punch.router.js";
+import examGroupRoutes from "./router/Exam/examGroup.routes.js";
+import examScheduleRoutes from "./router/Exam/examSchedule.routes.js";
+import markRoutes from "./router/Exam/mark.routes.js";
+import gradeScaleRoutes from "./router/Exam/gradeScale.routes.js";
+import gradeScaleRuleRoutes from "./router/Exam/gradeScaleRule.routes.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -83,6 +88,12 @@ app.use("/api/v1/biometric-punches", biometricPunchRouter);
 app.use("/api/v1/fee-heads", feeHeadRouter);
 app.use("/api/v1/fee-structures", feeStructureRouter);
 app.use("/api/v1/fee-structure-items", feeStructureItemRouter);
+
+app.use("/api/v1/exam-groups", examGroupRoutes);
+app.use("/api/v1/exam-schedules", examScheduleRoutes);
+app.use("/api/v1/marks", markRoutes);
+app.use("/api/v1/grade-scales", gradeScaleRoutes);
+app.use("/api/v1/grade-scale-rules", gradeScaleRuleRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

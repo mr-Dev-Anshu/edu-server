@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import permissionRouter from "./router/permission.router.js";
 import roleRouter from "./router/role.router.js";
 import tenantRouter from "./router/tenant.router.js";
+import sportRoutes from "./router/sports.routes.js";
 import userRouter from "./router/user.router.js";
 import userRoleRouter from "./router/user-role.router.js";
 import staffRouter from "./router/staff.router.js";
@@ -16,8 +17,8 @@ import sectionRouter from "./router/Academic/section.routes.js";
 import subjectRouter from "./router/Academic/subject.router.js";
 import studentRouter from "./router/student.routes.js";
 import enrollmentRouter from "./router/studentSectionEnrollment.routes.js";
-import attendanceRouter from './router/attendance.routes.js';
-import attendancePeriodRouter from './router/attendancePeriod.routes.js';
+import attendanceRouter from "./router/attendance.routes.js";
+import attendancePeriodRouter from "./router/attendancePeriod.routes.js";
 import feeHeadRouter from "./router/FeeStructure/feeHead.router.js";
 import feeStructureRouter from "./router/FeeStructure/feeStructure.router.js";
 import feeStructureItemRouter from "./router/FeeStructure/feeStructureItem.router.js";
@@ -67,7 +68,7 @@ app.use("/uploads", express.static(uploadsRoot));
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "UP", timestamp: new Date().toISOString() });
 });
-
+app.use("/api/sports", sportRoutes);
 app.use("/api/v1/tenants", tenantRouter);
 app.use("/api/v1/roles", roleRouter);
 app.use("/api/v1/permissions", permissionRouter);

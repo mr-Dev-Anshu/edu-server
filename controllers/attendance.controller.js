@@ -19,7 +19,10 @@ export class AttendanceController {
    * GET ALL: Retrieve all attendance with pagination and filters
    */
   getAll = catchAsync(async (req, res) => {
-    const result = await attendanceService.getAllAttendance(req.tenantId, req.query);
+    const result = await attendanceService.getAllAttendance(
+      req.tenantId,
+      req.query,
+    );
     res.status(200).json({ success: true, ...result });
   });
 
@@ -27,7 +30,10 @@ export class AttendanceController {
    * GET ONE: Get specific attendance record
    */
   getOne = catchAsync(async (req, res) => {
-    const data = await attendanceService.getAttendanceById(req.params.id, req.tenantId);
+    const data = await attendanceService.getAttendanceById(
+      req.params.id,
+      req.tenantId,
+    );
     res.status(200).json({ success: true, data });
   });
 
@@ -35,7 +41,11 @@ export class AttendanceController {
    * UPDATE: Update attendance status or mark as corrected
    */
   update = catchAsync(async (req, res) => {
-    const data = await attendanceService.updateAttendance(req.params.id, req.tenantId, req.body);
+    const data = await attendanceService.updateAttendance(
+      req.params.id,
+      req.tenantId,
+      req.body,
+    );
     res.status(200).json({ success: true, data });
   });
 
@@ -43,7 +53,10 @@ export class AttendanceController {
    * DELETE: Remove attendance record
    */
   delete = catchAsync(async (req, res) => {
-    const data = await attendanceService.deleteAttendance(req.params.id, req.tenantId);
+    const data = await attendanceService.deleteAttendance(
+      req.params.id,
+      req.tenantId,
+    );
     res.status(200).json({ success: true, ...data });
   });
 
@@ -51,7 +64,10 @@ export class AttendanceController {
    * SEARCH: Search attendance records by student name or remarks
    */
   search = catchAsync(async (req, res) => {
-    const result = await attendanceService.searchAttendance(req.tenantId, req.query);
+    const result = await attendanceService.searchAttendance(
+      req.tenantId,
+      req.query,
+    );
     res.status(200).json({
       success: true,
       results: result.data.length,
@@ -77,7 +93,7 @@ export class AttendanceController {
       studentId,
       startDate,
       endDate,
-      req.tenantId
+      req.tenantId,
     );
 
     res.status(200).json({ success: true, data });
@@ -101,7 +117,7 @@ export class AttendanceController {
       sectionId,
       startDate,
       endDate,
-      req.tenantId
+      req.tenantId,
     );
 
     res.status(200).json({ success: true, data });
@@ -122,7 +138,12 @@ export class AttendanceController {
       });
     }
 
-    const data = await attendanceService.getAttendanceForDate(date, req.tenantId, page, limit);
+    const data = await attendanceService.getAttendanceForDate(
+      date,
+      req.tenantId,
+      page,
+      limit,
+    );
     res.status(200).json({ success: true, ...data });
   });
 
@@ -133,7 +154,11 @@ export class AttendanceController {
     const page = req.query.page || 1;
     const limit = req.query.limit || 10;
 
-    const result = await attendanceService.getUncorrectedAttendance(req.tenantId, page, limit);
+    const result = await attendanceService.getUncorrectedAttendance(
+      req.tenantId,
+      page,
+      limit,
+    );
     res.status(200).json({ success: true, ...result });
   });
 

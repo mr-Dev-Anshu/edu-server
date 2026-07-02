@@ -19,7 +19,7 @@ const TeacherSubjectAssignment = sequelize.define(
     subjectId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: "subjects", key: "id" },
+      references: { model: "subject_masters", key: "id" },
     },
     sectionId: {
       type: DataTypes.UUID,
@@ -34,17 +34,17 @@ const TeacherSubjectAssignment = sequelize.define(
     },
     isPrimaryTeacher: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true, 
-    }
+      defaultValue: true,
+    },
   }),
   {
     timestamps: true,
     underscored: true,
     tableName: "teacher_subject_assignments",
     // indexes: [
-    
+
     // ],
-  }
+  },
 );
 
 export default TeacherSubjectAssignment;

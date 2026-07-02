@@ -19,7 +19,7 @@ const TeacherSubjectAssignment = sequelize.define(
     subjectId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: "subjects", key: "id" },
+      references: { model: "subject_masters", key: "id" },
     },
     sectionId: {
       type: DataTypes.UUID,

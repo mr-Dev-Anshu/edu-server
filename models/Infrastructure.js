@@ -86,7 +86,7 @@ export const TimetableSlot = sequelize.define(
     subjectId: {
       type: DataTypes.UUID,
       allowNull: false,
-      references: { model: "subjects", key: "id" },
+      references: { model: "subject_masters", key: "id" },
     },
     teacherId: {
       type: DataTypes.UUID,

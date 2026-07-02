@@ -54,6 +54,9 @@ import { FeeStructureItem } from "./FeeStructure/FeeStructureItem.js";
 import { Attendance } from "./Attendance.js";
 import { AttendancePeriod } from "./AttendancePeriod.js";
 
+// Transport Driver
+import { Driver } from "./transport/Driver.js";
+
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
 // ==========================================
@@ -318,6 +321,10 @@ Mark.belongsTo(ExamSchedule, {
 
 Tenant.addScope("active", { where: { status: "active" } });
 
+// 9. Driver LOGIC
+Tenant.hasMany(Driver, { foreignKey: "tenantId", as: "drivers" });
+Driver.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+
 export {
   sequelize,
   Tenant,
@@ -354,4 +361,5 @@ export {
   FeeHead,
   FeeStructure,
   FeeStructureItem,
+  Driver,
 };

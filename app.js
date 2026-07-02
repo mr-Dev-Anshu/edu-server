@@ -32,6 +32,7 @@ import examScheduleRoutes from "./router/Exam/examSchedule.routes.js";
 import markRoutes from "./router/Exam/mark.routes.js";
 import gradeScaleRoutes from "./router/Exam/gradeScale.routes.js";
 import gradeScaleRuleRoutes from "./router/Exam/gradeScaleRule.routes.js";
+import driverRouter from "./router/transport/driver.router.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -94,6 +95,7 @@ app.use("/api/v1/exam-schedules", examScheduleRoutes);
 app.use("/api/v1/marks", markRoutes);
 app.use("/api/v1/grade-scales", gradeScaleRoutes);
 app.use("/api/v1/grade-scale-rules", gradeScaleRuleRoutes);
+app.use("/api/v1/drivers", driverRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

@@ -54,6 +54,8 @@ import { FeeStructureItem } from "./FeeStructure/FeeStructureItem.js";
 import { Attendance } from "./Attendance.js";
 import { AttendancePeriod } from "./AttendancePeriod.js";
 
+import { LibraryBookIssuance } from "./LibraryBookIssuance.js";
+
 // ==========================================
 // 1. TENANT & BILLING ASSOCIATIONS
 // ==========================================
@@ -316,6 +318,15 @@ Mark.belongsTo(ExamSchedule, {
   as: "examSchedule",
 });
 
+LibraryBookIssuance.belongsTo(User, { foreignKey: "issuedToId", as: "issuedTo" });
+User.hasMany(LibraryBookIssuance, { foreignKey: "issuedToId", as: "borrowedBooks" });
+
+LibraryBookIssuance.belongsTo(User, { foreignKey: "issuedById", as: "issuedBy" });
+User.hasMany(LibraryBookIssuance, { foreignKey: "issuedById", as: "issuedBooks" });
+
+LibraryBookIssuance.belongsTo(Tenant, { foreignKey: "tenantId", as: "organization" });
+Tenant.hasMany(LibraryBookIssuance, { foreignKey: "tenantId", as: "libraryBookIssuances" });
+
 Tenant.addScope("active", { where: { status: "active" } });
 
 export {
@@ -354,4 +365,5 @@ export {
   FeeHead,
   FeeStructure,
   FeeStructureItem,
+  LibraryBookIssuance,
 };
